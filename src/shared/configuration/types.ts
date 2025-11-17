@@ -1,36 +1,29 @@
 import { DeckConfiguration, DiscoverWordConfiguration } from '../anki/types';
-import { JPDBCardState } from '../jpdb/types';
+import { JitenCardState } from '../jiten/types';
 
 export type Keybind = { key: string; code: string; modifiers: string[] };
 export type Keybinds = Keybind | [Keybind?, Keybind?];
 export type ConfigurationSchema = {
   schemaVersion: number;
 
-  //#region JPDB Integration
+  //#region Jiten Integration
 
-  jpdbApiToken: string;
+  jitenApiKey: string;
 
   //#endregion
   //#region Mining configuration
 
-  jpdbAddToForq: boolean;
+  jitenAddToForq: boolean;
   setSentences: boolean;
-  jpdbDisableReviews: boolean;
-  jpdbUseTwoGrades: boolean;
+  jitenDisableReviews: boolean;
+  jitenUseTwoGrades: boolean;
 
-  // JPDB Flag settings
-  jpdbRotateFlags: boolean;
-  jpdbRotateCycle: boolean;
-  jpdbCycleNeverForget: boolean;
-  jpdbCycleBlacklist: boolean;
-  jpdbCycleSuspended: boolean;
-
-  // JPDB decks
-  jpdbMiningDeck: string;
-  jpdbBlacklistDeck: string;
-  jpdbForqDeck: string;
-  jpdbSuspendDeck: string;
-  jpdbNeverForgetDeck: string;
+  // Jiten Flag settings
+  jitenRotateFlags: boolean;
+  jitenRotateCycle: boolean;
+  jitenCycleNeverForget: boolean;
+  jitenCycleBlacklist: boolean;
+  jitenCycleSuspended: boolean;
 
   //#endregion
   //#region Parsing
@@ -47,7 +40,7 @@ export type ConfigurationSchema = {
   //#endregion
   //#region Texthighlighting
 
-  newStates: JPDBCardState[];
+  newStates: JitenCardState[];
 
   markTopX: boolean;
   markTopXCount: number;
@@ -101,17 +94,17 @@ export type ConfigurationSchema = {
   addToSuspendedKey: Keybinds;
 
   // Review keybinds
-  jpdbReviewNothing: Keybinds;
-  jpdbReviewSomething: Keybinds;
-  jpdbReviewHard: Keybinds;
-  jpdbReviewOkay: Keybinds;
-  jpdbReviewEasy: Keybinds;
-  jpdbReviewFail: Keybinds;
-  jpdbReviewPass: Keybinds;
+  jitenReviewNothing: Keybinds;
+  jitenReviewSomething: Keybinds;
+  jitenReviewHard: Keybinds;
+  jitenReviewOkay: Keybinds;
+  jitenReviewEasy: Keybinds;
+  jitenReviewFail: Keybinds;
+  jitenReviewPass: Keybinds;
 
   // Rotation keybinds
-  jpdbRotateForward: Keybinds;
-  jpdbRotateBackward: Keybinds;
+  jitenRotateForward: Keybinds;
+  jitenRotateBackward: Keybinds;
 
   //#endregion
   //#region Anki Integration (not implemented!)

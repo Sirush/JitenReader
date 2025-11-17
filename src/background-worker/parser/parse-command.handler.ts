@@ -24,9 +24,9 @@ export class ParseCommandHandler extends BackgroundCommandHandler<ParseCommand> 
     sender: MessageSender,
     data: [sequenceId: number, text: string][],
   ): Promise<void> {
-    const jpdbApiKey = await getConfiguration('jpdbApiToken');
+    const jitenApiKey = await getConfiguration('jitenApiKey');
 
-    if (!jpdbApiKey?.length) {
+    if (!jitenApiKey?.length) {
       await this._failToast.call(sender.tab!.id!);
       await openOptionsPage();
 

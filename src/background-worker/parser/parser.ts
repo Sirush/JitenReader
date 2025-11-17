@@ -1,5 +1,5 @@
-import { parse } from '@shared/jpdb/parse';
-import { JPDBCard, JPDBRawToken, JPDBRawVocabulary, JPDBToken } from '@shared/jpdb/types';
+import { parse } from '@shared/jiten/parse';
+import { JitenCard, JitenRawVocabulary, JitenToken, JitenRuby } from '@shared/jiten/types';
 import { Batch } from './parser.types';
 import { getPitchClass } from './pitch-accent-utils';
 
@@ -11,7 +11,7 @@ export class Parser {
     const { tokens, vocabulary } = await parse(paragraphs);
 
     const cards = this.vocabToCard(vocabulary);
-    const parsedTokens = this.parseTokens(tokens, cards);
+    const parsedTokens = this.parseTokens(tokens, cards, vocabulary);
 
     this.addSentenceInfo(paragraphs, parsedTokens);
 
@@ -20,93 +20,121 @@ export class Parser {
     }
   }
 
-  private vocabToCard(vocabulary: JPDBRawVocabulary[]): JPDBCard[] {
+  private extractRubiesFromAnnotated(input: string): JitenRuby[] {
+    const rubies: JitenRuby[] = [];
+    let offset = 0;
+
+    const regex = /([^\[\]]+)(?:\[([^\[\]]+)\])?/g;
+    let match: RegExpExecArray | null;
+
+    while ((match = regex.exec(input)) !== null) {
+      const base = match[1];
+      const ruby = match[2];
+
+      if (ruby) {
+        const start = offset;
+        const length = base.length;
+        const end = start + length;
+
+        rubies.push({
+          text: ruby,
+          start,
+          end,
+          length,
+        });
+
+        offset = end;
+      } else {
+        offset += base.length;
+      }
+    }
+
+    return rubies;
+  }
+
+  private vocabToCard(vocabulary: JitenRawVocabulary[]): JitenCard[] {
     return vocabulary.map((vocab) => {
-      const [
-        vid,
-        sid,
-        rid,
+      const {
+        wordId,
+        readingIndex,
         spelling,
         reading,
         frequencyRank,
-        partOfSpeech,
+        partsOfSpeech,
         meaningsChunks,
         meaningsPartOfSpeech,
-        cardState,
+        knownState,
         pitchAccent,
-      ] = vocab;
+      } = vocab;
 
       return {
-        vid,
-        sid,
-        rid,
+        wordId,
+        readingIndex,
         spelling,
         reading,
         frequencyRank,
-        partOfSpeech,
+        partsOfSpeech: Array.isArray(partsOfSpeech) ? partsOfSpeech : [partsOfSpeech],
         meanings: meaningsChunks.map((glosses, i) => ({
           glosses,
-          partOfSpeech: meaningsPartOfSpeech[i],
+          partsOfSpeech: meaningsPartOfSpeech[i],
         })),
-        cardState: cardState?.length ? cardState : ['not-in-deck'],
+        cardState: knownState == 0 ? ['new'] : knownState == 1 ? ['young'] : ['mature'],
         pitchAccent: pitchAccent ?? [],
         wordWithReading: null,
       };
     });
   }
 
-  private parseTokens(tokens: JPDBRawToken[][], cards: JPDBCard[]): JPDBToken[][] {
-    return tokens.map((innerTokens) => {
+  private parseTokens(
+    tokens: JitenToken[][],
+    cards: JitenCard[],
+    vocabulary: JitenRawVocabulary[],
+  ): JitenToken[][] {
+    return tokens.map((group) => {
       let lastPitchClass = '';
 
-      return innerTokens.map((token) => {
-        const [vocabularyIndex, position, length, furigana] = token;
-        const card = cards[vocabularyIndex];
+      return group.map((token) => {
+        const vocabEntry = vocabulary.find((v) => {
+          return v.wordId === token.wordId && v.readingIndex === token.readingIndex;
+        });
 
-        let offset = position;
+        const card = cards.find(
+          (c) => c.wordId === token.wordId && c.readingIndex === token.readingIndex,
+        )!;
 
-        const rubies =
-          furigana === null
-            ? []
-            : furigana.flatMap((part) => {
-                if (typeof part === 'string') {
-                  offset += part.length;
-
-                  return [];
-                }
-
-                const [base, ruby] = part;
-                const start = offset;
-                const length = base.length;
-                const end = (offset = start + length);
-
-                return { text: ruby, start, end, length };
-              });
-
-        const isParticle = card.partOfSpeech.includes('prt');
+        const isParticle = card.partsOfSpeech.includes('prt');
         const pitchClass = isParticle ? '' : getPitchClass(card.pitchAccent, card.reading);
 
         lastPitchClass = pitchClass || lastPitchClass;
 
-        const result: JPDBToken = {
+        const rubies = vocabEntry?.reading
+          ? this.extractRubiesFromAnnotated(vocabEntry.reading).map((ruby) => ({
+              ...ruby,
+              start: token.start + ruby.start,
+              end: token.start + ruby.start + ruby.length,
+            }))
+          : [];
+
+        const updated: JitenToken = {
+          ...token,
           card,
-          start: position,
-          end: position + length,
-          length: length,
-          rubies,
           pitchClass: lastPitchClass,
+          rubies,
         };
 
-        this.assignWordWithReading(result);
+        if (card) {
+          this.assignWordWithReadingJiten(updated, card);
+        }
 
-        return result;
+        return updated;
       });
     });
   }
 
-  private assignWordWithReading(token: JPDBToken): void {
-    const { card, rubies: ruby, start: offset } = token;
-    const { spelling: kanji } = card;
+  private assignWordWithReadingJiten(token: JitenToken, card: JitenCard): void {
+    const ruby = token.rubies;
+    const offset = token.start;
+    const kanji = card.spelling;
 
     if (!ruby.length) {
       return;
@@ -123,7 +151,7 @@ export class Parser {
     card.wordWithReading = word.join('');
   }
 
-  private addSentenceInfo(paragraphs: string[], tokens: JPDBToken[][]): void {
+  private addSentenceInfo(paragraphs: string[], tokens: JitenToken[][]): void {
     paragraphs.forEach((paragraph, i) => {
       const tokenData = tokens[i];
       const sentences = this.splitJapaneseTextIntoSentences(paragraph);

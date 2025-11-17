@@ -1,290 +1,290 @@
 <!doctype html>
 <html class="dark-mode">
-  <head>
-    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-    <meta http-equiv="Content-language" content="en" />
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-    <meta name="theme-color" content="#181818" />
-    <title>Settings - Anki JPDB Reader</title>
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-language" content="en" />
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#181818" />
+  <title>Settings - Jiten Reader</title>
 
-    <link rel="icon" type="image/png" sizes="16x16" href="../assets/16.png" />
-    <link rel="icon" type="image/png" sizes="48x48" href="../assets/48.png" />
-    <link rel="stylesheet" media="screen" href="../assets/font-awesome.min.css" />
+  <link rel="icon" type="image/png" sizes="16x16" href="../assets/16.png" />
+  <link rel="icon" type="image/png" sizes="48x48" href="../assets/48.png" />
+  <link rel="stylesheet" media="screen" href="../assets/font-awesome.min.css" />
 
-    <script async type="text/javascript" src="../js/settings.js"></script>
-    <link rel="stylesheet" media="screen" href="../css/settings.css" />
-  </head>
+  <script async type="text/javascript" src="../js/settings.js"></script>
+  <link rel="stylesheet" media="screen" href="../css/settings.css" />
+</head>
 
-  <body style="font-size: 100%">
-    <div class="container" style="padding-top: 1em">
-      <h4 style="text-align: center; opacity: 0.85">Settings</h4>
-      <form>
-        <div id="jpdb-integration" class="section">
-          <h6>JPDB Integration</h6>
-          <div class="form-box-parent">
-            <div class="form-box">
+<body style="font-size: 100%">
+<div class="container" style="padding-top: 1em">
+  <h4 style="text-align: center; opacity: 0.85">Settings</h4>
+  <form>
+    <div id="jiten-integration" class="section">
+      <h6>Jiten Integration</h6>
+      <div class="form-box-parent">
+        <div class="form-box">
+          <div>
+            <label for="jitenApiKey">Jiten API Key</label>
+            <div class="inline-group">
+              <input type="password" id="jitenApiKey" name="jitenApiKey" />
               <div>
-                <label for="jpdbApiToken">JPDB API Token</label>
-                <div class="inline-group">
-                  <input type="password" id="jpdbApiToken" name="jpdbApiToken" />
-                  <div>
-                    <input
-                      type="button"
-                      id="apiTokenButton"
-                      class="button outline small"
-                      value="⭯"
-                    />
-                  </div>
-                </div>
-                <p style="opacity: 0.8">
-                  To find your API token, visit the
-                  <a
-                    href="https://jpdb.io/settings#:~:text=in%20the%20future.-,Account%20information,-Username"
-                    target="_blank"
-                    >JPDB settings page</a
-                  >
-                  and scroll to the very bottom.
-                </p>
+                <input
+                  type="button"
+                  id="apiTokenButton"
+                  class="button outline small"
+                  value="⭯"
+                />
               </div>
+            </div>
+            <p style="opacity: 0.8">
+              To find your API key, visit the
+              <a
+                href="https://jiten.moe/settings#:~:text=API%20Key"
+                target="_blank"
+              >Jiten settings page</a
+              >
+              and scroll to the very bottom.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div id="DEBUG_ANKI" class="form-box-parent" style="display: none">
+        <div class="form-box">
+          <div>
+            <div class="checkbox">
+              <input type="checkbox" id="enableAnkiIntegration" name="enableAnkiIntegration" />
+              <label for="enableAnkiIntegration">Mine into Anki instead of Jiten</label>
             </div>
           </div>
+          <p style="opacity: 0.8">Anki will be implemented at a later point in time.</p>
+        </div>
+      </div>
+    </div>
 
-          <div id="DEBUG_ANKI" class="form-box-parent" style="display: none">
-            <div class="form-box">
+    <div data-show="enableAnkiIntegration" class="collapsible section" skip-animation>
+      <h6>Anki Integration</h6>
+
+      <div class="form-box-parent">
+        <div class="form-box">
+          <div>
+            <label for="ankiUrl">AnkiConnect Endpoint URL</label>
+            <div class="inline-group">
+              <input type="text" id="ankiUrl" name="ankiUrl" />
               <div>
-                <div class="checkbox">
-                  <input type="checkbox" id="enableAnkiIntegration" name="enableAnkiIntegration" />
-                  <label for="enableAnkiIntegration">Mine into Anki instead of JPDB</label>
-                </div>
+                <input
+                  type="button"
+                  id="ankiUrlButton"
+                  class="button outline small"
+                  value="⭯"
+                />
               </div>
-              <p style="opacity: 0.8">Anki will be implemented at a later point in time.</p>
             </div>
+            <p style="opacity: 0.8; margin-bottom: 0">
+              To find your AnkiConnect endpoint URL, go to Anki -> Tools -> Add-ons ->
+              AnkiConnect -> Config.
+            </p>
+            <p style="opacity: 0.8; margin-bottom: 0">
+              Enter the <code>webBindAddress</code> as well as the <code>webBindPort</code> as
+              <code>webBindAddress:webBindPort</code> - the default is
+              <code>127.0.0.1:8765</code>.
+            </p>
+            <p style="opacity: 0.8; margin-bottom: 0">
+              Install the
+              <a href="https://ankiweb.net/shared/info/2055492159" target="_blank"
+              >AnkiConnect</a
+              >
+              add-on if you haven't already.
+            </p>
           </div>
         </div>
 
-        <div data-show="enableAnkiIntegration" class="collapsible section" skip-animation>
-          <h6>Anki Integration</h6>
-
-          <div class="form-box-parent">
-            <div class="form-box">
+        <div class="form-box">
+          <div>
+            <label for="ankiProxyUrl">AnkiConnect Endpoint Proxy</label>
+            <div class="inline-group">
+              <input type="text" id="ankiProxyUrl" name="ankiProxyUrl" />
               <div>
-                <label for="ankiUrl">AnkiConnect Endpoint URL</label>
-                <div class="inline-group">
-                  <input type="text" id="ankiUrl" name="ankiUrl" />
-                  <div>
-                    <input
-                      type="button"
-                      id="ankiUrlButton"
-                      class="button outline small"
-                      value="⭯"
-                    />
-                  </div>
-                </div>
-                <p style="opacity: 0.8; margin-bottom: 0">
-                  To find your AnkiConnect endpoint URL, go to Anki -> Tools -> Add-ons ->
-                  AnkiConnect -> Config.
-                </p>
-                <p style="opacity: 0.8; margin-bottom: 0">
-                  Enter the <code>webBindAddress</code> as well as the <code>webBindPort</code> as
-                  <code>webBindAddress:webBindPort</code> - the default is
-                  <code>127.0.0.1:8765</code>.
-                </p>
-                <p style="opacity: 0.8; margin-bottom: 0">
-                  Install the
-                  <a href="https://ankiweb.net/shared/info/2055492159" target="_blank"
-                    >AnkiConnect</a
-                  >
-                  add-on if you haven't already.
-                </p>
+                <input
+                  type="button"
+                  id="ankiProxyUrlButton"
+                  class="button outline small"
+                  value="⭯"
+                />
               </div>
             </div>
-
-            <div class="form-box">
-              <div>
-                <label for="ankiProxyUrl">AnkiConnect Endpoint Proxy</label>
-                <div class="inline-group">
-                  <input type="text" id="ankiProxyUrl" name="ankiProxyUrl" />
-                  <div>
-                    <input
-                      type="button"
-                      id="ankiProxyUrlButton"
-                      class="button outline small"
-                      value="⭯"
-                    />
-                  </div>
-                </div>
-                <p style="opacity: 0.8; margin-bottom: 0">
-                  You can define an additional proxy for the AnkiConnect endpoint. This is useful if
-                  you are using asbplayer's
-                  <a
-                    href="https://github.com/killergerbah/asbplayer?tab=readme-ov-file#advanced-features"
-                    target="_blank"
-                    >auto capture option</a
-                  >, for example.
-                </p>
-                <p style="opacity: 0.8; margin-bottom: 0">
-                  With this, you can tunnel only a select few requests through the proxy to avoid
-                  triggering captures on blacklist items, for example.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div data-show="ankiUrl && enableAnkiIntegration">
-            <h6>Mining</h6>
-            <mining-input id="ankiMiningConfig" name="ankiMiningConfig" title="Mining Deck">
-              <p>This is your <b>mining deck</b>. Cards you mine will be saved here.</p>
-              <p>
-                Words from this deck will be displayed according to their learning state in Anki.
-              </p>
-              <p>The Word and Reading configuration will also be used to look up words in Anki.</p>
-            </mining-input>
-            <mining-input
-              id="ankiNeverForgetConfig"
-              name="ankiNeverForgetConfig"
-              title="Never Forget Deck"
-            >
-              <p>
-                This is your <b>never forget deck</b>. Cards you won't ever forget will be saved
-                here.
-              </p>
-              <p>Words from this deck will be displayed as known.</p>
-              <p>The Word and Reading configuration will also be used to look up words in Anki.</p>
-            </mining-input>
-            <mining-input
-              id="ankiBlacklistConfig"
-              name="ankiBlacklistConfig"
-              title="Blacklist Deck"
-            >
-              <p>
-                This is your <b>blacklist deck</b>. Cards you don't want to learn will be saved
-                here.
-              </p>
-              <p>Words from this deck will be displayed as suspended.</p>
-              <p>The Word and Reading configuration will also be used to look up words in Anki.</p>
-            </mining-input>
+            <p style="opacity: 0.8; margin-bottom: 0">
+              You can define an additional proxy for the AnkiConnect endpoint. This is useful if
+              you are using asbplayer's
+              <a
+                href="https://github.com/killergerbah/asbplayer?tab=readme-ov-file#advanced-features"
+                target="_blank"
+              >auto capture option</a
+              >, for example.
+            </p>
+            <p style="opacity: 0.8; margin-bottom: 0">
+              With this, you can tunnel only a select few requests through the proxy to avoid
+              triggering captures on blacklist items, for example.
+            </p>
           </div>
         </div>
+      </div>
 
-        <div id="mining-configuration" class="section" data-show="jpdbApiToken">
-          <h6>Mining Configuration</h6>
+      <div data-show="ankiUrl && enableAnkiIntegration">
+        <h6>Mining</h6>
+        <mining-input id="ankiMiningConfig" name="ankiMiningConfig" title="Mining Deck">
+          <p>This is your <b>mining deck</b>. Cards you mine will be saved here.</p>
+          <p>
+            Words from this deck will be displayed according to their learning state in Anki.
+          </p>
+          <p>The Word and Reading configuration will also be used to look up words in Anki.</p>
+        </mining-input>
+        <mining-input
+          id="ankiNeverForgetConfig"
+          name="ankiNeverForgetConfig"
+          title="Never Forget Deck"
+        >
+          <p>
+            This is your <b>never forget deck</b>. Cards you won't ever forget will be saved
+            here.
+          </p>
+          <p>Words from this deck will be displayed as known.</p>
+          <p>The Word and Reading configuration will also be used to look up words in Anki.</p>
+        </mining-input>
+        <mining-input
+          id="ankiBlacklistConfig"
+          name="ankiBlacklistConfig"
+          title="Blacklist Deck"
+        >
+          <p>
+            This is your <b>blacklist deck</b>. Cards you don't want to learn will be saved
+            here.
+          </p>
+          <p>Words from this deck will be displayed as suspended.</p>
+          <p>The Word and Reading configuration will also be used to look up words in Anki.</p>
+        </mining-input>
+      </div>
+    </div>
 
-          <div class="form-box-parent">
-            <div class="form-box">
-              <div>
-                <div class="checkbox">
-                  <input type="checkbox" id="jpdbAddToForq" name="jpdbAddToForq" />
-                  <label for="jpdbAddToForq">Add to FORQ when mining</label>
-                </div>
-              </div>
+    <div id="mining-configuration" class="section" data-show="jitenApiKey">
+      <h6>Mining Configuration</h6>
 
-              <div>
-                <div class="checkbox">
-                  <input type="checkbox" id="setSentences" name="setSentences" />
-                  <label for="setSentences">Set sentence on card after mining</label>
-                </div>
-              </div>
+      <div class="form-box-parent">
+        <div class="form-box">
+          <!--              <div>-->
+          <!--                <div class="checkbox">-->
+          <!--                  <input type="checkbox" id="jitenAddToForq" name="jitenAddToForq" />-->
+          <!--                  <label for="jitenAddToForq">Add to FORQ when mining</label>-->
+          <!--                </div>-->
+          <!--              </div>-->
 
-              <div>
-                <div class="checkbox">
-                  <input type="checkbox" id="jpdbDisableReviews" name="jpdbDisableReviews" />
-                  <label for="jpdbDisableReviews">Disable review actions</label>
-                </div>
-              </div>
+          <!--              <div>-->
+          <!--                <div class="checkbox">-->
+          <!--                  <input type="checkbox" id="setSentences" name="setSentences" />-->
+          <!--                  <label for="setSentences">Set sentence on card after mining</label>-->
+          <!--                </div>-->
+          <!--              </div>-->
 
-              <div data-show="!jpdbDisableReviews" indent>
-                <div class="checkbox">
-                  <input type="checkbox" id="jpdbUseTwoGrades" name="jpdbUseTwoGrades" />
-                  <label for="jpdbUseTwoGrades">Use a 2-point pass/fail grading scale</label>
-                </div>
-              </div>
-
-              <div>
-                <div class="checkbox">
-                  <input type="checkbox" id="jpdbRotateFlags" name="jpdbRotateFlags" />
-                  <label for="jpdbRotateFlags">Cycle between decks</label>
-                </div>
-                <p style="opacity: 0.8" indent up>
-                  If enabled, you can move a word from one deck to another by pressing a keybind.
-                </p>
-              </div>
-
-              <div data-show="jpdbRotateFlags" indent>
-                <div class="checkbox">
-                  <input type="checkbox" id="jpdbRotateCycle" name="jpdbRotateCycle" />
-                  <label for="jpdbRotateCycle">Don't remove from any deck when cycling</label>
-                </div>
-                <p style="opacity: 0.8" indent up>
-                  If set, a word won't be removed from any deck when cycling. Otherwise, it will be
-                  removed when the last deck in the chain is reached.
-                </p>
-              </div>
-
-              <div data-show="jpdbRotateFlags" indent>
-                <div class="checkbox">
-                  <input type="checkbox" id="jpdbCycleNeverForget" name="jpdbCycleNeverForget" />
-                  <label for="jpdbCycleNeverForget"
-                    >Use Never Forget when cycling between decks</label
-                  >
-                </div>
-              </div>
-
-              <div data-show="jpdbRotateFlags" indent>
-                <div class="checkbox">
-                  <input type="checkbox" id="jpdbCycleBlacklist" name="jpdbCycleBlacklist" />
-                  <label for="jpdbCycleBlacklist">Use Blacklist when cycling between decks</label>
-                </div>
-              </div>
-
-              <div data-show="jpdbRotateFlags" indent>
-                <div class="checkbox">
-                  <input type="checkbox" id="jpdbCycleSuspended" name="jpdbCycleSuspended" />
-                  <label for="jpdbCycleSuspended">Use Suspend when cycling between decks</label>
-                </div>
-              </div>
+          <div>
+            <div class="checkbox">
+              <input type="checkbox" id="jitenDisableReviews" name="jitenDisableReviews" />
+              <label for="jitenDisableReviews">Disable review actions</label>
             </div>
           </div>
 
-          <div class="form-box-parent">
-            <div class="form-box">
-              <div>
-                <label for="jpdbMiningDeck">Mining Deck</label>
-                <select data-type="jpdb-deck" id="jpdbMiningDeck" name="jpdbMiningDeck"></select>
-              </div>
-
-              <div>
-                <label for="jpdbBlacklistDeck">Blacklist Deck</label>
-                <select
-                  data-type="jpdb-deck"
-                  id="jpdbBlacklistDeck"
-                  name="jpdbBlacklistDeck"
-                ></select>
-              </div>
-
-              <div data-show="jpdbAddToForq">
-                <label for="jpdbForqDeck">FORQ Deck</label>
-                <select data-type="jpdb-deck" id="jpdbForqDeck" name="jpdbForqDeck"></select>
-              </div>
-            </div>
-
-            <div class="form-box">
-              <div>
-                <label for="jpdbNeverForgetDeck">Never Forget Deck</label>
-                <select
-                  data-type="jpdb-deck"
-                  id="jpdbNeverForgetDeck"
-                  name="jpdbNeverForgetDeck"
-                ></select>
-              </div>
-
-              <div>
-                <label for="jpdbSuspendDeck">Suspend Card Deck</label>
-                <select data-type="jpdb-deck" id="jpdbSuspendDeck" name="jpdbSuspendDeck"></select>
-              </div>
+          <div data-show="!jitenDisableReviews" indent>
+            <div class="checkbox">
+              <input type="checkbox" id="jitenUseTwoGrades" name="jitenUseTwoGrades" />
+              <label for="jitenUseTwoGrades">Use a 2-point pass/fail grading scale</label>
             </div>
           </div>
+
+          <!--              <div>-->
+          <!--                <div class="checkbox">-->
+          <!--                  <input type="checkbox" id="jitenRotateFlags" name="jitenRotateFlags" />-->
+          <!--                  <label for="jitenRotateFlags">Cycle between decks</label>-->
+          <!--                </div>-->
+          <!--                <p style="opacity: 0.8" indent up>-->
+          <!--                  If enabled, you can move a word from one deck to another by pressing a keybind.-->
+          <!--                </p>-->
+          <!--              </div>-->
+
+          <!--              <div data-show="jitenRotateFlags" indent>-->
+          <!--                <div class="checkbox">-->
+          <!--                  <input type="checkbox" id="jitenRotateCycle" name="jitenRotateCycle" />-->
+          <!--                  <label for="jitenRotateCycle">Don't remove from any deck when cycling</label>-->
+          <!--                </div>-->
+          <!--                <p style="opacity: 0.8" indent up>-->
+          <!--                  If set, a word won't be removed from any deck when cycling. Otherwise, it will be-->
+          <!--                  removed when the last deck in the chain is reached.-->
+          <!--                </p>-->
+          <!--              </div>-->
+
+          <!--              <div data-show="jitenRotateFlags" indent>-->
+          <!--                <div class="checkbox">-->
+          <!--                  <input type="checkbox" id="jitenCycleNeverForget" name="jitenCycleNeverForget" />-->
+          <!--                  <label for="jitenCycleNeverForget"-->
+          <!--                    >Use Never Forget when cycling between decks</label-->
+          <!--                  >-->
+          <!--                </div>-->
+          <!--              </div>-->
+
+          <!--              <div data-show="jitenRotateFlags" indent>-->
+          <!--                <div class="checkbox">-->
+          <!--                  <input type="checkbox" id="jitenCycleBlacklist" name="jitenCycleBlacklist" />-->
+          <!--                  <label for="jitenCycleBlacklist">Use Blacklist when cycling between decks</label>-->
+          <!--                </div>-->
+          <!--              </div>-->
+
+          <!--              <div data-show="jitenRotateFlags" indent>-->
+          <!--                <div class="checkbox">-->
+          <!--                  <input type="checkbox" id="jitenCycleSuspended" name="jitenCycleSuspended" />-->
+          <!--                  <label for="jitenCycleSuspended">Use Suspend when cycling between decks</label>-->
+          <!--                </div>-->
+          <!--              </div>-->
+          <!--            </div>-->
         </div>
+
+        <!--          <div class="form-box-parent">-->
+        <!--            <div class="form-box">-->
+        <!--              <div>-->
+        <!--                <label for="jpdbMiningDeck">Mining Deck</label>-->
+        <!--                <select data-type="jpdb-deck" id="jpdbMiningDeck" name="jpdbMiningDeck"></select>-->
+        <!--              </div>-->
+
+        <!--              <div>-->
+        <!--                <label for="jpdbBlacklistDeck">Blacklist Deck</label>-->
+        <!--                <select-->
+        <!--                  data-type="jpdb-deck"-->
+        <!--                  id="jpdbBlacklistDeck"-->
+        <!--                  name="jpdbBlacklistDeck"-->
+        <!--                ></select>-->
+        <!--              </div>-->
+
+        <!--              <div data-show="jitenAddToForq">-->
+        <!--                <label for="jpdbForqDeck">FORQ Deck</label>-->
+        <!--                <select data-type="jpdb-deck" id="jpdbForqDeck" name="jpdbForqDeck"></select>-->
+        <!--              </div>-->
+        <!--            </div>-->
+
+        <!--            <div class="form-box">-->
+        <!--              <div>-->
+        <!--                <label for="jpdbNeverForgetDeck">Never Forget Deck</label>-->
+        <!--                <select-->
+        <!--                  data-type="jpdb-deck"-->
+        <!--                  id="jpdbNeverForgetDeck"-->
+        <!--                  name="jpdbNeverForgetDeck"-->
+        <!--                ></select>-->
+        <!--              </div>-->
+
+        <!--              <div>-->
+        <!--                <label for="jpdbSuspendDeck">Suspend Card Deck</label>-->
+        <!--                <select data-type="jpdb-deck" id="jpdbSuspendDeck" name="jpdbSuspendDeck"></select>-->
+        <!--              </div>-->
+        <!--            </div>-->
+        <!--          </div>-->
+        <!--        </div>-->
 
         <div id="parsing" class="section">
           <h6>Parsing</h6>
@@ -294,7 +294,7 @@
                 <div class="checkbox">
                   <input type="checkbox" id="hideInactiveTabs" name="hideInactiveTabs" />
                   <label for="hideInactiveTabs"
-                    >Only show the currently opened tab in parse selection</label
+                  >Only show the currently opened tab in parse selection</label
                   >
                 </div>
               </div>
@@ -303,7 +303,7 @@
                 <div class="checkbox">
                   <input type="checkbox" id="showCurrentOnTop" name="showCurrentOnTop" />
                   <label for="showCurrentOnTop"
-                    >Show the current tab on top of the tab selection list</label
+                  >Show the current tab on top of the tab selection list</label
                   >
                 </div>
               </div>
@@ -312,7 +312,7 @@
                 <div class="checkbox">
                   <input type="checkbox" id="showParseButton" name="showParseButton" />
                   <label for="showParseButton"
-                    >Show a small parse page button at the bottom right of manually parsed
+                  >Show a small parse page button at the bottom right of manually parsed
                     pages</label
                   >
                 </div>
@@ -600,39 +600,39 @@
                 <div class="checkbox">
                   <input type="checkbox" id="moveMiningActions" name="moveMiningActions" />
                   <label for="moveMiningActions"
-                    >Move Mining actions to the bottom of the popup</label
+                  >Move Mining actions to the bottom of the popup</label
                   >
                 </div>
               </div>
 
-              <div data-show="jpdbRotateFlags">
-                <div class="checkbox">
-                  <input type="checkbox" id="showRotateActions" name="showRotateActions" />
-                  <label for="showRotateActions">Show flag rotation controls in the popup</label>
-                </div>
-              </div>
+              <!--              <div data-show="jitenRotateFlags">-->
+              <!--                <div class="checkbox">-->
+              <!--                  <input type="checkbox" id="showRotateActions" name="showRotateActions" />-->
+              <!--                  <label for="showRotateActions">Show flag rotation controls in the popup</label>-->
+              <!--                </div>-->
+              <!--              </div>-->
 
-              <div data-show="jpdbRotateFlags && showRotateActions" id="moveRotateDown" indent>
-                <div class="checkbox">
-                  <input type="checkbox" id="moveRotateActions" name="moveRotateActions" />
-                  <label for="moveRotateActions"
-                    >Move Rotate Flags actions to the bottom of the popup</label
-                  >
-                </div>
-              </div>
+              <!--              <div data-show="jitenRotateFlags && showRotateActions" id="moveRotateDown" indent>-->
+              <!--                <div class="checkbox">-->
+              <!--                  <input type="checkbox" id="moveRotateActions" name="moveRotateActions" />-->
+              <!--                  <label for="moveRotateActions"-->
+              <!--                    >Move Rotate Flags actions to the bottom of the popup</label-->
+              <!--                  >-->
+              <!--                </div>-->
+              <!--              </div>-->
 
-              <div data-show="!jpdbDisableReviews">
+              <div data-show="!jitenDisableReviews">
                 <div class="checkbox">
                   <input type="checkbox" id="showGradingActions" name="showGradingActions" />
                   <label for="showGradingActions">Show review controls in the popup</label>
                 </div>
               </div>
 
-              <div data-show="showGradingActions && !jpdbDisableReviews" indent>
+              <div data-show="showGradingActions && !jitenDisableReviews" indent>
                 <div class="checkbox">
                   <input type="checkbox" id="moveGradingActions" name="moveGradingActions" />
                   <label for="moveGradingActions"
-                    >Move Review actions to the bottom of the popup</label
+                  >Move Review actions to the bottom of the popup</label
                   >
                 </div>
               </div>
@@ -652,7 +652,7 @@
                     name="hidePopupAutomatically"
                   />
                   <label for="hidePopupAutomatically"
-                    >Hide popup automatically after leaving it</label
+                  >Hide popup automatically after leaving it</label
                   >
                 </div>
                 <p style="opacity: 0.8" indent up>
@@ -763,60 +763,60 @@
             </div>
           </details>
 
-          <details data-show="!jpdbDisableReviews" class="accordion">
+          <details data-show="!jitenDisableReviews" class="accordion">
             <summary>Review</summary>
 
-            <div data-show="!jpdbUseTwoGrades">
+            <div data-show="!jitenUseTwoGrades">
               <div>
-                <label for="jpdbReviewNothing">Review word as nothing</label>
-                <keybind-input id="jpdbReviewNothing" name="jpdbReviewNothing"></keybind-input>
+                <label for="jitenReviewNothing">Review word as nothing</label>
+                <keybind-input id="jitenReviewNothing" name="jitenReviewNothing"></keybind-input>
               </div>
 
               <div>
-                <label for="jpdbReviewSomething">Review word as something</label>
-                <keybind-input id="jpdbReviewSomething" name="jpdbReviewSomething"></keybind-input>
+                <label for="jitenReviewSomething">Review word as something</label>
+                <keybind-input id="jitenReviewSomething" name="jitenReviewSomething"></keybind-input>
               </div>
 
               <div>
-                <label for="jpdbReviewHard">Review word as hard</label>
-                <keybind-input id="jpdbReviewHard" name="jpdbReviewHard"></keybind-input>
+                <label for="jitenReviewHard">Review word as hard</label>
+                <keybind-input id="jitenReviewHard" name="jitenReviewHard"></keybind-input>
               </div>
 
               <div>
-                <label for="jpdbReviewOkay">Review word as okay</label>
-                <keybind-input id="jpdbReviewOkay" name="jpdbReviewOkay"></keybind-input>
+                <label for="jitenReviewOkay">Review word as okay</label>
+                <keybind-input id="jitenReviewOkay" name="jitenReviewOkay"></keybind-input>
               </div>
 
               <div>
-                <label for="jpdbReviewEasy">Review word as easy</label>
-                <keybind-input id="jpdbReviewEasy" name="jpdbReviewEasy"></keybind-input>
+                <label for="jitenReviewEasy">Review word as easy</label>
+                <keybind-input id="jitenReviewEasy" name="jitenReviewEasy"></keybind-input>
               </div>
             </div>
 
-            <div data-show="jpdbUseTwoGrades">
+            <div data-show="jitenUseTwoGrades">
               <div>
-                <label for="jpdbReviewFail">Review word as fail</label>
-                <keybind-input id="jpdbReviewFail" name="jpdbReviewFail"></keybind-input>
+                <label for="jitenReviewFail">Review word as fail</label>
+                <keybind-input id="jitenReviewFail" name="jitenReviewFail"></keybind-input>
               </div>
 
               <div>
-                <label for="jpdbReviewPass">Review word as pass</label>
-                <keybind-input id="jpdbReviewPass" name="jpdbReviewPass"></keybind-input>
+                <label for="jitenReviewPass">Review word as pass</label>
+                <keybind-input id="jitenReviewPass" name="jitenReviewPass"></keybind-input>
               </div>
             </div>
           </details>
 
-          <details data-show="jpdbRotateFlags" class="accordion">
+          <details data-show="jitenRotateFlags" class="accordion">
             <summary>Rotate Flags</summary>
 
             <div>
-              <label for="jpdbRotateForward">Rotate flags forward</label>
-              <keybind-input id="jpdbRotateForward" name="jpdbRotateForward"></keybind-input>
+              <label for="jitenRotateForward">Rotate flags forward</label>
+              <keybind-input id="jitenRotateForward" name="jitenRotateForward"></keybind-input>
             </div>
 
             <div>
-              <label for="jpdbRotateBackward">Rotate flags backward</label>
-              <keybind-input id="jpdbRotateBackward" name="jpdbRotateBackward"></keybind-input>
+              <label for="jitenRotateBackward">Rotate flags backward</label>
+              <keybind-input id="jitenRotateBackward" name="jitenRotateBackward"></keybind-input>
             </div>
           </details>
         </div>
@@ -842,7 +842,7 @@
             </div>
           </div>
 
-          <div data-show="jpdbApiToken" class="form-box-parent">
+          <div data-show="jitenApiKey" class="form-box-parent">
             <div class="form-box">
               <div>
                 <input
@@ -868,7 +868,7 @@
         </div>
 
         <div style="margin-top: 32px"></div>
-      </form>
-    </div>
-  </body>
+  </form>
+</div>
+</body>
 </html>

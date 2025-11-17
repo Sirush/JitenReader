@@ -135,7 +135,7 @@ export abstract class BaseParser {
     const observer = new MutationObserver((mutations) => {
       const isAffectedNode = (node: Node | Element, mode: 'added' | 'removed'): boolean => {
         if (node instanceof HTMLElement) {
-          const isBreaderToken = node.matches('.jpdb-word');
+          const isBreaderToken = node.matches('.jiten-word');
 
           // If an element is a Breader token, it should be ignored
           if (isBreaderToken) {

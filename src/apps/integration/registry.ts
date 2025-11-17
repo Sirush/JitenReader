@@ -1,4 +1,4 @@
-import { JPDBCard, JPDBCardState } from '@shared/jpdb/types';
+import { JitenCard, JitenCardState } from '@shared/jiten/types';
 import { BatchController } from '../batches/batch-controller';
 import { BaseParser } from '../parser/base.parser';
 import { PopupManager } from '../popup/popup-manager';
@@ -32,15 +32,15 @@ export class Registry {
   public static skipTouchEvents = false;
   public static popupManager?: PopupManager;
 
-  private static readonly cards = new Map<string, JPDBCard>();
+  private static readonly cards = new Map<string, JitenCard>();
 
-  public static addCard(card: JPDBCard): void {
-    this.cards.set(`${card.vid}/${card.sid}`, card);
+  public static addCard(card: JitenCard): void {
+    this.cards.set(`${card.wordId}/${card.readingIndex}`, card);
   }
 
-  public static updateCard(vid: number, sid: number, state: JPDBCardState[]): void {
-    const card = this.getCard(vid, sid);
-    const managedStates = Object.values(JPDBCardState);
+  public static updateCard(wordId: number, readingIndex: number, state: JitenCardState[]): void {
+    const card = this.getCard(wordId, readingIndex);
+    const managedStates = Object.values(JitenCardState);
 
     if (!card) {
       return;
@@ -48,30 +48,32 @@ export class Registry {
 
     card.cardState = state;
 
-    document.querySelectorAll(`[vid="${vid}"][sid="${sid}"]`).forEach((element) => {
-      const classes = Array.from(element.classList).filter(
-        (x) => !managedStates.includes(x as JPDBCardState),
-      );
+    document
+      .querySelectorAll(`[wordId="${wordId}"][readingIndex="${readingIndex}"]`)
+      .forEach((element) => {
+        const classes = Array.from(element.classList).filter(
+          (x) => !managedStates.includes(x as JitenCardState),
+        );
 
-      classes.push(...state);
-      element.classList.value = classes.join(' ');
-    });
+        classes.push(...state);
+        element.classList.value = classes.join(' ');
+      });
 
-    this.sentenceManager.updateCardState(vid, sid, state);
+    this.sentenceManager.updateCardState(wordId, readingIndex, state);
   }
 
-  public static getCard(vid: number | string, sid: number | string): JPDBCard | undefined {
-    return this.cards.get(`${vid}/${sid}`);
+  public static getCard(wordId: number, readingIndex: number): JitenCard | undefined {
+    return this.cards.get(`${wordId}/${readingIndex}`);
   }
 
-  public static getCardFromElement(element: Element): JPDBCard | undefined {
-    const vid = element.getAttribute('vid');
-    const sid = element.getAttribute('sid');
+  public static getCardFromElement(element: Element): JitenCard | undefined {
+    const wordId = element.getAttribute('wordId');
+    const readingIndex = element.getAttribute('readingIndex');
 
-    if (!vid || !sid) {
+    if (!wordId || !readingIndex) {
       return;
     }
 
-    return this.getCard(vid, sid);
+    return this.getCard(parseInt(wordId, 10), parseInt(readingIndex, 10));
   }
 }

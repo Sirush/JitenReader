@@ -1,11 +1,11 @@
-import { JPDBCardState, JPDBToken } from '@shared/jpdb/types';
+import { JitenCardState, JitenToken } from '@shared/jiten/types';
 import { Registry } from './registry';
 
 export class SentenceManager {
   private _sentenceToCards = new Map<string, string[]>();
   private _sentenceToElements = new Map<string, Node[]>();
 
-  private _cardToState = new Map<string, JPDBCardState[]>(); // CHECK
+  private _cardToState = new Map<string, JitenCardState[]>();
   private _cardToSentence = new Map<string, string[]>();
   private _cardToElements = new Map<string, Node[]>();
   private _cardToFrequency = new Map<string, number>();
@@ -20,18 +20,18 @@ export class SentenceManager {
     this._disabled = true;
   }
 
-  public updateCardState(vid: number, sid: number, state: JPDBCardState[]): void {
+  public updateCardState(wordId: number, readingIndex: number, state: JitenCardState[]): void {
     if (this._disabled) {
       return;
     }
 
-    const key = `${vid}/${sid}`;
+    const key = `${wordId}/${readingIndex}`;
 
     this._cardToState.set(key, state);
     this.calculateTargetSentencesByKey(key);
   }
 
-  public addElement(element: Node, token?: JPDBToken): void {
+  public addElement(element: Node, token?: JitenToken): void {
     if (this._disabled) {
       return;
     }
@@ -41,18 +41,18 @@ export class SentenceManager {
     }
 
     const { sentence, card } = token;
-    const { vid, sid, cardState, frequencyRank } = card;
-    const vidSid = `${vid}/${sid}`;
+    const { wordId, readingIndex, cardState, frequencyRank } = card;
+    const cardKey = `${wordId}/${readingIndex}`;
 
-    this.addToMap(this._sentenceToCards, sentence, vidSid);
+    this.addToMap(this._sentenceToCards, sentence, cardKey);
     this.addToMap(this._sentenceToElements, sentence, element);
-    this.addToMap(this._cardToSentence, vidSid, sentence);
-    this.addToMap(this._cardToElements, vidSid, element);
+    this.addToMap(this._cardToSentence, cardKey, sentence);
+    this.addToMap(this._cardToElements, cardKey, element);
 
-    this._elementToCard.set(element, vidSid);
+    this._elementToCard.set(element, cardKey);
     this._elementsToSentence.set(element, sentence);
-    this._cardToState.set(vidSid, cardState);
-    this._cardToFrequency.set(vidSid, frequencyRank);
+    this._cardToState.set(cardKey, cardState);
+    this._cardToFrequency.set(cardKey, frequencyRank);
   }
 
   public calculateTargetSentences(): void {
@@ -229,14 +229,14 @@ export class SentenceManager {
       return; // No i+1 sentence or too many unknown cards
     }
 
-    const [vid, sid] = unknownCards[0].split('/');
+    const [wordId, readingIndex] = unknownCards[0].split('/');
 
     // If we have exactly one unknown card, mark the element as i+1
     this._sentenceToElements.get(sentence)?.forEach((element) => {
       const e = element as HTMLElement;
 
-      // if element attributes match the vid and sid, add the i-plus-one class
-      if (e.getAttribute('vid') === vid && e.getAttribute('sid') === sid) {
+      // if element attributes match the wordId and readingIndex, add the i-plus-one class
+      if (e.getAttribute('wordId') === wordId && e.getAttribute('readingIndex') === readingIndex) {
         e.classList.add('i-plus-one');
       }
     });

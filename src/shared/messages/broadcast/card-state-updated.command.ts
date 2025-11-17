@@ -1,8 +1,8 @@
-import { JPDBCardState } from '../../jpdb/types';
+import { JitenCardState } from '../../jiten/types';
 import { BroadcastCommand } from '../lib/broadcast-command';
 
 export class CardStateUpdatedCommand extends BroadcastCommand<
-  [vid: number, sid: number, cardstate: JPDBCardState[]]
+  [wordId: number, readingIndex: number, cardstate: JitenCardState[]]
 > {
   public readonly key = 'cardStateUpdated';
 }

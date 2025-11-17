@@ -18,7 +18,7 @@
 * [Chrome (Browser Extension) for Chromium-based browsers](https://chromewebstore.google.com/detail/anki-jpdb-reader/ocmngfhjplhjgmkjmacdmkodkphnicad)
 * [Firefox (Browser Extension) for Firefox and Firefox Android](https://addons.mozilla.org/firefox/addon/anki-jpdb-reader/)
 * [Edge (Browser Extension) for Edge or Edge Canary Edition](https://microsoftedge.microsoft.com/addons/detail/gpomfklkdbhmpagecjpnlhlffdlhcbnb)
-* [All Releases](https://github.com/Kagu-chan/anki-jpdb.reader/releases)
+* [All Releases](https://github.com/Sirush/JitenReader/releases)
 
 A browser extension that aims to parse most Japanese text in the browser using [JPDB](https://jpdb.io/). Support for mining into [Anki](https://apps.ankiweb.net/) decks is in preparation and will be added in the future.
 
@@ -105,7 +105,7 @@ Words will be colored according to their state (known, new, etc.). Hover over wo
 
 Parsing can be enabled or disabled per integration. You can also add custom URLs to automatically parse in the settings.
 
-Additionally, you can add complete meta definitions in JSON format - refer to [the typings](https://github.com/Kagu-chan/anki-jpdb.reader/blob/dev/src/shared/host-meta/public-api.ts) or see [the docs](docs/custom-meta.md)
+Additionally, you can add complete meta definitions in JSON format - refer to [the typings](https://github.com/Sirush/JitenReader/blob/dev/src/shared/host-meta/public-api.ts) or see [the docs](docs/custom-meta.md)
 
 ## Customize text colors and furigana
 

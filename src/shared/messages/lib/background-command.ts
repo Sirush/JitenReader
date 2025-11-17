@@ -7,7 +7,9 @@ export abstract class BackgroundCommand<
   TResult = void,
 > extends Command<TArguments> {
   public send<T>(afterCall?: (r: TResult) => T | Promise<T>): void {
-    void this.call(afterCall);
+    this.call(afterCall).catch((error: Error) => {
+      console.error(`[BackgroundCommand] ${this.constructor.name} failed:`, error);
+    });
   }
 
   public call<T>(afterCall?: (r: TResult) => T | Promise<T>): Promise<TResult> {
@@ -19,11 +21,15 @@ export abstract class BackgroundCommand<
           isBroadcast: false,
           args: this.arguments,
         },
-        (response: { success: boolean; result: TResult }) => {
+        (response: { success: boolean; result: TResult } | undefined) => {
           const lastError = getLastError();
 
           if (lastError) {
-            reject(lastError as Error);
+            return reject(lastError as Error);
+          }
+
+          if (!response || !response.success) {
+            return reject(new Error('Command failed or received invalid response'));
           }
 
           resolve(response.result);

@@ -1,5 +1,5 @@
 import { getConfiguration } from '@shared/configuration/get-configuration';
-import { JPDBCard, JPDBGrade } from '@shared/jpdb/types';
+import { JitenCard, JitenRating } from '@shared/jiten/types';
 import { GradeCardCommand } from '@shared/messages/background/grade-card.command';
 import { BaseController } from './base-controller';
 
@@ -16,25 +16,23 @@ export class GradingController extends BaseController {
     return this._showActions && this.gradingEnabled;
   }
 
-  public getGradingActions(): JPDBGrade[] {
-    return this._useTwoPointGrading
-      ? ['fail', 'pass']
-      : ['nothing', 'something', 'hard', 'okay', 'easy'];
+  public getGradingActions(): JitenRating[] {
+    return this._useTwoPointGrading ? ['again', 'good'] : ['again', 'hard', 'good', 'easy'];
   }
 
-  public gradeCard(card: JPDBCard, grade: JPDBGrade): void {
-    if (!this.gradingEnabled || !this.getGradingActions().includes(grade)) {
+  public gradeCard(card: JitenCard, rating: JitenRating): void {
+    if (!this.gradingEnabled || !this.getGradingActions().includes(rating)) {
       return;
     }
 
-    const { vid, sid } = card;
+    const { wordId, readingIndex } = card;
 
-    new GradeCardCommand(vid, sid, grade).send(() => this.updateCardState(card));
+    new GradeCardCommand(wordId, readingIndex, rating).send(() => this.updateCardState(card));
   }
 
   protected async applyConfiguration(): Promise<void> {
-    this._useTwoPointGrading = await getConfiguration('jpdbUseTwoGrades');
-    this._disableReviews = await getConfiguration('jpdbDisableReviews');
+    this._useTwoPointGrading = await getConfiguration('jitenUseTwoGrades');
+    this._disableReviews = await getConfiguration('jitenDisableReviews');
     this._showActions = await getConfiguration('showGradingActions');
   }
 }

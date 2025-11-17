@@ -6,8 +6,8 @@ import { displayToast } from '@shared/dom/display-toast';
 import { findElement } from '@shared/dom/find-element';
 import { withElement } from '@shared/dom/with-element';
 import { withElements } from '@shared/dom/with-elements';
-import { ping } from '@shared/jpdb/ping';
-import { JPDBDeck } from '@shared/jpdb/types';
+import { ping } from '@shared/jiten/ping';
+import { JPDBDeck } from '@shared/jiten/types';
 import { FetchDecksCommand } from '@shared/messages/background/fetch-decks.command';
 import { ConfigurationUpdatedCommand } from '@shared/messages/broadcast/configuration-updated.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
@@ -31,7 +31,7 @@ const bindings = new Map<string, Set<HTMLElement>>();
 const validators: Partial<
   Record<keyof ConfigurationSchema, (value: unknown) => boolean | Promise<boolean>>
 > = {
-  jpdbApiToken: validateJPDBApiKey,
+  jitenApiKey: validateJPDBApiKey,
 };
 
 const configurationUpdatedCommand = new ConfigurationUpdatedCommand();
@@ -88,7 +88,7 @@ withElements(
 
 withElement('#apiTokenButton', (button) => {
   button.onclick = (): void => {
-    withElement('#jpdbApiToken', (i: HTMLInputElement) => {
+    withElement('#jitenApiKey', (i: HTMLInputElement) => {
       void validateJPDBApiKey(i.value);
     });
   };
@@ -102,7 +102,7 @@ withElement('#export-settings', (button) => {
     const downloadTitleWithDate = `configuration-${new Date().toISOString().slice(0, 10)}.json`;
 
     void chrome.storage.local.get().then((configuration) => {
-      delete configuration.jpdbApiToken;
+      delete configuration.jitenApiKey;
 
       const blob = new Blob([JSON.stringify(configuration, null, 2)], {
         type: 'application/json',
@@ -140,7 +140,7 @@ withElement('#import-settings', (button) => {
       const text = await file.text();
       const data = JSON.parse(text) as ConfigurationSchema;
 
-      data.jpdbApiToken = await getConfiguration('jpdbApiToken');
+      data.jitenApiKey = await getConfiguration('jitenApiKey');
 
       await chrome.storage.local.clear();
       await chrome.storage.local.set(data);
@@ -372,7 +372,7 @@ async function validateJPDBApiKey(value: string): Promise<boolean> {
   }
 
   const button = findElement('#apiTokenButton');
-  const input = findElement('#jpdbApiToken');
+  const input = findElement('#jitenApiKey');
 
   button.classList.toggle('v1', !isValid);
   input.classList.toggle('v1', !isValid);

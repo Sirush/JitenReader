@@ -2,7 +2,7 @@ import { getConfiguration } from '@shared/configuration/get-configuration';
 import { debug } from '@shared/debug';
 import { displayToast } from '@shared/dom/display-toast';
 import { HostMeta, PredefinedHostMeta } from '@shared/host-meta/types';
-import { JPDBCardState } from '@shared/jpdb/types';
+import { JitenCardState } from '@shared/jiten/types';
 import { LookupTextCommand } from '@shared/messages/background/lookup-text.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { receiveBackgroundMessage } from '@shared/messages/receiving/receive-background-message';
@@ -37,9 +37,12 @@ export class AJB {
 
     Registry.popupManager = new PopupManager();
 
-    onBroadcastMessage('cardStateUpdated', (vid: number, sid: number, state: JPDBCardState[]) => {
-      Registry.updateCard(vid, sid, state);
-    });
+    onBroadcastMessage(
+      'cardStateUpdated',
+      (wordId: number, readingIndex: number, state: JitenCardState[]) => {
+        Registry.updateCard(wordId, readingIndex, state);
+      },
+    );
 
     onBroadcastMessage(
       'configurationUpdated',

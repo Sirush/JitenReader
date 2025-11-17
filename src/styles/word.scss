@@ -1,97 +1,97 @@
-.jpdb-word ruby,
-.jpdb-word rt {
+.jiten-word ruby,
+.jiten-word rt {
   color: inherit !important;
   font-size: inherit;
 }
 
-.jpdb-word rt {
+.jiten-word rt {
   user-select: none;
   pointer-events: none;
 
   font-size: 60%;
 }
 
-.jpdb-word:not(.unparsed):hover {
+.jiten-word:not(.unparsed):hover {
   text-decoration: underline;
 }
 
-.jpdb-word.misparsed {
+.jiten-word.misparsed {
   color: rgb(255, 0, 0);
   background-color: lightgray;
 }
 
-.jpdb-word.locked {
+.jiten-word.locked {
   color: rgb(119, 119, 119);
 }
 
-.jpdb-word.suspended {
+.jiten-word.suspended {
   color: rgb(119, 119, 119);
 }
 
-.jpdb-word.blacklisted {
+.jiten-word.blacklisted {
   color: rgb(119, 119, 119);
 }
 
-.jpdb-word.never-forget {
+.jiten-word.never-forget {
   color: rgb(112, 192, 0);
 }
 
-.jpdb-word.not-in-deck {
+.jiten-word.not-in-deck {
   color: rgba(75, 141, 255, 0.5);
 }
 
-.jpdb-word.new {
+.jiten-word.new {
   color: rgb(75, 141, 255);
 }
 
-.jpdb-word.frequent {
+.jiten-word.frequent {
   color: rgb(75, 141, 127);
 }
 
-.jpdb-word.learning {
+.jiten-word.young {
   color: rgb(94, 167, 128);
 }
 
-.jpdb-word.known {
+.jiten-word.mature {
   color: rgb(112, 192, 0);
 }
 
-.jpdb-word.due {
+.jiten-word.due {
   color: rgb(255, 69, 0);
 }
 
-.jpdb-word.failed {
+.jiten-word.failed {
   color: rgb(255, 0, 0);
 }
 
-.jpdb-word.i-plus-one {
+.jiten-word.i-plus-one {
   text-shadow:
     0 2px 6px #359eff,
     0 4px 12px #359eff;
   transition: text-shadow 0.3s ease-in-out;
 }
 
-.jpdb-word.heiban {
+.jiten-word.heiban {
   text-decoration: underline;
   text-decoration-color: #359eff;
 }
 
-.jpdb-word.atamadaka {
+.jiten-word.atamadaka {
   text-decoration: underline;
   text-decoration-color: #fe4b74;
 }
 
-.jpdb-word.nakadaka {
+.jiten-word.nakadaka {
   text-decoration: underline;
   text-decoration-color: #fba840;
 }
 
-.jpdb-word.odaka {
+.jiten-word.odaka {
   text-decoration: underline;
   text-decoration-color: #57ccb7;
 }
 
-.jpdb-word.kifuku {
+.jiten-word.kifuku {
   text-decoration: underline;
   text-decoration-color: #9050f6;
 }

@@ -1,4 +1,4 @@
-import { JPDBToken } from '@shared/jpdb/types';
+import { JitenToken } from '@shared/jiten/types';
 import { applyTokens } from '../../batches/apply-tokens';
 import { Paragraph } from '../../batches/types';
 import { Registry } from '../../integration/registry';
@@ -120,7 +120,7 @@ class MokuroMangaPanel {
         getParagraphsFn: getMokuroParagraphs,
         // Because mokuro reuses nodes, a token may already be altered when the data from jpdb return.
         // Thus we track on which page change cycle we are and don't apply tokens to the wrong page
-        applyFn: (paragraph: Paragraph, tokens: JPDBToken[]) => {
+        applyFn: (paragraph: Paragraph, tokens: JitenToken[]) => {
           if (currentId === this._currentId) {
             applyTokens(paragraph, tokens);
           }

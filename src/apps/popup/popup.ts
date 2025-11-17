@@ -3,7 +3,7 @@ import { createElement } from '@shared/dom/create-element';
 import { findElements } from '@shared/dom/find-elements';
 import { withElement } from '@shared/dom/with-element';
 import { getStyleUrl } from '@shared/extension/get-style-url';
-import { JPDBCard, JPDBCardState } from '@shared/jpdb/types';
+import { JitenCard } from '@shared/jiten/types';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { KeybindManager } from '../integration/keybind-manager';
 import { Registry } from '../integration/registry';
@@ -98,7 +98,7 @@ export class Popup {
   private _isHover?: boolean;
 
   private _cardContext?: HTMLElement;
-  private _card?: JPDBCard;
+  private _card?: JitenCard;
   private _sentence?: string;
 
   constructor(
@@ -108,9 +108,9 @@ export class Popup {
   ) {
     this.renderNodes();
 
-    onBroadcastMessage('cardStateUpdated', (vid, sid) => {
+    onBroadcastMessage('cardStateUpdated', (wordId, readingIndex) => {
       setTimeout(() => {
-        this._card = Registry.getCard(vid, sid);
+        this._card = Registry.getCard(wordId, readingIndex);
 
         if (this._hideAfterAction) {
           return this.hide();
@@ -515,17 +515,11 @@ export class Popup {
   //#endregion
   //#region Card Utils
 
-  private cardHasState(state: 'neverForget' | 'blacklist' | 'suspend', card: JPDBCard): boolean {
-    const { cardState } = card;
-    const lookupState: JPDBCardState = (
-      {
-        neverForget: 'never-forget',
-        blacklist: 'blacklisted',
-        suspend: 'suspended',
-      } as Record<typeof state, JPDBCardState>
-    )[state];
+  private cardHasState(state: 'neverForget' | 'blacklist' | 'suspend', card: JitenCard): boolean {
+    void card;
+    void state;
 
-    return cardState.includes(lookupState);
+    return false;
   }
 
   //#endregion
@@ -544,7 +538,7 @@ export class Popup {
     this._popup.setAttribute('class', `popup ${this._card.cardState.join(' ')}`);
   }
 
-  private adjustMiningButtons(card: JPDBCard): void {
+  private adjustMiningButtons(card: JitenCard): void {
     const isNF = this.cardHasState('neverForget', card);
     const isBL = this.cardHasState('blacklist', card);
     const isSP = this.cardHasState('suspend', card);
@@ -560,7 +554,7 @@ export class Popup {
     });
   }
 
-  private adjustRotateButtons(card: JPDBCard): void {
+  private adjustRotateButtons(card: JitenCard): void {
     const previous = this._rotation.getNextCardState(card, -1);
     const next = this._rotation.getNextCardState(card, 1);
     const same = previous === next;
@@ -604,7 +598,7 @@ export class Popup {
     });
   }
 
-  private adjustContext(card: JPDBCard): void {
+  private adjustContext(card: JitenCard): void {
     this._context.replaceChildren(
       createElement('div', {
         id: 'header',
@@ -619,9 +613,9 @@ export class Popup {
     );
   }
 
-  private getReadingBlock(card: JPDBCard): HTMLAnchorElement {
-    const { vid, spelling, reading, wordWithReading } = card;
-    const url = `https://jpdb.io/vocabulary/${vid}/${encodeURIComponent(spelling)}/${encodeURIComponent(reading)}`;
+  private getReadingBlock(card: JitenCard): HTMLAnchorElement {
+    const { wordId, spelling, readingIndex, wordWithReading } = card;
+    const url = `https://jiten.moe/vocabulary/${wordId}/${readingIndex}`;
 
     const a = createElement('a', {
       id: 'link',
@@ -674,7 +668,7 @@ export class Popup {
     return nodes;
   }
 
-  private getCardStateBlock(card: JPDBCard): HTMLDivElement {
+  private getCardStateBlock(card: JitenCard): HTMLDivElement {
     const { cardState } = card;
 
     return createElement('div', {
@@ -683,7 +677,7 @@ export class Popup {
     });
   }
 
-  private getPitchAccentBlock(card: JPDBCard): HTMLDivElement {
+  private getPitchAccentBlock(card: JitenCard): HTMLDivElement {
     const { reading, pitchAccent } = card;
 
     return createElement('div', {
@@ -692,12 +686,12 @@ export class Popup {
     });
   }
 
-  private getFrequencyBlock(card: JPDBCard): HTMLDivElement {
+  private getFrequencyBlock(card: JitenCard): HTMLDivElement {
     const { frequencyRank } = card;
 
     return createElement('div', {
       id: 'frequency',
-      innerText: `Top ${frequencyRank}`,
+      innerText: `#${frequencyRank}`,
     });
   }
 
@@ -740,14 +734,14 @@ export class Popup {
     }
   }
 
-  private adjustDetails(card: JPDBCard): void {
+  private adjustDetails(card: JitenCard): void {
     const groupedMeanings = this.getGroupedMeanings(card);
 
     this._details.replaceChildren(
-      ...groupedMeanings.flatMap(({ partOfSpeech, glosses, startIndex }) => [
+      ...groupedMeanings.flatMap(({ partsOfSpeech, glosses, startIndex }) => [
         createElement('div', {
           class: 'pos',
-          children: partOfSpeech
+          children: partsOfSpeech
             .map((pos) => PARTS_OF_SPEECH[pos] ?? 'Unknown')
             .filter(Boolean)
             .map((pos) => createElement('span', { innerText: pos })),
@@ -766,14 +760,14 @@ export class Popup {
     );
   }
 
-  private getGroupedMeanings(card: JPDBCard): {
-    partOfSpeech: string[];
+  private getGroupedMeanings(card: JitenCard): {
+    partsOfSpeech: string[];
     glosses: string[][];
     startIndex: number;
   }[] {
     const { meanings } = card;
     const groupedMeanings: {
-      partOfSpeech: string[];
+      partsOfSpeech: string[];
       glosses: string[][];
       startIndex: number;
     }[] = [];
@@ -781,21 +775,25 @@ export class Popup {
     let lastPos: string[] = [];
 
     for (const [index, meaning] of meanings.entries()) {
+      const currentPartsOfSpeech = Array.isArray(meaning.partsOfSpeech)
+        ? meaning.partsOfSpeech
+        : [meaning.partsOfSpeech];
+
       if (
-        meaning.partOfSpeech.length == lastPos.length &&
-        meaning.partOfSpeech.every((p, i) => p === lastPos[i])
+        currentPartsOfSpeech.length == lastPos.length &&
+        currentPartsOfSpeech.every((p, i) => p === lastPos[i])
       ) {
         groupedMeanings[groupedMeanings.length - 1].glosses.push(meaning.glosses);
 
         continue;
       }
       groupedMeanings.push({
-        partOfSpeech: meaning.partOfSpeech,
+        partsOfSpeech: currentPartsOfSpeech,
         glosses: [meaning.glosses],
         startIndex: index,
       });
 
-      lastPos = meaning.partOfSpeech;
+      lastPos = meaning.partsOfSpeech;
     }
 
     return groupedMeanings;

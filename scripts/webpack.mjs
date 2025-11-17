@@ -91,7 +91,7 @@ export default (env = {}) => ({
     ],
   },
   output: {
-    path: resolve(__dirname, '../anki-jpdb.reader'),
+    path: resolve(__dirname, '../jiten.reader'),
     clean: true,
   },
   optimization: {

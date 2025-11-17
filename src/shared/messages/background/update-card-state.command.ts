@@ -1,5 +1,7 @@
 import { BackgroundCommand } from '../lib/background-command';
 
-export class UpdateCardStateCommand extends BackgroundCommand<[vid: number, sid: number]> {
+export class UpdateCardStateCommand extends BackgroundCommand<
+  [wordId: number, readingIndex: number]
+> {
   public readonly key = 'updateCardState';
 }

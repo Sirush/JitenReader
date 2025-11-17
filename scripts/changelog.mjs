@@ -73,11 +73,11 @@ for (const key of Object.keys(changelog).reverse()) {
         linkMD = issue
           .map(
             (num) =>
-              ` [#${num}](https://github.com/Kagu-chan/anki-jpdb.reader/issues/${num})`
+              ` [#${num}](https://github.com/Sirush/JitenReader/issues/${num})`
           )
           .join('');
       } else {
-        linkMD = ` [#${issue}](https://github.com/Kagu-chan/anki-jpdb.reader/issues/${issue})`;
+        linkMD = ` [#${issue}](https://github.com/Sirush/JitenReader/issues/${issue})`;
       }
     }
     const catMD = Array.isArray(category) ? category.join(', ') : category;
@@ -91,11 +91,11 @@ for (const key of Object.keys(changelog).reverse()) {
           issue
             .map(
               (num) =>
-                `<a href="https://github.com/Kagu-chan/anki-jpdb.reader/issues/${num}" target="_blank">#${num}</a>`
+                `<a href="https://github.com/Sirush/JitenReader/issues/${num}" target="_blank">#${num}</a>`
             )
             .join(' ');
       } else {
-        linkTextHtml = ` <a href="https://github.com/Kagu-chan/anki-jpdb.reader/issues/${issue}" target="_blank">#${issue}</a>`;
+        linkTextHtml = ` <a href="https://github.com/Sirush/JitenReader/issues/${issue}" target="_blank">#${issue}</a>`;
       }
     }
     if (linkTextHtml) linkTextHtml = ` [${linkTextHtml}]`;

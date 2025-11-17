@@ -1,4 +1,4 @@
-import { JPDBCardState } from '@shared/jpdb/types';
+import { JitenCardState } from '@shared/jiten/types';
 
 export type TextHighlighterOptions = {
   skipFurigana: boolean;
@@ -8,5 +8,5 @@ export type TextHighlighterOptions = {
   markIPlus1: boolean;
   minSentenceLength: number;
   markOnlyFrequent: boolean;
-  newStates: JPDBCardState[];
+  newStates: JitenCardState[];
 };

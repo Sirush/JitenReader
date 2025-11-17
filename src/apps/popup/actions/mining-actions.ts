@@ -1,4 +1,4 @@
-import { JPDBCard } from '@shared/jpdb/types';
+import { JitenCard } from '@shared/jiten/types';
 import { KeybindManager } from '../../integration/keybind-manager';
 import { Registry } from '../../integration/registry';
 import { MiningController } from './mining-controller';
@@ -14,7 +14,7 @@ export class MiningActions {
     'addToSuspendedKey',
   ]);
 
-  private _card?: JPDBCard;
+  private _card?: JitenCard;
   private _sentence?: string;
 
   constructor(private _controller: MiningController) {

@@ -1,14 +1,14 @@
 import { createElement } from '@shared/dom/create-element';
-import { JPDBRuby, JPDBToken } from '@shared/jpdb/types';
+import { JitenToken, JitenRuby } from '@shared/jiten/types';
 import { Fragment } from '../batches/types';
 import { Registry } from '../integration/registry';
 import { BaseTextHighlighter } from './base.text-highlighter';
 
 export class TextHighlighter extends BaseTextHighlighter {
   protected _fragments = new Set<Fragment>(this.fragments);
-  protected _tokens = new Set<JPDBToken>(this.tokens);
-  protected _tokenToFragmentsMap = new Map<JPDBToken, Fragment[]>();
-  protected _fragmentToTokensMap = new Map<Fragment, JPDBToken[]>();
+  protected _tokens = new Set<JitenToken>(this.tokens);
+  protected _tokenToFragmentsMap = new Map<JitenToken, Fragment[]>();
+  protected _fragmentToTokensMap = new Map<Fragment, JitenToken[]>();
 
   public apply(): void {
     this.preprocess();
@@ -87,10 +87,10 @@ export class TextHighlighter extends BaseTextHighlighter {
    * Find all fragments that are within the token
    * We need to find all fragments that are either completely inside the token or overlap with it
    *
-   * @param {JPDBToken} token The token to find the fragments for
+   * @param {JitenToken} token The token to find the fragments for
    * @returns {Fragment[]} The fragments that are within the token
    */
-  protected findFragmentsForToken(token: JPDBToken): Fragment[] {
+  protected findFragmentsForToken(token: JitenToken): Fragment[] {
     const fragments: Fragment[] = [];
 
     this._fragments.forEach((fragment) => {
@@ -118,10 +118,10 @@ export class TextHighlighter extends BaseTextHighlighter {
    * We need to find all tokens that are either completely inside the fragment or overlap with it
    *
    * @param {Fragment} fragment The fragment to find the tokens for
-   * @returns {JPDBToken[]} The tokens that are within the fragment
+   * @returns {JitenToken[]} The tokens that are within the fragment
    */
-  protected findTokensForFragment(fragment: Fragment): JPDBToken[] {
-    const tokens: JPDBToken[] = [];
+  protected findTokensForFragment(fragment: Fragment): JitenToken[] {
+    const tokens: JitenToken[] = [];
 
     this._tokens.forEach((token) => {
       if (this.isFragmentWithinToken(fragment, token)) {
@@ -141,7 +141,7 @@ export class TextHighlighter extends BaseTextHighlighter {
   protected splitMultiTokenFragments(): void {
     this.filterMap(this._fragmentToTokensMap, (tokens, _fragment) => tokens.length > 1).forEach(
       (tokens, fragment) => {
-        let token: JPDBToken | undefined;
+        let token: JitenToken | undefined;
 
         while ((token = tokens.pop())) {
           this.cutoffTokenEnd(token, fragment);
@@ -176,7 +176,7 @@ export class TextHighlighter extends BaseTextHighlighter {
     );
   }
 
-  protected cutoffTokenEnd(token: JPDBToken, fragment: Fragment): void {
+  protected cutoffTokenEnd(token: JitenToken, fragment: Fragment): void {
     // If the fragment is longer than the token (e.g. a sentence ending with a period)
     // we cut off the end and mark it as unparsed
     if (token.end < fragment.end) {
@@ -204,7 +204,7 @@ export class TextHighlighter extends BaseTextHighlighter {
     });
   }
 
-  protected adjustFragmentEnds(fragments: Fragment[], token: JPDBToken): void {
+  protected adjustFragmentEnds(fragments: Fragment[], token: JitenToken): void {
     fragments
       .filter((fragment) => this.isFragmentWithinToken(fragment, token))
       .forEach((fragment) => {
@@ -217,7 +217,7 @@ export class TextHighlighter extends BaseTextHighlighter {
       });
   }
 
-  protected adjustFragmentStarts(fragments: Fragment[], token: JPDBToken): void {
+  protected adjustFragmentStarts(fragments: Fragment[], token: JitenToken): void {
     fragments
       .filter((fragment) => this.isFragmentWithinToken(fragment, token))
       .forEach((fragment) => {
@@ -291,8 +291,8 @@ export class TextHighlighter extends BaseTextHighlighter {
 
   protected applyRubiesToFragment(
     fragment: Fragment,
-    token: JPDBToken,
-    rubies: JPDBRuby[] = token.rubies,
+    token: JitenToken,
+    rubies: JitenRuby[] = token.rubies,
   ): void {
     const newRuby = this.wrapElement(fragment.node, token);
 
@@ -306,8 +306,8 @@ export class TextHighlighter extends BaseTextHighlighter {
     newRuby.append(...nodes);
   }
 
-  protected createRubyNodesForFragment(fragment: Fragment, rubies: JPDBRuby[]): Node[] {
-    const nodeText = fragment.node.textContent!;
+  protected createRubyNodesForFragment(fragment: Fragment, rubies: JitenRuby[]): Node[] {
+    const nodeText = fragment.node.textContent;
     let lastIndex = 0;
     const nodes: Node[] = [];
 
@@ -328,7 +328,7 @@ export class TextHighlighter extends BaseTextHighlighter {
       const rt = document.createElement('rt');
 
       rubyElem.append(document.createTextNode(nodeText.slice(rubyStart, rubyEnd)));
-      rt.className = 'jpdb-furi';
+      rt.className = 'jiten-furi';
       rt.textContent = ruby.text;
 
       rubyElem.append(rt);
@@ -382,7 +382,7 @@ export class TextHighlighter extends BaseTextHighlighter {
     });
   }
 
-  protected applyOnSharedParent(fragments: Fragment[], token: JPDBToken): boolean {
+  protected applyOnSharedParent(fragments: Fragment[], token: JitenToken): boolean {
     const anyHasRuby = fragments.some((fragment) => this.findParent(fragment.node, 'RUBY'));
     const sharedParentNode = this.findSharedParent(
       fragments[0].node,
@@ -438,7 +438,7 @@ export class TextHighlighter extends BaseTextHighlighter {
     });
   }
 
-  protected checkUnmatchedFragmentMisparse(token: JPDBToken, fragments: Fragment[]): boolean {
+  protected checkUnmatchedFragmentMisparse(token: JitenToken, fragments: Fragment[]): boolean {
     let isMisparse = false;
 
     // If we have a definitive ruby, we can attempt a direct match
@@ -478,7 +478,7 @@ export class TextHighlighter extends BaseTextHighlighter {
     }
 
     const wrapper = createElement('span', {
-      class: ['jpdb-word', 'misparsed'],
+      class: ['jiten-word', 'misparsed'],
       attributes: { ajb: 'true' },
     });
 
@@ -493,10 +493,10 @@ export class TextHighlighter extends BaseTextHighlighter {
    * Check if a fragment is within a token or overlaps with it
    *
    * @param {Fragment} fragment The fragment to check
-   * @param {JPDBToken} token The token to check
+   * @param {JitenToken} token The token to check
    * @returns {boolean} True if the fragment is within the token or overlaps, false otherwise
    */
-  protected isFragmentWithinToken(fragment: Fragment, token: JPDBToken): boolean {
+  protected isFragmentWithinToken(fragment: Fragment, token: JitenToken): boolean {
     return fragment.end > token.start && fragment.start < token.end;
   }
 
@@ -564,7 +564,7 @@ export class TextHighlighter extends BaseTextHighlighter {
     return result;
   }
 
-  protected patchOrWrap(fragment: Fragment | Text, token?: JPDBToken): HTMLElement | null {
+  protected patchOrWrap(fragment: Fragment | Text, token?: JitenToken): HTMLElement | null {
     const isFragment = this.isFragment(fragment);
     const node = isFragment ? fragment.node : fragment;
     const fragmentsParent = isFragment ? node.parentElement : node.parentElement;
@@ -581,7 +581,7 @@ export class TextHighlighter extends BaseTextHighlighter {
       const element = this.wrapElement(node, token);
 
       if (!Registry.textHighlighterOptions.skipFurigana) {
-        element.querySelectorAll('rt').forEach((rt) => rt.classList.add('jpdb-furi'));
+        element.querySelectorAll('rt').forEach((rt) => rt.classList.add('jiten-furi'));
       }
 
       return element;
@@ -596,7 +596,7 @@ export class TextHighlighter extends BaseTextHighlighter {
     return 'node' in element;
   }
 
-  protected dismissElements(fragment?: Fragment, token?: JPDBToken): void {
+  protected dismissElements(fragment?: Fragment, token?: JitenToken): void {
     if (fragment) {
       this._fragments.delete(fragment);
       this._fragmentToTokensMap.delete(fragment);
@@ -608,7 +608,7 @@ export class TextHighlighter extends BaseTextHighlighter {
     }
   }
 
-  protected wrapElement(node: Text, token: JPDBToken | undefined): HTMLElement {
+  protected wrapElement(node: Text, token: JitenToken | undefined): HTMLElement {
     const element = document.createElement('span');
 
     this.patchElement(element, token);
@@ -619,7 +619,7 @@ export class TextHighlighter extends BaseTextHighlighter {
     return element;
   }
 
-  protected patchElement(element: HTMLElement, token: JPDBToken | undefined): void {
+  protected patchElement(element: HTMLElement, token: JitenToken | undefined): void {
     const { skipFurigana, markFrequency, markAll, generatePitch, markIPlus1, newStates } =
       Registry.textHighlighterOptions;
     const { card, pitchClass, sentence } = token ?? {};
@@ -631,18 +631,19 @@ export class TextHighlighter extends BaseTextHighlighter {
 
     element.setAttribute('ajb', 'true');
 
+    //TODO: reintroduce
     if (markIPlus1) {
-      Registry.sentenceManager.addElement(element, token);
+      Registry.sentenceManager.addElement(element, undefined);
     }
 
     if (!skipFurigana) {
-      element.querySelectorAll('rt').forEach((rt) => rt.classList.add('jpdb-furi'));
+      element.querySelectorAll('rt').forEach((rt) => rt.classList.add('jiten-furi'));
     }
 
     if (card) {
       Registry.addCard(card);
 
-      element.classList.add('jpdb-word', ...card.cardState);
+      element.classList.add('jiten-word', ...card.cardState);
 
       if (markFrequency && card.frequencyRank <= markFrequency) {
         const states = card.cardState;
@@ -657,8 +658,8 @@ export class TextHighlighter extends BaseTextHighlighter {
         element.classList.add(pitchClass);
       }
 
-      element.setAttribute('vid', card.vid.toString());
-      element.setAttribute('sid', card.sid.toString());
+      element.setAttribute('wordId', card.wordId.toString());
+      element.setAttribute('readingIndex', card.readingIndex.toString());
 
       element.addEventListener('mouseenter', (event: MouseEvent) => {
         Registry.popupManager?.enter(event, sentence);
@@ -673,7 +674,7 @@ export class TextHighlighter extends BaseTextHighlighter {
       return;
     }
 
-    element.classList.add('jpdb-word', 'unparsed');
+    element.classList.add('jiten-word', 'unparsed');
   }
 
   protected areBoundariesExactMatch(
@@ -699,15 +700,17 @@ export class TextHighlighter extends BaseTextHighlighter {
     return parent;
   }
 
-  protected isMisparsedRuby(rubyElement: HTMLElement, token: JPDBToken): boolean {
+  protected isMisparsedRuby(rubyElement: HTMLElement, token: JitenToken): boolean {
     const originalRubyText = Array.from(rubyElement.querySelectorAll('rt'))
       .map((rt) => rt.innerText)
       .join('');
 
-    const cardsRubyText =
-      token.card.wordWithReading?.replace(/[^[]*\[([^\]]*)\][^[]*/g, '$1') ?? '';
+    return false;
 
-    return originalRubyText !== cardsRubyText;
+    // const cardsRubyText =
+    //   token.card.wordWithReading?.replace(/[^[]*\[([^\]]*)\][^[]*/g, '$1') ?? '';
+    //
+    // return originalRubyText !== cardsRubyText;
   }
 
   protected markElementAsMisparsed(element: HTMLElement): void {
@@ -715,7 +718,7 @@ export class TextHighlighter extends BaseTextHighlighter {
       return;
     }
 
-    element.classList.add('jpdb-word', 'misparsed');
+    element.classList.add('jiten-word', 'misparsed');
     element.setAttribute('ajb', 'true');
   }
 

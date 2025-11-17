@@ -1,4 +1,4 @@
-import { JPDBCardState, JPDBDeck } from '../../jpdb/types';
+import { JitenCardState, JPDBDeck } from '../../jiten/types';
 import { PotentialPromise } from '../../types';
 
 /**
@@ -6,7 +6,7 @@ import { PotentialPromise } from '../../types';
  */
 export interface BroadcastEvents {
   configurationUpdated: [];
-  cardStateUpdated: [vid: number, sid: number, cardstate: JPDBCardState[]];
+  cardStateUpdated: [wordId: number, readingIndex: number, cardstate: JitenCardState[]];
   deckListUpdated: [decks: JPDBDeck[]];
 }
 export type BroadcastEventArgs<T extends keyof BroadcastEvents> = BroadcastEvents[T];

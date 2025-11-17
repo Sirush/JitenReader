@@ -83,8 +83,8 @@ export class PopupManager {
   public touch(event: MouseEvent, sentence?: string): void {
     let target: HTMLElement | null = event.target as HTMLElement;
 
-    if (!target?.classList?.contains('jpdb-word')) {
-      target = target?.closest('.jpdb-word');
+    if (!target?.classList?.contains('jiten-word')) {
+      target = target?.closest('.jiten-word');
     }
 
     if (!this._touchscreenSupport || !target || Registry.skipTouchEvents) {

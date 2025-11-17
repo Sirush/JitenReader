@@ -1,5 +1,5 @@
 import { displayToast } from '@shared/dom/display-toast';
-import { JPDBToken } from '@shared/jpdb/types';
+import { JitenToken } from '@shared/jiten/types';
 import { ParseCommand } from '@shared/messages/background/parse.command';
 import { Registry } from '../integration/registry';
 import { Canceled } from '../sequence/canceled';
@@ -9,7 +9,7 @@ import { getParagraphs } from './get-paragraphs';
 import { Paragraph, RegisterOptions } from './types';
 
 export class BatchController {
-  private _pendingBatches = new Map<Node, AbortableSequence<JPDBToken[], Paragraph>[]>();
+  private _pendingBatches = new Map<Node, AbortableSequence<JitenToken[], Paragraph>[]>();
 
   public registerNodes(nodes: (Element | Node)[], options: RegisterOptions = {}): void {
     nodes.forEach((node) => this.registerNode(node, options));
@@ -54,7 +54,7 @@ export class BatchController {
     applyFn: typeof applyTokens,
   ): void {
     const batches = paragraphs.map((paragraph) =>
-      Registry.sequenceManager.getAbortableSequence<JPDBToken[], Paragraph>(paragraph),
+      Registry.sequenceManager.getAbortableSequence<JitenToken[], Paragraph>(paragraph),
     );
 
     this._pendingBatches.set(node, batches);

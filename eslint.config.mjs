@@ -241,7 +241,7 @@ export default [
           patterns: [
             ...noRestrictedImportsPatterns,
             {
-              group: ['@shared/anki/**/*', '@shared/jpdb/**/*'],
+              group: ['@shared/anki/**/*', '@shared/jiten/**/*'],
               allowImportNamePattern: '^[A-Z]',
               caseSensitive: true,
               message: 'Only use those APIs in background context.',
