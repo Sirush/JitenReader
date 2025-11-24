@@ -48,7 +48,7 @@ Hide all jiten furigana:
 
 Hide jiten furigana only for some classes of words:
 ```css
-.jiten-word:is(.never-forget, .known, .due, .failed) .jiten-furi { display: none !important; }
+.jiten-word:is(.never-forget, .mature, .due, .failed) .jiten-furi { display: none !important; }
 ```
 
 Only show jiten furigana while hovering:
@@ -105,7 +105,7 @@ Add extra styles only for asbplayer subtitles:
 - `.redundant` - Redundant words.
 - `.new` - New words.
 - `.learning` - Learning words.
-- `.known` - Known words.
+- `.mature` - Known words.
 - `.never-forget` - Words that are marked as never forget, or are part of a deck that is marked never forget.
 - `.due` - Due words (that is, words that are in the `Due` state. If you have failed your last review, the words will be `Failed` instead!)
 - `.failed` - Failed words.

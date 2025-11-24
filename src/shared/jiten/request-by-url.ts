@@ -3,7 +3,7 @@ import { displayToast } from '../dom/display-toast';
 import { JPDBEndpoints, JitenErrorResponse, JitenRequestOptions } from './api.types';
 
 export const requestByUrl = async <Key extends keyof JPDBEndpoints>(
-  baseUrl = 'https://localhost:7299',
+  baseUrl = 'https://api.jiten.moe',
   action: Key,
   params: JPDBEndpoints[Key][0] | undefined,
   options?: JitenRequestOptions,

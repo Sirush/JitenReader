@@ -3,10 +3,14 @@ export const matchUrl = (matchPattern: string, host: string): boolean => {
     return true;
   }
 
-  const [patternSchema, patternUrl] = matchPattern.split('://', 2);
+  let [patternSchema, patternUrl] = matchPattern.split('://', 2);
   const [patternHost, patternPath] = patternUrl.split(/\/(.*)/, 2);
   const [hostSchema, hostUrl] = host.split('://', 2);
   const [hostHost, hostPath] = hostUrl.split(/\/(.*)/, 2);
+
+  if (patternSchema === '') {
+    patternSchema = '*';
+  }
 
   if (patternSchema === '*' && !['http', 'https'].includes(hostSchema)) {
     return false;

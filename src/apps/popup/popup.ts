@@ -426,19 +426,19 @@ export class Popup {
     this._mineButtons.replaceChildren();
     this._mineButtons.style.display = this._mining.showActions ? '' : 'none';
 
-    this.addMiningButton(this._mining.miningDeck, 'mining', 'Add', () =>
-      performDeckAction('add', 'mining', this._sentence),
-    );
+    // this.addMiningButton("mining", 'mining', 'Add', () =>
+    //   performDeckAction('add', 'mining', this._sentence),
+    // );
 
-    this.addMiningButton(this._mining.neverForgetDeck, 'never-forget', undefined, () =>
+    this.addMiningButton('neverForget', 'never-forget', undefined, () =>
       performFlaggedDeckAction('neverForget'),
     );
-    this.addMiningButton(this._mining.blacklistDeck, 'blacklist', undefined, () =>
+    this.addMiningButton('blacklist', 'blacklist', undefined, () =>
       performFlaggedDeckAction('blacklist'),
     );
-    this.addMiningButton(this._mining.suspendDeck, 'suspend', undefined, () =>
-      performFlaggedDeckAction('suspend'),
-    );
+    // this.addMiningButton(this._mining.suspendDeck, 'suspend', undefined, () =>
+    //   performFlaggedDeckAction('suspend'),
+    // );
   }
 
   private addMiningButton(

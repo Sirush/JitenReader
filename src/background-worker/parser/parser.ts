@@ -22,31 +22,37 @@ export class Parser {
 
   private extractRubiesFromAnnotated(input: string): JitenRuby[] {
     const rubies: JitenRuby[] = [];
-    let offset = 0;
 
-    const regex = /([^\[\]]+)(?:\[([^\[\]]+)\])?/g;
+    // Group 1: Prefix (any text before the target, including newlines)
+    // Group 2: The Base (Kanji and Iteration marks like 々)
+    // Group 3: The Ruby (inside brackets)
+    const regex = /((?:.|\n)*?)([\u4e00-\u9faf\u3005-\u3007]+)\[([^\]]+)\]/g;
+
     let match: RegExpExecArray | null;
+    let currentOffset = 0; // This tracks the position in the CLEAN (displayed) string
 
     while ((match = regex.exec(input)) !== null) {
-      const base = match[1];
-      const ruby = match[2];
+      const prefix = match[1]; // e.g., "もう" in "もう一度"
+      const base = match[2]; // e.g., "一度"
+      const ruby = match[3]; // e.g., "いちど"
 
-      if (ruby) {
-        const start = offset;
-        const length = base.length;
-        const end = start + length;
+      // 1. Advance offset past the prefix (plain text that has no ruby)
+      currentOffset += prefix.length;
 
-        rubies.push({
-          text: ruby,
-          start,
-          end,
-          length,
-        });
+      // 2. Mark the ruby position
+      const start = currentOffset;
+      const length = base.length;
+      const end = start + length;
 
-        offset = end;
-      } else {
-        offset += base.length;
-      }
+      rubies.push({
+        text: ruby,
+        start,
+        end,
+        length,
+      });
+
+      // 3. Advance offset past the base (the text covered by ruby)
+      currentOffset += length;
     }
 
     return rubies;
@@ -78,7 +84,14 @@ export class Parser {
           glosses,
           partsOfSpeech: meaningsPartOfSpeech[i],
         })),
-        cardState: knownState == 0 ? ['new'] : knownState == 1 ? ['young'] : ['mature'],
+        cardState:
+          knownState == 0
+            ? ['new']
+            : knownState == 1
+              ? ['young']
+              : knownState == 3
+                ? ['blacklisted']
+                : ['mature'],
         pitchAccent: pitchAccent ?? [],
         wordWithReading: null,
       };

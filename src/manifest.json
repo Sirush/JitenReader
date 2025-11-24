@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Jiten Reader",
   "version": "0.1.0",
-  "description": "Japanese text parsing + sentence mining with Jiten",
+  "description": "Japanese text parsing with Jiten",
   "minimum_chrome_version": "116",
   "background": {
     "service_worker": "js/background-worker.js"

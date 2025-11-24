@@ -1,7 +1,7 @@
 {
   "name": "jiten.reader",
   "version": "0.1.0",
-  "description": "Japanese text parsing + sentence mining with Jiten and Anki",
+  "description": "Japanese text parsing with Jiten",
   "private": true,
   "scripts": {
     "build": "node scripts/build.mjs",

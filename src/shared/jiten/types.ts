@@ -78,6 +78,7 @@ export type JitenToken = {
   sentence?: string;
   pitchClass: string;
   rubies: JitenRuby[];
+  conjugations: string[];
 };
 
 export type LabeledCardState = {

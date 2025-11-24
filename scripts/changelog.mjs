@@ -14,7 +14,7 @@ const execute = (command) => {
   });
 };
 
-const CMD = 'git log -1 --format=%ai v';
+// const CMD = 'git log -1 --format=%ai v';
 const MD = [];
 const HTML = [
   '<link rel="stylesheet" media="screen" href="../css/changelog.css" />',
@@ -25,9 +25,9 @@ let newest = true;
 for (const key of Object.keys(changelog).reverse()) {
   let DATE = new Date().toISOString().split('T')[0].replaceAll('-', '.');
 
-  if (!newest) {
-    DATE = (await execute(CMD + key)).split(' ')[0].replaceAll('-', '.');
-  }
+  // if (!newest) {
+  //   DATE = (await execute(CMD + key)).split(' ')[0].replaceAll('-', '.');
+  // }
 
   newest = false;
 

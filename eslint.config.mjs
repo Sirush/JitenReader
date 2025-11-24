@@ -34,7 +34,7 @@ const noRestrictedImportsPatterns = [
 
 export default [
   {
-    ignores: ['**/anki-jpdb.breader/', 'src/alt_orig/', '**/webpack.*.js'],
+    ignores: ['**/jiten.reader/', 'src/alt_orig/', '**/webpack.*.js'],
   },
   ...compat
     .extends(
