@@ -192,6 +192,19 @@
       overflow: auto;
       margin-top: 0.5em;
 
+      #conjugations {
+        font-size: 0.9em;
+        margin-bottom: 0.75em;
+        padding: 0.4em;
+        background-color: rgba(128, 128, 128, 0.1);
+        border-radius: 0.3em;
+
+        .label {
+          font-weight: 600;
+          color: map.get(colors.$colors, text-color);
+        }
+      }
+
       .pos {
         display: flex;
         flex-direction: row;

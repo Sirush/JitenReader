@@ -74,6 +74,8 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   showRotateActions: false,
   moveRotateActions: false,
 
+  showConjugations: true,
+
   customPopupCSS: '',
 
   //#endregion
@@ -135,6 +137,16 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
     templateTargets: [],
   },
   ankiReadonlyConfigs: [],
+
+  //#endregion
+  //#region Status Bar
+
+  statusBarEnabled: true,
+  statusBarAutoHide: true,
+  statusBarHideIcon: false,
+  statusBarShowBadge: true,
+  statusBarPosition: 'bottom',
+  toggleStatusBarKey: [{ key: 'S', code: 'KeyS', modifiers: ['Alt'] }],
 
   //#endregion
 

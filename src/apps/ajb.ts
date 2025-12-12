@@ -15,9 +15,11 @@ import { getCustomParser } from './parser/get-custom-parser';
 import { NoParser } from './parser/no.parser';
 import { TriggerParser } from './parser/trigger.parser';
 import { PopupManager } from './popup/popup-manager';
+import { StatusBar } from './status-bar/status-bar';
 
 export class AJB {
   private _lookupKeyManager = new KeybindManager(['lookupSelectionKey']);
+  private _statusBarKeyManager = new KeybindManager(['toggleStatusBarKey']);
 
   constructor() {
     debug('Initialize AJB', { mainFrame: window === window.top });
@@ -37,10 +39,20 @@ export class AJB {
 
     Registry.popupManager = new PopupManager();
 
+    if (Registry.isMainFrame) {
+      Registry.statusBar = new StatusBar();
+      this._statusBarKeyManager.activate();
+
+      Registry.events.on('toggleStatusBarKey', () => {
+        Registry.statusBar?.toggle();
+      });
+    }
+
     onBroadcastMessage(
       'cardStateUpdated',
       (wordId: number, readingIndex: number, state: JitenCardState[]) => {
         Registry.updateCard(wordId, readingIndex, state);
+        Registry.statusBar?.recalculateStats();
       },
     );
 

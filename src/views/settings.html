@@ -639,6 +639,13 @@
 
               <div>
                 <div class="checkbox">
+                  <input type="checkbox" id="showConjugations" name="showConjugations" />
+                  <label for="showConjugations">Show conjugations in the popup</label>
+                </div>
+              </div>
+
+              <div>
+                <div class="checkbox">
                   <input type="checkbox" id="hideAfterAction" name="hideAfterAction" />
                   <label for="hideAfterAction">Hide popup after interacting with the API</label>
                 </div>
@@ -688,6 +695,66 @@
                 <p style="opacity: 0.8">
                   This changes the appearance of the popup shown when hovering over words.
                 </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="status-bar" class="section">
+          <h6>Status Bar</h6>
+          <div class="form-box-parent">
+            <div class="form-box">
+              <div>
+                <div class="checkbox">
+                  <input type="checkbox" id="statusBarEnabled" name="statusBarEnabled" />
+                  <label for="statusBarEnabled">Enable status bar</label>
+                </div>
+                <p style="opacity: 0.8" indent up>
+                  Shows a status bar at the bottom of the page with comprehension statistics.
+                </p>
+              </div>
+
+              <div data-show="statusBarEnabled">
+                <div class="checkbox">
+                  <input type="checkbox" id="statusBarAutoHide" name="statusBarAutoHide" />
+                  <label for="statusBarAutoHide">Auto-hide when not hovering</label>
+                </div>
+                <p style="opacity: 0.8" indent up>
+                  The status bar will fade away after 2 seconds when your mouse leaves it.
+                </p>
+              </div>
+
+              <div data-show="statusBarEnabled" indent>
+                <div class="checkbox">
+                  <input type="checkbox" id="statusBarHideIcon" name="statusBarHideIcon" />
+                  <label for="statusBarHideIcon">Don't show the icon when bar is hidden</label>
+                </div>
+                <p style="opacity: 0.8" indent up>
+                  When enabled, the status bar can only be shown using the keyboard shortcut.
+                </p>
+              </div>
+
+              <div data-show="statusBarEnabled">
+                <div class="checkbox">
+                  <input type="checkbox" id="statusBarShowBadge" name="statusBarShowBadge" />
+                  <label for="statusBarShowBadge">Show coverage in extension badge</label>
+                </div>
+                <p style="opacity: 0.8" indent up>
+                  Displays the comprehension percentage on the extension icon.
+                </p>
+              </div>
+
+              <div data-show="statusBarEnabled">
+                <label for="statusBarPosition">Status bar position</label>
+                <select id="statusBarPosition" name="statusBarPosition">
+                  <option value="bottom">Bottom</option>
+                  <option value="top">Top</option>
+                </select>
+              </div>
+
+              <div data-show="statusBarEnabled">
+                <label for="toggleStatusBarKey">Toggle status bar</label>
+                <keybind-input id="toggleStatusBarKey" name="toggleStatusBarKey"></keybind-input>
               </div>
             </div>
           </div>

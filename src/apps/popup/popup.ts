@@ -93,11 +93,13 @@ export class Popup {
   private _moveMiningActions: boolean;
   private _moveRotationActions: boolean;
   private _moveGradingActions: boolean;
+  private _showConjugations: boolean;
 
   private _hideTimer?: NodeJS.Timeout;
   private _isHover?: boolean;
 
   private _cardContext?: HTMLElement;
+  private _conjugations?: string[];
   private _card?: JitenCard;
   private _sentence?: string;
 
@@ -126,6 +128,7 @@ export class Popup {
     this._cardContext = context;
     this._card = Registry.getCardFromElement(context);
     this._sentence = sentence;
+    this._conjugations = Registry.getConjugations(context);
 
     this.clearTimer();
     this.updateParentElement();
@@ -189,6 +192,7 @@ export class Popup {
     this._moveMiningActions = await getConfiguration('moveMiningActions');
     this._moveRotationActions = await getConfiguration('moveRotateActions');
     this._moveGradingActions = await getConfiguration('moveGradingActions');
+    this._showConjugations = await getConfiguration('showConjugations');
 
     this._customStyles.textContent = await getConfiguration('customPopupCSS');
 
@@ -695,6 +699,25 @@ export class Popup {
     });
   }
 
+  private getConjugationsBlock(conjugations: string[]): HTMLDivElement | null {
+    if (!conjugations || conjugations.length === 0) {
+      return null;
+    }
+
+    return createElement('div', {
+      id: 'conjugations',
+      children: [
+        createElement('span', {
+          class: 'label',
+          innerText: 'Conjugations: ',
+        }),
+        createElement('span', {
+          innerText: conjugations.join(' ; '),
+        }),
+      ],
+    });
+  }
+
   private renderPitch(reading: string, pitch: string): HTMLSpanElement {
     if (reading.length != pitch.length - 1) {
       return createElement('span', { innerText: 'Error: invalid pitch' });
@@ -736,8 +759,18 @@ export class Popup {
 
   private adjustDetails(card: JitenCard): void {
     const groupedMeanings = this.getGroupedMeanings(card);
+    const conjugationsBlock =
+      this._conjugations && this._showConjugations
+        ? this.getConjugationsBlock(this._conjugations)
+        : null;
 
-    this._details.replaceChildren(
+    const children = [];
+
+    if (conjugationsBlock) {
+      children.push(conjugationsBlock);
+    }
+
+    children.push(
       ...groupedMeanings.flatMap(({ partsOfSpeech, glosses, startIndex }) => [
         createElement('div', {
           class: 'pos',
@@ -758,6 +791,8 @@ export class Popup {
         }),
       ]),
     );
+
+    this._details.replaceChildren(...children);
   }
 
   private getGroupedMeanings(card: JitenCard): {

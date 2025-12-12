@@ -86,7 +86,7 @@ export class BatchController {
           }
 
           if ((error as Error).message === 'Failed to fetch') {
-            displayToast('error', 'JPDB.io is unreachable', (error as Error).message);
+            displayToast('error', 'api.jiten.moe is unreachable', (error as Error).message);
 
             return;
           }

@@ -39,6 +39,8 @@ export enum JitenCardState {
   NEW = 'new',
   YOUNG = 'young',
   MATURE = 'mature',
+  MASTERED = 'mastered',
+  BLACKLISTED = 'blacklisted',
   DUE = 'due',
 }
 
@@ -51,7 +53,7 @@ export type JitenRawVocabulary = {
   partsOfSpeech: string[];
   meaningsChunks: string[][];
   meaningsPartOfSpeech: string[][];
-  knownState: JitenCardState;
+  knownState: number[];
   pitchAccent: number[] | null;
 };
 

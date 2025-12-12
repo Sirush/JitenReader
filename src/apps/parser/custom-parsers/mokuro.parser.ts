@@ -6,7 +6,7 @@ import { AutomaticParser } from '../automatic.parser';
 import { getMokuroParagraphs } from './mokuro/get-mokuro-paragraphs';
 
 class MokuroMangaPanel {
-  private _imageContainerId = 'popupAbout';
+  private _imageContainerId = 'page-num';
   private _imageContainer: HTMLElement;
   private _imageObserver: MutationObserver;
 
@@ -25,11 +25,17 @@ class MokuroMangaPanel {
   public destroy(): void {
     this.cancelParse();
 
-    this._imageObserver.disconnect();
+    this._imageObserver?.disconnect();
   }
 
   private setupImageObserver(): void {
-    this._imageContainer = document.getElementById(this._imageContainerId)!;
+    const imageContainer = document.getElementById(this._imageContainerId);
+
+    if (!imageContainer) {
+      return;
+    }
+
+    this._imageContainer = imageContainer;
     this._imageObserver = new MutationObserver(() => {
       this._currentId++;
 
@@ -37,8 +43,9 @@ class MokuroMangaPanel {
     });
 
     this._imageObserver.observe(this._imageContainer, {
-      attributes: true,
-      attributeFilter: ['style'],
+      subtree: true, // Watch all children/descendants of the button
+      childList: true, // Watch if the <p> tags are added/removed/replaced
+      characterData: true, // Watch if the text numbers inside the <p> tags change
     });
   }
 
@@ -89,9 +96,9 @@ class MokuroMangaPanel {
   }
 
   /**
-   * Remove all jpdb elements from the page
+   * Remove all jiten elements from the page
    * This is necessary to avoid duplication of words when the page changes
-   * The jpdb elements are not removed by mokuro itself
+   * The jiten elements are not removed by mokuro itself
    */
   private cleanup(): void {
     [...this._panel.querySelectorAll('.textBox p')].forEach((p) => {
@@ -99,15 +106,15 @@ class MokuroMangaPanel {
         return;
       }
 
-      const { firstChild: firstJpdbChild } = p;
-      const { firstChild: textContext } = firstJpdbChild!;
+      const { firstChild: firstJitenChild } = p;
+      const { firstChild: textContext } = firstJitenChild!;
 
       p.replaceChildren(textContext!);
     });
   }
 
   private parse(): void {
-    this._panel.querySelectorAll<HTMLElement>(':scope > div').forEach((page) => {
+    this._panel.querySelectorAll<HTMLElement>(':scope > div > div.relative').forEach((page) => {
       if (this._pages.has(page)) {
         return;
       }
@@ -118,7 +125,7 @@ class MokuroMangaPanel {
       Registry.batchController.registerNode(page, {
         // We create fragments manually, since mokuro puts every line in a separate <p>aragraph and hides them
         getParagraphsFn: getMokuroParagraphs,
-        // Because mokuro reuses nodes, a token may already be altered when the data from jpdb return.
+        // Because mokuro reuses nodes, a token may already be altered when the data from jiten return.
         // Thus we track on which page change cycle we are and don't apply tokens to the wrong page
         applyFn: (paragraph: Paragraph, tokens: JitenToken[]) => {
           if (currentId === this._currentId) {
@@ -147,6 +154,45 @@ export class MokuroParser extends AutomaticParser {
 
   protected override init(): void {
     Registry.sentenceManager.disable();
+
+    // Mokuro is an SPA that may not have the manga panel ready when the extension loads.
+    // Poll for it as a fallback since the MutationObserver may miss it in some navigation scenarios.
+    const checkForPanel = (): void => {
+      const panel = document.getElementById('manga-panel');
+
+      if (!panel) {
+        // Panel doesn't exist - clean up any stale references
+        if (this._mangaPanels.size > 0) {
+          this._mangaPanels.forEach((instance) => instance.destroy());
+          this._mangaPanels.clear();
+        }
+
+        return;
+      }
+
+      // Check if panel has content (pages with text boxes)
+      const hasContent = panel.querySelector('.textBox') !== null;
+
+      if (!hasContent) {
+        // Panel exists but has no content - clean up if we had an active instance
+        if (this._mangaPanels.has(panel)) {
+          this._mangaPanels.get(panel)?.destroy();
+          this._mangaPanels.delete(panel);
+        }
+
+        return;
+      }
+
+      // Panel has content - ensure we have an active MokuroMangaPanel instance
+      if (!this._mangaPanels.has(panel)) {
+        this._mangaPanels.set(panel, new MokuroMangaPanel(panel));
+        this.installAppStyles();
+      }
+    };
+
+    // Check immediately and then periodically (keep polling for SPA navigation)
+    checkForPanel();
+    setInterval(checkForPanel, 500);
   }
 
   /**

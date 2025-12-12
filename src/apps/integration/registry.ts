@@ -3,6 +3,7 @@ import { BatchController } from '../batches/batch-controller';
 import { BaseParser } from '../parser/base.parser';
 import { PopupManager } from '../popup/popup-manager';
 import { SequenceManager } from '../sequence/sequence-manager';
+import { StatusBar } from '../status-bar/status-bar';
 import { TextHighlighterOptions } from '../text-highlighter/types';
 import { EventCollection } from './event-collection';
 import { HostEvaluator } from './host-evaluator';
@@ -31,11 +32,22 @@ export class Registry {
 
   public static skipTouchEvents = false;
   public static popupManager?: PopupManager;
+  public static statusBar?: StatusBar;
 
   private static readonly cards = new Map<string, JitenCard>();
+  private static readonly conjugations = new WeakMap<HTMLElement, string[]>();
 
-  public static addCard(card: JitenCard): void {
-    this.cards.set(`${card.wordId}/${card.readingIndex}`, card);
+  public static addCard(card: JitenCard, element: HTMLElement, conjugations?: string[]): void {
+    const key = `${card.wordId}/${card.readingIndex}`;
+    this.cards.set(key, card);
+
+    if (conjugations && conjugations.length > 0) {
+      conjugations = conjugations
+        .filter((conj) => !conj.startsWith('('))
+        .filter((conj) => conj != '');
+      conjugations.reverse();
+      this.conjugations.set(element, conjugations);
+    }
   }
 
   public static updateCard(wordId: number, readingIndex: number, state: JitenCardState[]): void {
@@ -66,6 +78,10 @@ export class Registry {
     return this.cards.get(`${wordId}/${readingIndex}`);
   }
 
+  public static getConjugations(element: HTMLElement): string[] | undefined {
+    return this.conjugations.get(element);
+  }
+
   public static getCardFromElement(element: Element): JitenCard | undefined {
     const wordId = element.getAttribute('wordId');
     const readingIndex = element.getAttribute('readingIndex');
@@ -75,5 +91,9 @@ export class Registry {
     }
 
     return this.getCard(parseInt(wordId, 10), parseInt(readingIndex, 10));
+  }
+
+  public static getAllCards(): Map<string, JitenCard> {
+    return this.cards;
   }
 }

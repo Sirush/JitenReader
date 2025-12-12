@@ -59,6 +59,15 @@ export class Parser {
   }
 
   private vocabToCard(vocabulary: JitenRawVocabulary[]): JitenCard[] {
+    const CARD_STATE_MAP: Record<number, string> = {
+      0: 'new',
+      1: 'young',
+      2: 'mature',
+      3: 'blacklisted',
+      4: 'due',
+      5: 'mastered',
+    };
+
     return vocabulary.map((vocab) => {
       const {
         wordId,
@@ -73,6 +82,14 @@ export class Parser {
         pitchAccent,
       } = vocab;
 
+      const cardState = knownState
+        .map((state) => CARD_STATE_MAP[state])
+        .filter((s): s is string => s !== undefined);
+
+      if (cardState.length === 0) {
+        cardState.push('mature');
+      }
+
       return {
         wordId,
         readingIndex,
@@ -84,14 +101,7 @@ export class Parser {
           glosses,
           partsOfSpeech: meaningsPartOfSpeech[i],
         })),
-        cardState:
-          knownState == 0
-            ? ['new']
-            : knownState == 1
-              ? ['young']
-              : knownState == 3
-                ? ['blacklisted']
-                : ['mature'],
+        cardState,
         pitchAccent: pitchAccent ?? [],
         wordWithReading: null,
       };

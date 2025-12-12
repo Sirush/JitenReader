@@ -11,6 +11,8 @@ import { GradeCardCommandHandler } from './jiten-card-actions/grade-card-command
 import { RunDeckActionCommandHandler } from './jiten-card-actions/run-deck-action-command.handler';
 import { UpdateCardStateCommandHandler } from './jiten-card-actions/update-card-state-command.handler';
 import { BackgroundCommandHandlerCollection } from './lib/background-command-handler-collection';
+import { OpenSettingsCommandHandler } from './lib/open-settings-command.handler';
+import { UpdateBadgeCommandHandler } from './lib/update-badge-command.handler';
 import { LookupController } from './lookup/lookup-controller';
 import { LookupTextCommandHandler } from './lookup/lookup-text-command.handler';
 import { AbortRequestCommandHandler } from './parser/abort-request-command.handler';
@@ -44,6 +46,8 @@ const fetchDecksCommandHandler = new FetchDecksCommandHandler(deckManager);
 const updateCardStateCommandHandler = new UpdateCardStateCommandHandler();
 const gradeCardCommandHandler = new GradeCardCommandHandler();
 const runDeckActionCommandHandler = new RunDeckActionCommandHandler();
+const openSettingsCommandHandler = new OpenSettingsCommandHandler();
+const updateBadgeCommandHandler = new UpdateBadgeCommandHandler();
 
 const handlerCollection = new BackgroundCommandHandlerCollection(
   fetchDecksCommandHandler,
@@ -53,6 +57,8 @@ const handlerCollection = new BackgroundCommandHandlerCollection(
   updateCardStateCommandHandler,
   gradeCardCommandHandler,
   runDeckActionCommandHandler,
+  openSettingsCommandHandler,
+  updateBadgeCommandHandler,
 );
 
 handlerCollection.listen();

@@ -76,6 +76,8 @@ export type ConfigurationSchema = {
   showRotateActions: boolean;
   moveRotateActions: boolean;
 
+  showConjugations: boolean;
+
   customPopupCSS: string;
 
   //#endregion
@@ -116,6 +118,16 @@ export type ConfigurationSchema = {
   ankiBlacklistConfig: DeckConfiguration;
   ankiNeverForgetConfig: DeckConfiguration;
   ankiReadonlyConfigs: DiscoverWordConfiguration[];
+
+  //#endregion
+  //#region Status Bar
+
+  statusBarEnabled: boolean;
+  statusBarAutoHide: boolean;
+  statusBarHideIcon: boolean;
+  statusBarShowBadge: boolean;
+  statusBarPosition: 'top' | 'bottom';
+  toggleStatusBarKey: Keybinds;
 
   //#endregion
 
