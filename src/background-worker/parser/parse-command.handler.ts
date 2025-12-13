@@ -13,7 +13,7 @@ export class ParseCommandHandler extends BackgroundCommandHandler<ParseCommand> 
 
   private _failToast = new ToastCommand(
     'error',
-    'JPDB API key is not set. Please set it in the extension settings.',
+    'Jiten API key is not set. Please set it in the extension settings.',
   );
 
   constructor(private _parseController: ParseController) {

@@ -177,3 +177,53 @@ keybind-input {
 .fa-code:not(:hover) {
   opacity: 0.8;
 }
+
+profile-manager {
+  display: block;
+
+  .table-box {
+    margin-top: 0.5em;
+
+    .row.header {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .row.active-profile {
+      background-color: rgba(100, 180, 255, 0.1);
+    }
+
+    button.outline {
+      padding: 0.3em 0.6em;
+      font-size: 0.85em;
+
+      &.danger {
+        color: #ff5555;
+        border-color: #ff5555;
+
+        &:hover {
+          box-shadow: inset 0 0 3px #ff5555;
+        }
+      }
+    }
+
+    .active-badge {
+      font-size: 0.85em;
+      font-style: italic;
+    }
+  }
+
+  .create-profile-btn {
+    margin-top: 1em;
+  }
+
+  .limit-warning {
+    padding: 0.5em;
+    border: 1px solid #ff9800;
+    border-radius: 4px;
+    background-color: rgba(255, 152, 0, 0.1);
+  }
+}
+
+.profile-select {
+  min-width: 200px;
+}

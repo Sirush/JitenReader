@@ -9,6 +9,7 @@ export type ConfigurationSchema = {
   //#region Jiten Integration
 
   jitenApiKey: string;
+  jitenApiEndpoint: string;
 
   //#endregion
   //#region Mining configuration

@@ -9,6 +9,9 @@ import { setParsingPaused } from '@shared/extension/set-parsing-paused';
 import { isDisabled } from '@shared/host-meta/is-disabled';
 import { ParsingPausedCommand } from '@shared/messages/broadcast/parsing-paused.command';
 import { ParsePageCommand } from '@shared/messages/foreground/parse-page.command';
+import { HTMLProfileSelectorElement } from './elements/html-profile-selector-element';
+
+customElements.define('profile-selector', HTMLProfileSelectorElement);
 
 const updatePauseToggle = (toggle: HTMLElement, paused: boolean): void => {
   toggle.innerText = paused ? 'Paused' : 'Enabled';

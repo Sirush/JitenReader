@@ -1,9 +1,12 @@
-import { getConfiguration } from '@shared/configuration/get-configuration';
+import { getConfiguration, invalidateProfileCache } from '@shared/configuration/get-configuration';
+import { migrateToProfiles } from '@shared/configuration/migrate-to-profiles';
+import { invalidateSetConfigurationCache } from '@shared/configuration/set-configuration';
 import { addContextMenu } from '@shared/extension/add-context-menu';
 import { addInstallListener, OnInstalledReason } from '@shared/extension/add-install-listener';
 import { openOptionsPage } from '@shared/extension/open-options-page';
 import { openView } from '@shared/extension/open-view';
 import { setParsingPaused } from '@shared/extension/set-parsing-paused';
+import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { ParsePageCommand } from '@shared/messages/foreground/parse-page.command';
 import { ParseSelectionCommand } from '@shared/messages/foreground/parse-selection.command';
 import { DeckManager } from './jiten/deck-manager';
@@ -66,13 +69,19 @@ handlerCollection.listen();
 
 void setParsingPaused(false);
 
+onBroadcastMessage('profileSwitched', () => {
+  invalidateProfileCache();
+  invalidateSetConfigurationCache();
+});
+
 addInstallListener(async ({ reason }) => {
   if (reason === OnInstalledReason.INSTALL) {
+    await migrateToProfiles();
     await openOptionsPage();
   }
 
   if (reason === OnInstalledReason.UPDATE) {
-    // NOTE: OnUpdate In the future we may use this for schema updates
+    await migrateToProfiles();
 
     const skipReleaseNotes = await getConfiguration('skipReleaseNotes');
 

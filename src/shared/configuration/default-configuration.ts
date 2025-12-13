@@ -7,6 +7,7 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   //#region JPDB Integration
 
   jitenApiKey: '',
+  jitenApiEndpoint: 'https://api.jiten.moe/api',
 
   //#endregion
   //#region Mining configuration

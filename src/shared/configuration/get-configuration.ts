@@ -6,6 +6,8 @@ import {
   ConfigurationNumberKeys,
   ConfigurationObjectKeys,
 } from './keys.types';
+import { getProfileKey } from './profile.constants';
+import { getActiveProfileId } from './profiles-state';
 import { ConfigurationSchema, Keybind } from './types';
 
 // Fetch all configs which should be a number, boolean or object
@@ -20,13 +22,24 @@ const OBJECT_KEYS = Object.keys(DEFAULT_CONFIGURATION).filter(
   (key: keyof ConfigurationSchema) => typeof DEFAULT_CONFIGURATION[key] === 'object',
 ) as ConfigurationObjectKeys;
 
+let cachedProfileId: string | null = null;
+
+export const invalidateProfileCache = (): void => {
+  cachedProfileId = null;
+};
+
 export const getConfiguration = async <K extends keyof ConfigurationSchema>(
   key: K,
 ): Promise<ConfigurationSchema[K]> => {
+  if (!cachedProfileId) {
+    cachedProfileId = await getActiveProfileId();
+  }
+
+  const profileKey = getProfileKey(cachedProfileId, key);
   const defaultValue = DEFAULT_CONFIGURATION[key];
   const stringDefault =
     typeof defaultValue === 'object' ? JSON.stringify(defaultValue) : defaultValue?.toString();
-  const value: string = await readStorage(key, stringDefault);
+  const value: string = await readStorage(profileKey, stringDefault);
 
   if (NUMBER_KEYS.includes(key as FilterKeys<ConfigurationSchema, number>)) {
     return parseInt(value, 10) as ConfigurationSchema[K];

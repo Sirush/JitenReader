@@ -1,3 +1,4 @@
+import { getConfiguration } from '../configuration/get-configuration';
 import { JPDBEndpoints, JitenRequestOptions } from './api.types';
 import { requestByUrl } from './request-by-url';
 
@@ -6,5 +7,7 @@ export const request = async <Key extends keyof JPDBEndpoints>(
   params: JPDBEndpoints[Key][0] | undefined,
   options?: JitenRequestOptions,
 ): Promise<JPDBEndpoints[Key][1]> => {
-  return await requestByUrl('https://localhost:7299/api', action, params, options);
+  const baseUrl = await getConfiguration('jitenApiEndpoint');
+
+  return await requestByUrl(baseUrl, action, params, options);
 };

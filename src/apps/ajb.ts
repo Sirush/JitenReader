@@ -1,4 +1,5 @@
-import { getConfiguration } from '@shared/configuration/get-configuration';
+import { getConfiguration, invalidateProfileCache } from '@shared/configuration/get-configuration';
+import { invalidateSetConfigurationCache } from '@shared/configuration/set-configuration';
 import { debug } from '@shared/debug';
 import { displayToast } from '@shared/dom/display-toast';
 import { HostMeta, PredefinedHostMeta } from '@shared/host-meta/types';
@@ -82,6 +83,11 @@ export class AJB {
       },
       true,
     );
+
+    onBroadcastMessage('profileSwitched', (_profileId: string) => {
+      invalidateProfileCache();
+      invalidateSetConfigurationCache();
+    });
 
     void this.installFeatures();
   }
