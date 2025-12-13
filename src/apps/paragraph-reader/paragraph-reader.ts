@@ -2,6 +2,8 @@ import { DisplayCategory, Fragment, Paragraph } from '../batches/types';
 import { BaseParagraphReader } from './base.paragraph-reader';
 
 export class ParagraphReader extends BaseParagraphReader {
+  private _styleCache = new WeakMap<Element, CSSStyleDeclaration>();
+
   public read(): Paragraph[] {
     const fragments: Fragment[] = [];
     const paragraphs: Paragraph[] = [];
@@ -107,7 +109,12 @@ export class ParagraphReader extends BaseParagraphReader {
     }
 
     if (node instanceof Element) {
-      const display = getComputedStyle(node).display.split(/\s/g);
+      let style = this._styleCache.get(node);
+      if (!style) {
+        style = getComputedStyle(node);
+        this._styleCache.set(node, style);
+      }
+      const display = style.display.split(/\s/g);
       const [first] = display;
 
       if (first === 'none') {

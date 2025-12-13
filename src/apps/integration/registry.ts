@@ -8,12 +8,14 @@ import { TextHighlighterOptions } from '../text-highlighter/types';
 import { EventCollection } from './event-collection';
 import { HostEvaluator } from './host-evaluator';
 import { SentenceManager } from './sentence-manager';
+import { WordEventDelegator } from './word-event-delegator';
 
 export class Registry {
   public static readonly isMainFrame = window === window.top;
 
   public static readonly events = new EventCollection();
   public static readonly hostEvaluator = new HostEvaluator();
+  public static readonly wordEventDelegator = WordEventDelegator.getInstance();
 
   public static readonly parsers: BaseParser[] = [];
   public static readonly batchController = new BatchController();

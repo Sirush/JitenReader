@@ -28,6 +28,8 @@ export class AJB {
 
     NoFocusTrigger.get().install();
 
+    Registry.wordEventDelegator.initialise();
+
     receiveBackgroundMessage('toast', displayToast);
     Registry.events.on('lookupSelectionKey', () => {
       this.withHiddenRT(() => {

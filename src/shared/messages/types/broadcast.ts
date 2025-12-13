@@ -8,6 +8,7 @@ export interface BroadcastEvents {
   configurationUpdated: [];
   cardStateUpdated: [wordId: number, readingIndex: number, cardstate: JitenCardState[]];
   deckListUpdated: [decks: JPDBDeck[]];
+  parsingPaused: [paused: boolean];
 }
 export type BroadcastEventArgs<T extends keyof BroadcastEvents> = BroadcastEvents[T];
 export type BroadcastEventFunction<T extends keyof BroadcastEvents = keyof BroadcastEvents> = (

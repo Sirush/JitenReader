@@ -39,6 +39,32 @@ body {
     }
   }
 
+  .toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0.5em 0;
+
+    span {
+      color: #bbb;
+    }
+
+    a.outline {
+      padding: 0.4em 1em;
+      min-width: 70px;
+      text-align: center;
+
+      &.paused {
+        color: #ff3b3b;
+        border-color: #ff3b3b;
+
+        &:hover {
+          box-shadow: inset 0 0 3px #ff3b3b;
+        }
+      }
+    }
+  }
+
   .links {
     display: flex;
     flex-direction: row;

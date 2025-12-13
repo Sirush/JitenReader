@@ -7,8 +7,8 @@ import { Batch, Handle } from './parser.types';
 import { WorkerQueue } from './worker-queue';
 
 export class ParseController {
-  private BATCH_SIZE = 16384;
-  private JPDB_TIMEOUT = 200;
+  private BATCH_SIZE = 80000;
+  private JITEN_TIMEOUT = 50;
 
   private _pendingParagraphs = new Map<number, Handle>();
   private _workerQueue = new WorkerQueue();
@@ -80,7 +80,7 @@ export class ParseController {
       this._workerQueue.push(
         () => new Parser(batch).parse(),
         (e) => batch.handles.forEach((handle) => handle.reject(e)),
-        this.JPDB_TIMEOUT,
+        this.JITEN_TIMEOUT,
       );
     }
   }

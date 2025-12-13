@@ -27,6 +27,7 @@ export class StatusBar {
       bottom: '0',
       left: '50%',
       transform: 'translateX(-50%)',
+      visibility: 'hidden',
     },
   });
 
@@ -137,12 +138,15 @@ export class StatusBar {
     this.cancelHideTimer();
     this._bar.classList.remove('hidden');
     this._bar.classList.add('visible');
+    this._statsDropdown.classList.remove('hidden');
     this._icon.classList.remove('visible');
   }
 
   public hide(): void {
     this._isVisible = false;
     this._bar.classList.remove('visible');
+    this._bar.classList.add('hidden');
+    this._statsDropdown.classList.add('hidden');
 
     if (!this._hideIcon && this._hasContent) {
       this._icon.classList.remove('hidden');
@@ -167,15 +171,17 @@ export class StatusBar {
   public recalculateStats(): void {
     this._stats = calculateStatsFromRegistry();
     const coverage = calculateCoverageFromDOM();
+
     this.updateStatsDisplay(coverage);
 
-    if (!this._hasContent && this._stats.total > 0) {
+    const isInitialLoad = !this._hasContent && this._stats.total > 0;
+
+    if (isInitialLoad) {
       this._hasContent = true;
 
       if (this._enabled) {
         if (this._autoHide) {
-          this.show();
-          this.startHideTimer();
+          this.hide();
         } else {
           this.show();
         }
@@ -256,11 +262,12 @@ export class StatusBar {
 
     this._bar.append(this._coverageContainer, this._buttonsContainer, this._statsDropdown);
 
-    shadowRoot.append(
-      createElement('link', { attributes: { rel: 'stylesheet', href: getStyleUrl('status-bar') } }),
-      this._bar,
-      this._icon,
-    );
+    const stylesheet = createElement('link', {
+      attributes: { rel: 'stylesheet', href: getStyleUrl('status-bar') },
+      events: { onload: () => (this._root.style.visibility = 'visible') },
+    });
+
+    shadowRoot.append(stylesheet, this._bar, this._icon);
 
     document.body.appendChild(this._root);
   }

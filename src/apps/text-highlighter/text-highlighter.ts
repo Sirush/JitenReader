@@ -5,19 +5,23 @@ import { Registry } from '../integration/registry';
 import { BaseTextHighlighter } from './base.text-highlighter';
 
 export class TextHighlighter extends BaseTextHighlighter {
+  private static readonly CHUNK_SIZE = 40;
+
   protected _fragments = new Set<Fragment>(this.fragments);
   protected _tokens = new Set<JitenToken>(this.tokens);
   protected _tokenToFragmentsMap = new Map<JitenToken, Fragment[]>();
   protected _fragmentToTokensMap = new Map<Fragment, JitenToken[]>();
 
-  public apply(): void {
-    this.preprocess();
+  public async apply(): Promise<void> {
+    await this.preprocess();
 
     this.patchUnparsedFragments();
 
-    this.patchNonRubyTokens();
-    this.patchContainedRubyElements();
-    this.patchFragmentedRubyTokens();
+    await this.yieldToMainThread();
+
+    await this.patchNonRubyTokensChunked();
+    await this.patchContainedRubyElementsChunked();
+    await this.patchFragmentedRubyTokensChunked();
 
     this.patchRemainingMisparses();
 
@@ -26,24 +30,178 @@ export class TextHighlighter extends BaseTextHighlighter {
     }
   }
 
+  private yieldToMainThread(): Promise<void> {
+    return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+  }
+
+  private async processInChunks<T>(
+    items: Map<T, Fragment[]>,
+    processor: (item: T, fragments: Fragment[]) => void,
+  ): Promise<void> {
+    const entries = [...items.entries()];
+    let processed = 0;
+
+    for (const [item, fragments] of entries) {
+      processor(item, fragments);
+      processed++;
+
+      if (processed % TextHighlighter.CHUNK_SIZE === 0 && processed < entries.length) {
+        await this.yieldToMainThread();
+      }
+    }
+  }
+
+  private async splitMultiTokenFragmentsChunked(): Promise<void> {
+    const filtered = this.filterMap(
+      this._fragmentToTokensMap,
+      (tokens, _fragment) => tokens.length > 1,
+    );
+
+    const entries = [...filtered.entries()];
+    let processed = 0;
+
+    for (const [fragment, tokens] of entries) {
+      let token: JitenToken | undefined;
+
+      while ((token = tokens.pop())) {
+        this.cutoffTokenEnd(token, fragment);
+
+        if (token.start < fragment.start) {
+          tokens.push(token);
+          break;
+        }
+
+        const newFragmentNode = this.splitFragmentsNode(fragment, token.start);
+        const newFragment = this.insertNewFragment(newFragmentNode, token.start);
+
+        this._fragmentToTokensMap.set(newFragment, [token]);
+        this._tokenToFragmentsMap.set(token, [newFragment]);
+
+        this.fixFragmentParameters(fragment);
+      }
+
+      if (fragment.length) {
+        this.patchOrWrap(fragment);
+      }
+
+      this.dismissElements(fragment);
+
+      processed++;
+      if (processed % TextHighlighter.CHUNK_SIZE === 0 && processed < entries.length) {
+        await this.yieldToMainThread();
+      }
+    }
+  }
+
+  private async adjustUnmatchedFragmentsChunked(): Promise<void> {
+    const filtered = this.filterMap(
+      this._tokenToFragmentsMap,
+      (fragments, token) => !this.areBoundariesExactMatch(token, fragments),
+    );
+
+    const entries = [...filtered.entries()];
+    let processed = 0;
+
+    for (const [token, fragments] of entries) {
+      this.adjustFragmentEnds(fragments, token);
+      this.adjustFragmentStarts(fragments, token);
+
+      processed++;
+      if (processed % TextHighlighter.CHUNK_SIZE === 0 && processed < entries.length) {
+        await this.yieldToMainThread();
+      }
+    }
+  }
+
+  private async patchNonRubyTokensChunked(): Promise<void> {
+    const filtered = this.filterMap(
+      this._tokenToFragmentsMap,
+      (fragments, token) => !token.rubies.length && this.areBoundariesExactMatch(token, fragments),
+    );
+
+    await this.processInChunks(filtered, (token, fragments) => {
+      fragments.forEach((fragment) => this.patchOrWrap(fragment, token));
+    });
+  }
+
+  private async patchContainedRubyElementsChunked(): Promise<void> {
+    const filtered = this.filterMap(
+      this._tokenToFragmentsMap,
+      (fragments, token) =>
+        fragments.length === 1 &&
+        !!token.rubies.length &&
+        this.areBoundariesExactMatch(token, fragments),
+    );
+
+    await this.processInChunks(filtered, (token, fragments) => {
+      const [fragment] = fragments;
+      const rubyElement = this.findParent(fragment.node, 'RUBY');
+
+      this.dismissElements(fragment, token);
+
+      if (!rubyElement) {
+        return this.applyRubiesToFragment(fragment, token);
+      }
+
+      if (this.isMisparsedRuby(rubyElement, token)) {
+        return this.markElementAsMisparsed(rubyElement);
+      }
+
+      this.patchElement(rubyElement, token);
+    });
+  }
+
+  private async patchFragmentedRubyTokensChunked(): Promise<void> {
+    const filtered = this.filterMap(this._tokenToFragmentsMap, (fragments, token) =>
+      this.areBoundariesExactMatch(token, fragments),
+    );
+
+    await this.processInChunks(filtered, (token, fragments) => {
+      if (this.applyOnSharedParent(fragments, token)) {
+        return;
+      }
+
+      fragments.forEach((fragment) => {
+        const fragmentsRuby = this.findParent(fragment.node, 'RUBY');
+
+        if (fragmentsRuby) {
+          this.patchElement(fragmentsRuby, token);
+          this.dismissElements(fragment, token);
+
+          return;
+        }
+
+        const fragmentRubies = token.rubies.filter(
+          (ruby) => ruby.start >= fragment.start && ruby.end <= fragment.end,
+        );
+
+        if (fragmentRubies?.length) {
+          return this.applyRubiesToFragment(fragment, token, fragmentRubies);
+        }
+
+        this.patchOrWrap(fragment, token);
+      });
+    });
+  }
+
   /**
    * Preprocess the data - this maps tokens and fragment relations as well as applies error correction
    */
-  protected preprocess(): void {
+  protected async preprocess(): Promise<void> {
     // Match tokens and fragments together
     this.buildMaps();
 
     // Split fragments that contain multiple tokens into multiple fragments (e.g. sentences)
-    this.splitMultiTokenFragments();
+    await this.splitMultiTokenFragmentsChunked();
 
     // Apply error correction to fragments that do not match the tokens exactly
-    this.adjustUnmatchedFragments();
+    await this.adjustUnmatchedFragmentsChunked();
 
     // Rebuild the maps after error correction. This also sorts fragments and tokens beforehand
     this.rebuildMaps();
 
     // Error correction may have resulted in new fragments that need to be split (e.g. sentences behind a malformed node)
-    this.splitMultiTokenFragments();
+    await this.splitMultiTokenFragmentsChunked();
   }
 
   //#region Building Maps
@@ -65,71 +223,41 @@ export class TextHighlighter extends BaseTextHighlighter {
   }
 
   /**
-   * Rebuilds the maps between tokens and fragments
+   * Build bidirectional maps between tokens and fragments using O(n+m) sweep-line algorithm
+   * Both tokens and fragments are sorted by start position, allowing efficient matching
    */
   protected buildMaps(): void {
-    this.matchTokensToFragments();
-    this.matchFragmentsToTokens();
-  }
+    const sortedTokens = [...this._tokens].sort((a, b) => a.start - b.start);
+    const sortedFragments = [...this._fragments].sort((a, b) => a.start - b.start);
 
-  /**
-   * Find all fragments that are within the token
-   *
-   * A token (a word) can span multiple fragments when they are splitted in the layout, especially when they contain ruby text
-   */
-  protected matchTokensToFragments(): void {
-    this._tokens.forEach((token) => {
-      this._tokenToFragmentsMap.set(token, this.findFragmentsForToken(token));
-    });
-  }
+    // Initialise fragment map with empty arrays
+    for (const fragment of sortedFragments) {
+      this._fragmentToTokensMap.set(fragment, []);
+    }
 
-  /**
-   * Find all fragments that are within the token
-   * We need to find all fragments that are either completely inside the token or overlap with it
-   *
-   * @param {JitenToken} token The token to find the fragments for
-   * @returns {Fragment[]} The fragments that are within the token
-   */
-  protected findFragmentsForToken(token: JitenToken): Fragment[] {
-    const fragments: Fragment[] = [];
+    let fragIndex = 0;
 
-    this._fragments.forEach((fragment) => {
-      if (this.isFragmentWithinToken(fragment, token)) {
-        fragments.push(fragment);
+    for (const token of sortedTokens) {
+      const matchingFragments: Fragment[] = [];
+
+      // Advance past fragments that end before this token starts
+      while (fragIndex < sortedFragments.length && sortedFragments[fragIndex].end <= token.start) {
+        fragIndex++;
       }
-    });
 
-    return fragments;
-  }
-
-  /**
-   * Find all tokens that are within the fragment
-   *
-   * A fragment can contain multiple tokens the fragment contains multiple words, for example a whole sentence
-   */
-  protected matchFragmentsToTokens(): void {
-    this._fragments.forEach((fragment) => {
-      this._fragmentToTokensMap.set(fragment, this.findTokensForFragment(fragment));
-    });
-  }
-
-  /**
-   * Find all tokens that are within the fragment
-   * We need to find all tokens that are either completely inside the fragment or overlap with it
-   *
-   * @param {Fragment} fragment The fragment to find the tokens for
-   * @returns {JitenToken[]} The tokens that are within the fragment
-   */
-  protected findTokensForFragment(fragment: Fragment): JitenToken[] {
-    const tokens: JitenToken[] = [];
-
-    this._tokens.forEach((token) => {
-      if (this.isFragmentWithinToken(fragment, token)) {
-        tokens.push(token);
+      // Scan through potentially overlapping fragments
+      let scanIndex = fragIndex;
+      while (scanIndex < sortedFragments.length && sortedFragments[scanIndex].start < token.end) {
+        const fragment = sortedFragments[scanIndex];
+        if (this.isFragmentWithinToken(fragment, token)) {
+          matchingFragments.push(fragment);
+          this._fragmentToTokensMap.get(fragment)!.push(token);
+        }
+        scanIndex++;
       }
-    });
 
-    return tokens;
+      this._tokenToFragmentsMap.set(token, matchingFragments);
+    }
   }
 
   //#endregion Building Maps
@@ -300,30 +428,27 @@ export class TextHighlighter extends BaseTextHighlighter {
       return;
     }
 
-    const nodes = this.createRubyNodesForFragment(fragment, rubies);
+    const docFrag = this.createRubyNodesForFragment(fragment, rubies);
 
     newRuby.textContent = '';
-    newRuby.append(...nodes);
+    newRuby.append(docFrag);
   }
 
-  protected createRubyNodesForFragment(fragment: Fragment, rubies: JitenRuby[]): Node[] {
+  protected createRubyNodesForFragment(fragment: Fragment, rubies: JitenRuby[]): DocumentFragment {
     const nodeText = fragment.node.textContent;
     let lastIndex = 0;
-    const nodes: Node[] = [];
+    const docFrag = document.createDocumentFragment();
 
-    // Sort rubies by start position to process in order
     const sortedRubies = [...rubies].sort((a, b) => a.start - b.start);
 
     for (const ruby of sortedRubies) {
       const rubyStart = ruby.start - fragment.start;
       const rubyEnd = ruby.end - fragment.start;
 
-      // Add text before the ruby
       if (rubyStart > lastIndex) {
-        nodes.push(document.createTextNode(nodeText.slice(lastIndex, rubyStart)));
+        docFrag.append(document.createTextNode(nodeText.slice(lastIndex, rubyStart)));
       }
 
-      // Create ruby element
       const rubyElem = document.createElement('ruby');
       const rt = document.createElement('rt');
 
@@ -332,17 +457,16 @@ export class TextHighlighter extends BaseTextHighlighter {
       rt.textContent = ruby.text;
 
       rubyElem.append(rt);
-      nodes.push(rubyElem);
+      docFrag.append(rubyElem);
 
       lastIndex = rubyEnd;
     }
 
-    // Add any remaining text after the last ruby
     if (lastIndex < nodeText.length) {
-      nodes.push(document.createTextNode(nodeText.slice(lastIndex)));
+      docFrag.append(document.createTextNode(nodeText.slice(lastIndex)));
     }
 
-    return nodes;
+    return docFrag;
   }
 
   //#endregion Patch contained ruby elements
@@ -661,15 +785,7 @@ export class TextHighlighter extends BaseTextHighlighter {
       element.setAttribute('wordId', card.wordId.toString());
       element.setAttribute('readingIndex', card.readingIndex.toString());
 
-      element.addEventListener('mouseenter', (event: MouseEvent) => {
-        Registry.popupManager?.enter(event, sentence);
-      });
-      element.addEventListener('mouseleave', () => {
-        Registry.popupManager?.leave();
-      });
-      element.addEventListener('click', (event: MouseEvent) => {
-        Registry.popupManager?.touch(event, sentence);
-      });
+      Registry.wordEventDelegator.setSentence(element, sentence);
 
       return;
     }

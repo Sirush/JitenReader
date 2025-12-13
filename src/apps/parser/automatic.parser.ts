@@ -1,5 +1,7 @@
 import { debug } from '@shared/debug';
+import { getParsingPaused } from '@shared/extension/get-parsing-paused';
 import { HostMeta } from '@shared/host-meta/types';
+import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { Registry } from '../integration/registry';
 import { BaseParser } from './base.parser';
 
@@ -10,27 +12,60 @@ export class AutomaticParser extends BaseParser {
   constructor(meta: HostMeta) {
     super(meta);
 
+    onBroadcastMessage('parsingPaused', (paused: boolean) => {
+      if (paused) {
+        this.disconnectObservers();
+      } else {
+        this.reconnectObservers();
+      }
+    });
+
     setTimeout(() => {
-      if (this._meta.parseVisibleObserver) {
-        debug('AutomaticParser: Setting up visible observer', this._meta.parseVisibleObserver);
+      void getParsingPaused().then((paused) => {
+        if (paused) {
+          debug('AutomaticParser: Parsing is paused, skipping setup');
 
-        this.setupVisibleObserver();
-      }
+          return;
+        }
 
-      if (this._meta.addedObserver) {
-        debug('AutomaticParser: Setting up added observer', this._meta.addedObserver);
-
-        this.setupAddedObserver();
-      }
-
-      if (this._meta.parse) {
-        debug('AutomaticParser: Parsing page with parse function', this._meta.parse);
-
-        this.parsePage();
-      }
-
-      this.init();
+        this.startParsing();
+      });
     }, 1);
+  }
+
+  protected startParsing(): void {
+    if (this._meta.parseVisibleObserver) {
+      debug('AutomaticParser: Setting up visible observer', this._meta.parseVisibleObserver);
+
+      this.setupVisibleObserver();
+    }
+
+    if (this._meta.addedObserver) {
+      debug('AutomaticParser: Setting up added observer', this._meta.addedObserver);
+
+      this.setupAddedObserver();
+    }
+
+    if (this._meta.parse) {
+      debug('AutomaticParser: Parsing page with parse function', this._meta.parse);
+
+      this.parsePage();
+    }
+
+    this.init();
+  }
+
+  protected disconnectObservers(): void {
+    debug('AutomaticParser: Disconnecting observers due to pause');
+
+    this._visibleObserver?.disconnect();
+    this._addedObserver?.disconnect();
+  }
+
+  protected reconnectObservers(): void {
+    debug('AutomaticParser: Reconnecting observers after unpause');
+
+    this.startParsing();
   }
 
   protected init(): void {
