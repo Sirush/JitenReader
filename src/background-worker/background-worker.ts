@@ -11,6 +11,7 @@ import { ParsePageCommand } from '@shared/messages/foreground/parse-page.command
 import { ParseSelectionCommand } from '@shared/messages/foreground/parse-selection.command';
 import { DeckManager } from './jiten/deck-manager';
 import { FetchDecksCommandHandler } from './jiten/fetch-decks-command.handler';
+import { ForgetCardCommandHandler } from './jiten-card-actions/forget-card-command.handler';
 import { GradeCardCommandHandler } from './jiten-card-actions/grade-card-command.handler';
 import { RunDeckActionCommandHandler } from './jiten-card-actions/run-deck-action-command.handler';
 import { UpdateCardStateCommandHandler } from './jiten-card-actions/update-card-state-command.handler';
@@ -50,6 +51,7 @@ const fetchDecksCommandHandler = new FetchDecksCommandHandler(deckManager);
 const updateCardStateCommandHandler = new UpdateCardStateCommandHandler();
 const gradeCardCommandHandler = new GradeCardCommandHandler();
 const runDeckActionCommandHandler = new RunDeckActionCommandHandler();
+const forgetCardCommandHandler = new ForgetCardCommandHandler();
 const openSettingsCommandHandler = new OpenSettingsCommandHandler();
 const updateBadgeCommandHandler = new UpdateBadgeCommandHandler();
 
@@ -61,6 +63,7 @@ const handlerCollection = new BackgroundCommandHandlerCollection(
   updateCardStateCommandHandler,
   gradeCardCommandHandler,
   runDeckActionCommandHandler,
+  forgetCardCommandHandler,
   openSettingsCommandHandler,
   updateBadgeCommandHandler,
 );

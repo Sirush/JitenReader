@@ -24,11 +24,11 @@ $states: (
 );
 
 $grades: (
-  nothing: map.get($outlines, v1),
+  again: map.get($outlines, v1),
   something: map.get($outlines, v1),
   hard: map.get($outlines, v3),
-  okay: map.get($outlines, v4),
-  easy: map.get($states, new),
+  good: map.get($states, new),
+  easy: map.get($outlines, v4),
   fail: map.get($outlines, v1),
   pass: map.get($outlines, v4),
 );
@@ -38,6 +38,7 @@ $decks: (
   never-forget: map.get($states, known),
   blacklist: map.get($states, blacklisted),
   suspend: map.get($states, suspended),
+  forget: map.get($outlines, v1),
 );
 
 $buttons: (

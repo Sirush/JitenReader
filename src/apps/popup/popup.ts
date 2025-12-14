@@ -3,13 +3,16 @@ import { createElement } from '@shared/dom/create-element';
 import { findElements } from '@shared/dom/find-elements';
 import { withElement } from '@shared/dom/with-element';
 import { getStyleUrl } from '@shared/extension/get-style-url';
-import { JitenCard } from '@shared/jiten/types';
+import { JitenCard, JitenCardState } from '@shared/jiten/types';
+import { ForgetCardCommand } from '@shared/messages/background/forget-card.command';
+import { UpdateCardStateCommand } from '@shared/messages/background/update-card-state.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { KeybindManager } from '../integration/keybind-manager';
 import { Registry } from '../integration/registry';
 import { GradingController } from './actions/grading-controller';
 import { MiningController } from './actions/mining-controller';
 import { RotationController } from './actions/rotation-controller';
+import { ConfirmDialog } from './confirm-dialog';
 import { PARTS_OF_SPEECH } from './part-of-speech';
 
 export class Popup {
@@ -97,6 +100,9 @@ export class Popup {
 
   private _hideTimer?: NodeJS.Timeout;
   private _isHover?: boolean;
+  private _confirmDialog?: ConfirmDialog;
+  private _popupLeft = 0;
+  private _popupTop = 0;
 
   private _cardContext?: HTMLElement;
   private _conjugations?: string[];
@@ -219,6 +225,11 @@ export class Popup {
       this._customStyles,
       this._popup,
     );
+
+    this._confirmDialog = new ConfirmDialog(shadowRoot, () => ({
+      x: this._popupLeft,
+      y: this._popupTop,
+    }));
   }
 
   private updateParentElement(): void {
@@ -351,6 +362,8 @@ export class Popup {
       this._popup.style.width = `${innerWidth - 32}px`;
     }
 
+    this._popupLeft = popupLeft;
+    this._popupTop = popupTop;
     this._root.style.transform = `translate(${popupLeft}px, ${popupTop}px)`;
   }
 
@@ -443,6 +456,38 @@ export class Popup {
     // this.addMiningButton(this._mining.suspendDeck, 'suspend', undefined, () =>
     //   performFlaggedDeckAction('suspend'),
     // );
+
+    this._mineButtons.appendChild(
+      createElement('a', {
+        id: 'forget-deck',
+        class: ['outline', 'forget'],
+        innerText: 'Forget',
+        handler: () => this.handleForgetClick(),
+      }),
+    );
+  }
+
+  private async handleForgetClick(): Promise<void> {
+    if (!this._card || !this._confirmDialog) {
+      return;
+    }
+
+    const confirmed = await this._confirmDialog.show({
+      message: 'Forget this card? The card state and all reviews will be permanently deleted.',
+      confirmText: 'Forget',
+      cancelText: 'Cancel',
+      confirmClass: 'forget',
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    const { wordId, readingIndex } = this._card;
+
+    new ForgetCardCommand(wordId, readingIndex).send(() => {
+      new UpdateCardStateCommand(wordId, readingIndex).send();
+    });
   }
 
   private addMiningButton(
@@ -520,10 +565,13 @@ export class Popup {
   //#region Card Utils
 
   private cardHasState(state: 'neverForget' | 'blacklist' | 'suspend', card: JitenCard): boolean {
-    void card;
-    void state;
+    const stateMap: Record<'neverForget' | 'blacklist' | 'suspend', JitenCardState> = {
+      neverForget: JitenCardState.MASTERED,
+      blacklist: JitenCardState.BLACKLISTED,
+      suspend: JitenCardState.BLACKLISTED,
+    };
 
-    return false;
+    return card.cardState.includes(stateMap[state]);
   }
 
   //#endregion
@@ -548,10 +596,10 @@ export class Popup {
     const isSP = this.cardHasState('suspend', card);
 
     withElement(this._mineButtons, '#never-forget-deck', (el) => {
-      el.innerText = isNF ? 'Forget' : 'Never forget';
+      el.innerText = isNF ? 'Remove Never Forget' : 'Never forget';
     });
     withElement(this._mineButtons, '#blacklist-deck', (el) => {
-      el.innerText = isBL ? 'Whitelist' : 'Blacklist';
+      el.innerText = isBL ? 'Remove Blacklist' : 'Blacklist';
     });
     withElement(this._mineButtons, '#suspend-deck', (el) => {
       el.innerText = isSP ? 'Unsuspend' : 'Suspend';
@@ -854,6 +902,10 @@ export class Popup {
     this._isHover = false;
 
     if (!this.isVisibile()) {
+      return;
+    }
+
+    if (this._confirmDialog?.isOpen) {
       return;
     }
 
