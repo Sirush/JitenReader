@@ -95,21 +95,31 @@ class MokuroMangaPanel {
     });
   }
 
-  /**
-   * Remove all jiten elements from the page
-   * This is necessary to avoid duplication of words when the page changes
-   * The jiten elements are not removed by mokuro itself
-   */
   private cleanup(): void {
     [...this._panel.querySelectorAll('.textBox p')].forEach((p) => {
-      if (p.firstChild instanceof Text) {
-        return;
+      const newChildren: Node[] = [];
+
+      for (const child of [...p.childNodes]) {
+        if (child instanceof HTMLBRElement) {
+          newChildren.push(child.cloneNode());
+
+          continue;
+        }
+
+        if (child instanceof Text) {
+          newChildren.push(child);
+
+          continue;
+        }
+
+        const textContent = child.textContent || '';
+
+        if (textContent) {
+          newChildren.push(document.createTextNode(textContent));
+        }
       }
 
-      const { firstChild: firstJitenChild } = p;
-      const { firstChild: textContext } = firstJitenChild!;
-
-      p.replaceChildren(textContext!);
+      p.replaceChildren(...newChildren);
     });
   }
 
