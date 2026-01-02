@@ -7,6 +7,7 @@ import { JitenCard, JitenCardState } from '@shared/jiten/types';
 import { ForgetCardCommand } from '@shared/messages/background/forget-card.command';
 import { UpdateCardStateCommand } from '@shared/messages/background/update-card-state.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
+import { getThemeCssVars } from '@shared/theme/get-theme-css-vars';
 import { KeybindManager } from '../integration/keybind-manager';
 import { Registry } from '../integration/registry';
 import { GradingController } from './actions/grading-controller';
@@ -44,7 +45,9 @@ export class Popup {
 
   //#region Utility Accessors
 
-  /** The user declared styles - syncronized with extension storage */
+  /** Theme CSS variables - syncronised with extension storage */
+  private _themeStyles: HTMLStyleElement = createElement('style');
+  /** The user declared styles - syncronised with extension storage */
   private _customStyles: HTMLStyleElement = createElement('style');
 
   private _closeButton = createElement('section', {
@@ -200,6 +203,7 @@ export class Popup {
     this._moveGradingActions = await getConfiguration('moveGradingActions');
     this._showConjugations = await getConfiguration('showConjugations');
 
+    this._themeStyles.textContent = await getThemeCssVars();
     this._customStyles.textContent = await getConfiguration('customPopupCSS');
 
     this._closeButton.style.display =
@@ -222,6 +226,7 @@ export class Popup {
 
     shadowRoot.append(
       createElement('link', { attributes: { rel: 'stylesheet', href: getStyleUrl('popup') } }),
+      this._themeStyles,
       this._customStyles,
       this._popup,
     );

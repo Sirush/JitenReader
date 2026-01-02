@@ -1,8 +1,8 @@
 @use 'sass:map';
 @use '../variables/_colors' as colors;
 
-$outline-input-shadow-color: #D8B9FA;
-$outline-input-color: #D8B9FA;
+$outline-input-shadow-color: var(--jiten-accent, #D8B9FA);
+$outline-input-color: var(--jiten-accent, #D8B9FA);
 $outline-input-background-color: #171717;
 
 input, a, label {

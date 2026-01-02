@@ -4,6 +4,11 @@ import { ConfigurationSchema } from './types';
 export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   schemaVersion: 1,
 
+  //#region Theme
+  themeBgColour: '#181818',
+  themeAccentColour: '#D8B9FA',
+  //#endregion
+
   //#region JPDB Integration
 
   jitenApiKey: '',

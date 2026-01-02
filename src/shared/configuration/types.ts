@@ -6,6 +6,11 @@ export type Keybinds = Keybind | [Keybind?, Keybind?];
 export type ConfigurationSchema = {
   schemaVersion: number;
 
+  //#region Theme
+  themeBgColour: string;
+  themeAccentColour: string;
+  //#endregion
+
   //#region Jiten Integration
 
   jitenApiKey: string;

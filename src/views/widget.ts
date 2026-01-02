@@ -8,10 +8,28 @@ import { openView } from '@shared/extension/open-view';
 import { setParsingPaused } from '@shared/extension/set-parsing-paused';
 import { isDisabled } from '@shared/host-meta/is-disabled';
 import { ParsingPausedCommand } from '@shared/messages/broadcast/parsing-paused.command';
+import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { ParsePageCommand } from '@shared/messages/foreground/parse-page.command';
+import { getThemeCssVars } from '@shared/theme/get-theme-css-vars';
 import { HTMLProfileSelectorElement } from './elements/html-profile-selector-element';
 
 customElements.define('profile-selector', HTMLProfileSelectorElement);
+
+const applyThemeVars = async (): Promise<void> => {
+  const cssVars = await getThemeCssVars();
+  let styleEl = document.getElementById('jiten-theme-vars') as HTMLStyleElement;
+
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'jiten-theme-vars';
+    document.head.appendChild(styleEl);
+  }
+
+  styleEl.textContent = cssVars;
+};
+
+void applyThemeVars();
+onBroadcastMessage('configurationUpdated', () => void applyThemeVars());
 
 const updatePauseToggle = (toggle: HTMLElement, paused: boolean): void => {
   toggle.innerText = paused ? 'Paused' : 'Enabled';

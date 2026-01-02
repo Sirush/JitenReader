@@ -103,6 +103,56 @@
       </div>
     </div>
 
+    <div id="theme" class="section">
+      <h6>Theme</h6>
+      <div class="form-box-parent">
+        <div class="form-box">
+          <div>
+            <label for="themeBgColour">Background Colour</label>
+            <div class="colour-picker-group">
+              <input type="color" id="themeBgColour" name="themeBgColour" />
+              <input type="text" id="themeBgColourText" placeholder="#181818" internal />
+            </div>
+            <p style="opacity: 0.8">Main background colour. Default: <code>#181818</code></p>
+          </div>
+          <div>
+            <label for="themeAccentColour">Accent Colour</label>
+            <div class="colour-picker-group">
+              <input type="color" id="themeAccentColour" name="themeAccentColour" />
+              <input type="text" id="themeAccentColourText" placeholder="#D8B9FA" internal />
+            </div>
+            <p style="opacity: 0.8">Accent colour for highlights, links, buttons. Default: <code>#D8B9FA</code></p>
+          </div>
+        </div>
+      </div>
+      <div class="form-box-parent">
+        <div class="form-box">
+          <div>
+            <label for="customWordCSS">Custom Word CSS</label>
+            <textarea
+              id="customWordCSS"
+              name="customWordCSS"
+              placeholder="Custom Word CSS"
+              spellcheck="false"
+              style="height: 10em; margin-bottom: 0"
+            ></textarea>
+            <p style="opacity: 0.8">Custom CSS for words in text and subtitles.</p>
+          </div>
+          <div>
+            <label for="customPopupCSS">Custom Popup CSS</label>
+            <textarea
+              id="customPopupCSS"
+              name="customPopupCSS"
+              placeholder="Custom Popup CSS"
+              spellcheck="false"
+              style="height: 10em; margin-bottom: 0"
+            ></textarea>
+            <p style="opacity: 0.8">Custom CSS for the popup shown when hovering over words.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div data-show="enableAnkiIntegration" class="collapsible section" skip-animation>
       <h6>Anki Integration</h6>
 
@@ -483,21 +533,6 @@
               </div>
             </div>
 
-            <div class="form-box-parent">
-              <div class="form-box">
-                <div>
-                  <label for="customWordCSS">Custom Word CSS</label>
-                  <textarea
-                    id="customWordCSS"
-                    name="customWordCSS"
-                    placeholder="Custom Word CSS"
-                    spellcheck="false"
-                    style="height: 15em; margin-bottom: 0"
-                  ></textarea>
-                  <p style="opacity: 0.8">This changes the appearance of words in text and subs.</p>
-                </div>
-              </div>
-            </div>
           </div>
 
           <div id="popup" class="section">
@@ -634,20 +669,6 @@
                   <p style="opacity: 0.8">
                     Delay to hide the popup in milliseconds. If set to 0, the popup will hide
                     immediately.
-                  </p>
-                </div>
-
-                <div>
-                  <label for="customPopupCSS">Custom Popup CSS</label>
-                  <textarea
-                    id="customPopupCSS"
-                    name="customPopupCSS"
-                    placeholder="Custom Popup CSS"
-                    spellcheck="false"
-                    style="height: 15em; margin-bottom: 0"
-                  ></textarea>
-                  <p style="opacity: 0.8">
-                    This changes the appearance of the popup shown when hovering over words.
                   </p>
                 </div>
               </div>

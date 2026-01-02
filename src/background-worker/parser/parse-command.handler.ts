@@ -5,6 +5,7 @@ import { MessageSender } from '@shared/extension/types';
 import { ParseCommand } from '@shared/messages/background/parse.command';
 import { ToastCommand } from '@shared/messages/foreground/toast.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
+import { getThemeCssVars } from '@shared/theme/get-theme-css-vars';
 import { BackgroundCommandHandler } from '../lib/background-command-handler';
 import { ParseController } from './parse.controller';
 
@@ -36,9 +37,10 @@ export class ParseCommandHandler extends BackgroundCommandHandler<ParseCommand> 
     onBroadcastMessage(
       'configurationUpdated',
       async () => {
+        const themeVars = await getThemeCssVars();
         const customWordCSS = await getConfiguration('customWordCSS');
 
-        await injectStyle(sender.tab!.id!, 'word', customWordCSS);
+        await injectStyle(sender.tab!.id!, 'word', `${themeVars}\n${customWordCSS}`);
       },
       true,
     );

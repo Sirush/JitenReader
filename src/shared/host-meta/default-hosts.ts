@@ -236,4 +236,15 @@ export const DEFAULT_HOSTS: PredefinedHostMeta[] = [
       notifyFor: '.asbplayer-offscreen',
     },
   },
+  {
+    id: 'aozora-parser',
+    name: 'Aozora Bunko Parser',
+    description: 'Parses Aozora Bunko literature',
+    host: '*://*.aozora.gr.jp/*',
+    auto: true,
+    optOut: true,
+    allFrames: false,
+    parserClass: 'aozora-parser',
+    custom: 'AozoraParser',
+  },
 ];

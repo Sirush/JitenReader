@@ -8,6 +8,8 @@ import { withElement } from '@shared/dom/with-element';
 import { withElements } from '@shared/dom/with-elements';
 import { ping } from '@shared/jiten/ping';
 import { ConfigurationUpdatedCommand } from '@shared/messages/broadcast/configuration-updated.command';
+import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
+import { getThemeCssVars } from '@shared/theme/get-theme-css-vars';
 import { HTMLFeaturesInputElement } from './elements/html-features-input-element';
 import { HTMLKeybindInputElement } from './elements/html-keybind-input-element';
 import { HTMLMiningInputElement } from './elements/html-mining-input-element';
@@ -42,6 +44,83 @@ const validators: Partial<
 };
 
 const configurationUpdatedCommand = new ConfigurationUpdatedCommand();
+
+//#region Theme Variables
+
+const getThemeStyleEl = (): HTMLStyleElement => {
+  let styleEl = document.getElementById('jiten-theme-vars') as HTMLStyleElement;
+
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'jiten-theme-vars';
+    document.head.appendChild(styleEl);
+  }
+
+  return styleEl;
+};
+
+const applyThemeVars = async (): Promise<void> => {
+  getThemeStyleEl().textContent = await getThemeCssVars();
+};
+
+const applyThemeVarsFromInputs = (): void => {
+  const bg = (document.getElementById('themeBgColour') as HTMLInputElement)?.value || '#181818';
+  const accent = (document.getElementById('themeAccentColour') as HTMLInputElement)?.value || '#D8B9FA';
+  getThemeStyleEl().textContent = `:root, :host { --jiten-bg: ${bg}; --jiten-accent: ${accent}; }`;
+};
+
+void applyThemeVars();
+onBroadcastMessage('configurationUpdated', () => void applyThemeVars());
+
+const setupColourPicker = (colourId: string, textId: string): void => {
+  const colourInput = document.getElementById(colourId) as HTMLInputElement;
+  const textInput = document.getElementById(textId) as HTMLInputElement;
+
+  if (!colourInput || !textInput) return;
+
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  const saveAndApply = (value: string): void => {
+    if (debounceTimer) clearTimeout(debounceTimer);
+
+    // Apply theme vars immediately from current input values for instant visual feedback
+    applyThemeVarsFromInputs();
+
+    // Debounce the save to avoid spamming storage
+    debounceTimer = setTimeout(async () => {
+      await setConfiguration(colourId as keyof ConfigurationSchema, value);
+      configurationUpdatedCommand.send();
+    }, 150);
+  };
+
+  // Initial load: sync text input from colour input (which is loaded by withElements)
+  const syncTextFromColour = (): void => {
+    textInput.value = colourInput.value.toUpperCase();
+  };
+
+  // Wait for colour input to be loaded by withElements, then sync text
+  setTimeout(syncTextFromColour, 50);
+
+  // When user types in text input, update colour picker and save
+  textInput.addEventListener('input', () => {
+    const value = textInput.value.trim();
+    if (/^#[0-9A-Fa-f]{6}$/i.test(value)) {
+      colourInput.value = value;
+      saveAndApply(value);
+    }
+  });
+
+  // When user picks colour, update text input and save
+  colourInput.addEventListener('input', () => {
+    textInput.value = colourInput.value.toUpperCase();
+    saveAndApply(colourInput.value);
+  });
+};
+
+setupColourPicker('themeBgColour', 'themeBgColourText');
+setupColourPicker('themeAccentColour', 'themeAccentColourText');
+
+//#endregion
 
 //#region Init Interactions
 

@@ -25,7 +25,7 @@
   width: auto;
   padding: 0.5em 1em;
   margin-bottom: 1em;
-  background-color: rgba(24, 24, 24, 0.95);
+  background-color: color-mix(in srgb, var(--jiten-bg, #181818) 95%, transparent);
   border: 1px solid #333;
   border-radius: 1em;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
@@ -78,7 +78,7 @@
   flex-direction: column;
   gap: 0.4em;
   padding: 0.75em 1em;
-  background-color: rgba(24, 24, 24, 0.95);
+  background-color: color-mix(in srgb, var(--jiten-bg, #181818) 95%, transparent);
   border: 1px solid #333;
   border-radius: 0.75em;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
@@ -198,7 +198,7 @@
   transform: translateX(-50%) scale(0.8);
   width: 2.5em;
   height: 2.5em;
-  background-color: rgba(24, 24, 24, 0.9);
+  background-color: color-mix(in srgb, var(--jiten-bg, #181818) 90%, transparent);
   border: 1px solid #444;
   border-radius: 50%;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);

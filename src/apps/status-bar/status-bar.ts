@@ -7,6 +7,7 @@ import { OpenSettingsCommand } from '@shared/messages/background/open-settings.c
 import { UpdateBadgeCommand } from '@shared/messages/background/update-badge.command';
 import { ConfigurationUpdatedCommand } from '@shared/messages/broadcast/configuration-updated.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
+import { getThemeCssVars } from '@shared/theme/get-theme-css-vars';
 import {
   calculateComprehension,
   calculateCoverageFromDOM,
@@ -18,6 +19,8 @@ import {
 import { StatusBarButton, StatusBarStats } from './types';
 
 export class StatusBar {
+  private _themeStyles: HTMLStyleElement = createElement('style');
+
   private _root: HTMLDivElement = createElement('div', {
     id: 'ajb-status-bar',
     style: {
@@ -267,7 +270,7 @@ export class StatusBar {
       events: { onload: () => (this._root.style.visibility = 'visible') },
     });
 
-    shadowRoot.append(stylesheet, this._bar, this._icon);
+    shadowRoot.append(this._themeStyles, stylesheet, this._bar, this._icon);
 
     document.body.appendChild(this._root);
   }
@@ -278,6 +281,8 @@ export class StatusBar {
     this._hideIcon = await getConfiguration('statusBarHideIcon');
     this._showBadge = await getConfiguration('statusBarShowBadge');
     this._position = await getConfiguration('statusBarPosition');
+
+    this._themeStyles.textContent = await getThemeCssVars();
 
     this.updateLockButton();
     this.updatePosition();

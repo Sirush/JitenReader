@@ -118,6 +118,36 @@ keybind-input {
   }
 }
 
+.colour-picker-group {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+
+  input[type='color'] {
+    width: 3em;
+    height: 3em;
+    padding: 0;
+    border: 1px solid #3a3a3a;
+    border-radius: 0.6em;
+    cursor: pointer;
+
+    &::-webkit-color-swatch-wrapper {
+      padding: 2px;
+    }
+
+    &::-webkit-color-swatch {
+      border: none;
+      border-radius: 0.4em;
+    }
+  }
+
+  input[type='text'] {
+    flex: 1;
+    font-family: monospace;
+    text-transform: uppercase;
+  }
+}
+
 .table-box {
   display: flex;
   flex-direction: column;
@@ -166,7 +196,7 @@ keybind-input {
   max-width: 800px;
   padding: 2em;
 
-  background-color: #181818;
+  background-color: var(--jiten-bg, #181818);
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 
@@ -185,25 +215,25 @@ profile-manager {
     margin-top: 0.5em;
 
     .row.header {
-      background-color: rgba(216, 185, 250, 0.05);
+      background-color: color-mix(in srgb, var(--jiten-accent, #D8B9FA) 5%, transparent);
     }
 
     .row.active-profile {
-      background-color: rgba(216, 185, 250, 0.1);
+      background-color: color-mix(in srgb, var(--jiten-accent, #D8B9FA) 10%, transparent);
     }
 
     button.outline {
       padding: 0.3em 0.6em;
       font-size: 0.85em;
       background-color: transparent;
-      color: #D8B9FA;
-      border-color: #D8B9FA;
+      color: var(--jiten-accent, #D8B9FA);
+      border-color: var(--jiten-accent, #D8B9FA);
       transform: none;
 
       &:hover {
         transform: none;
-        border-color: #D8B9FA;
-        box-shadow: inset 0 0 3px #D8B9FA;
+        border-color: var(--jiten-accent, #D8B9FA);
+        box-shadow: inset 0 0 3px var(--jiten-accent, #D8B9FA);
       }
     }
 
@@ -216,14 +246,14 @@ profile-manager {
   .create-profile-btn {
     margin-top: 1em;
     background-color: transparent;
-    color: #D8B9FA;
-    border-color: #D8B9FA;
+    color: var(--jiten-accent, #D8B9FA);
+    border-color: var(--jiten-accent, #D8B9FA);
     transform: none;
 
     &:hover {
       transform: none;
-      border-color: #D8B9FA;
-      box-shadow: inset 0 0 3px #D8B9FA;
+      border-color: var(--jiten-accent, #D8B9FA);
+      box-shadow: inset 0 0 3px var(--jiten-accent, #D8B9FA);
     }
   }
 
@@ -245,18 +275,18 @@ profile-selector {
     background-repeat: no-repeat;
     background-position: right 0.75em center;
     padding-right: 2.5em;
-    border: 1px solid #D8B9FA;
-    color: #D8B9FA;
+    border: 1px solid var(--jiten-accent, #D8B9FA);
+    color: var(--jiten-accent, #D8B9FA);
     cursor: pointer;
     transition: box-shadow 0.2s ease-in-out;
 
     &:hover {
-      box-shadow: inset 0 0 3px #D8B9FA;
+      box-shadow: inset 0 0 3px var(--jiten-accent, #D8B9FA);
     }
 
     &:focus {
       outline: none;
-      box-shadow: inset 0 0 5px #D8B9FA;
+      box-shadow: inset 0 0 5px var(--jiten-accent, #D8B9FA);
     }
 
     option {
