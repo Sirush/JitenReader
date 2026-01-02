@@ -34,11 +34,41 @@ export class WordEventDelegator {
     return target.closest?.('.jiten-word[wordId]');
   }
 
+  private findAdjacentWordElements(element: Element): Element[] {
+    const wordId = element.getAttribute('wordId');
+    const readingIndex = element.getAttribute('readingIndex');
+    if (!wordId) return [element];
+
+    const elements: Element[] = [element];
+
+    let prev = element.previousElementSibling;
+    while (
+      prev?.getAttribute('wordId') === wordId &&
+      prev?.getAttribute('readingIndex') === readingIndex
+    ) {
+      elements.unshift(prev);
+      prev = prev.previousElementSibling;
+    }
+
+    let next = element.nextElementSibling;
+    while (
+      next?.getAttribute('wordId') === wordId &&
+      next?.getAttribute('readingIndex') === readingIndex
+    ) {
+      elements.push(next);
+      next = next.nextElementSibling;
+    }
+
+    return elements;
+  }
+
   private handleMouseEnter = (event: Event): void => {
     const target = this.findWordElement(event);
     if (target) {
       const sentence = this._sentenceMap.get(target);
       Registry.popupManager?.enter(target as HTMLElement, sentence);
+
+      this.findAdjacentWordElements(target).forEach((el) => el.classList.add('hovered'));
     }
   };
 
@@ -46,6 +76,8 @@ export class WordEventDelegator {
     const target = this.findWordElement(event);
     if (target) {
       Registry.popupManager?.leave();
+
+      this.findAdjacentWordElements(target).forEach((el) => el.classList.remove('hovered'));
     }
   };
 

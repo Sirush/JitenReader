@@ -8,8 +8,8 @@ $outlines: (
 );
 
 $states: (
-  new: #4b8dff,
-  not-in-deck: #4b8dff,
+  new: #D8B9FA,
+  not-in-deck: #D8B9FA,
 
   blacklisted: #777,
   locked: #777,
@@ -48,25 +48,25 @@ $buttons: (
   button-focused-shadow-color: transparent,
   button-hover-shadow-color: transparent,
 
-  button-focused-border-color: #3b7def,
-  button-hover-border-color: #3b7def,
+  button-focused-border-color: #D8B9FA,
+  button-hover-border-color: #D8B9FA,
 );
 
 $inputs: (
   input-text-color: #aaa,
   input-background-color: #191919,
   input-border-color: #3a3a3a,
-  input-focused-border-color: #3b7def,
+  input-focused-border-color: #D8B9FA,
 
   input-box-shadow-color: #111,
   input-focused-box-shadow-color: transparent,
 
-  checkbox-color: #3b7def,
+  checkbox-color: #D8B9FA,
   checkbox-background-color: #111,
   checkbox-border-color: #444,
-  checkbox-focused-border-color: #3b7def,
+  checkbox-focused-border-color: #D8B9FA,
   checkbox-box-shadow-color: #000,
-  checkbox-focused-box-shadow-color: #3b7def,
+  checkbox-focused-box-shadow-color: #D8B9FA,
   checkbox-focused-text-underline-color: #aaa,
 );
 
@@ -74,7 +74,7 @@ $colors: (
   background-color: #181818,
   text-color: #bbb,
 
-  link-color: #4b8dff,
+  link-color: #D8B9FA,
   link-underline-color: #555,
 
   accordion-border-color: #444,

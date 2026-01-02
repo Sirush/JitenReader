@@ -11,7 +11,8 @@
   font-size: 60%;
 }
 
-.jiten-word:not(.unparsed):hover {
+.jiten-word:not(.unparsed):hover,
+.jiten-word:not(.unparsed).hovered {
   text-decoration: underline;
   text-underline-position: under left;
 }
@@ -42,7 +43,7 @@
 }
 
 .jiten-word.new {
-  color: rgb(75, 141, 255);
+  color: rgb(165, 102, 239);
 }
 
 .jiten-word.frequent {

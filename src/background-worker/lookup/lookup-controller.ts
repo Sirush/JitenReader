@@ -19,7 +19,7 @@ export class LookupController {
     }
 
     const urlEncoded = encodeURIComponent(text);
-    const url = `https://jpdb.io/search?q=${urlEncoded}&lang=english#a`;
+    const url = `https://jiten.moe/parse?text=${urlEncoded}`;
 
     void openNewTab(url);
   }

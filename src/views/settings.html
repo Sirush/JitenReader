@@ -854,32 +854,48 @@
               </div>
             </div>
 
-            <div data-show="jitenApiKey" class="form-box-parent">
-              <div class="form-box">
-                <div>
-                  <input
-                    type="submit"
-                    class="outline"
-                    style="font-weight: bold"
-                    value="Export settings"
-                    id="export-settings"
-                  />
-                </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-                <div>
-                  <input
-                    type="submit"
-                    class="outline"
-                    style="font-weight: bold"
-                    value="Import settings"
-                    id="import-settings"
-                  />
-                </div>
-              </div>
-            </div>
+    <div id="export" class="section">
+      <h6>Import / Export</h6>
+
+      <div class="checkbox" data-show="jitenApiKey">
+        <input type="checkbox" id="exportApiKey" internal />
+        <label for="exportApiKey">Also export API key</label>
+      </div>
+      <p id="exportApiKeyWarning" style="display: none; color: #e74c3c;">
+        Warning: Do not share the exported file if this is ticked.
+      </p>
+
+      <div class="form-box-parent">
+        <div class="form-box">
+          <div data-show="jitenApiKey">
+            <input
+              type="submit"
+              class="outline"
+              style="font-weight: bold"
+              value="Export settings"
+              id="export-settings"
+            />
           </div>
 
-          <div style="margin-top: 32px"></div>
+          <div>
+            <input
+              type="submit"
+              class="outline"
+              style="font-weight: bold"
+              value="Import settings"
+              id="import-settings"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 32px"></div>
   </form>
 </div>
 </body>

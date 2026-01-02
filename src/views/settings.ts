@@ -99,7 +99,15 @@ withElement('#export-settings', (button) => {
     const downloadTitleWithDate = `configuration-${new Date().toISOString().slice(0, 10)}.json`;
 
     void chrome.storage.local.get().then((configuration) => {
-      delete configuration.jitenApiKey;
+      const includeApiKey = (document.getElementById('exportApiKey') as HTMLInputElement)?.checked;
+
+      if (!includeApiKey) {
+        Object.keys(configuration).forEach((key) => {
+          if (key.includes('jitenApiKey')) {
+            delete configuration[key];
+          }
+        });
+      }
 
       const blob = new Blob([JSON.stringify(configuration, null, 2)], {
         type: 'application/json',
@@ -135,9 +143,14 @@ withElement('#import-settings', (button) => {
 
       const file = fileInput.files[0];
       const text = await file.text();
-      const data = JSON.parse(text) as ConfigurationSchema;
 
-      data.jitenApiKey = await getConfiguration('jitenApiKey');
+      let data: Record<string, unknown>;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        alert('Failed to import settings: invalid JSON file');
+        return;
+      }
 
       await chrome.storage.local.clear();
       await chrome.storage.local.set(data);
@@ -149,6 +162,15 @@ withElement('#import-settings', (button) => {
 
     fileInput.click();
   };
+});
+
+withElement('#exportApiKey', (checkbox: HTMLInputElement) => {
+  checkbox.addEventListener('change', () => {
+    const warning = document.getElementById('exportApiKeyWarning');
+    if (warning) {
+      warning.style.display = checkbox.checked ? 'block' : 'none';
+    }
+  });
 });
 
 //#endregion

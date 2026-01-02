@@ -105,7 +105,7 @@ export class HTMLProfileManagerElement extends HTMLElement {
       }));
       if (canDelete) {
         actionsCol.appendChild(createElement('button', {
-          class: ['outline', 'danger'],
+          class: ['outline', 'v1'],
           innerText: 'Delete',
           handler: () => this.showDeleteDialog(profile),
         }));
