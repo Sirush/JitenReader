@@ -7,6 +7,7 @@ export type Fragment = {
   end: number;
   length: number;
   hasRuby: boolean;
+  rubyElement?: Element;
 };
 export type Paragraph = Fragment[];
 

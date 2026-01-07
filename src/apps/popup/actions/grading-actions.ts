@@ -1,4 +1,4 @@
-import { JPDBCard, JPDBGrade } from '@shared/jpdb/types';
+import { JitenCard, JitenRating } from '@shared/jiten/types';
 import { KeybindManager } from '../../integration/keybind-manager';
 import { Registry } from '../../integration/registry';
 import { GradingController } from './grading-controller';
@@ -8,26 +8,26 @@ import { GradingController } from './grading-controller';
  */
 export class GradingActions {
   private _keyManager = new KeybindManager([
-    'jpdbReviewNothing',
-    'jpdbReviewSomething',
-    'jpdbReviewHard',
-    'jpdbReviewOkay',
-    'jpdbReviewEasy',
-    'jpdbReviewFail',
-    'jpdbReviewPass',
+    'jitenReviewNothing',
+    'jitenReviewSomething',
+    'jitenReviewHard',
+    'jitenReviewOkay',
+    'jitenReviewEasy',
+    'jitenReviewFail',
+    'jitenReviewPass',
   ]);
-  private _card?: JPDBCard;
+  private _card?: JitenCard;
 
   constructor(private _controller: GradingController) {
     const { events } = Registry;
 
-    events.on('jpdbReviewNothing', () => this.reviewCard('nothing'));
-    events.on('jpdbReviewSomething', () => this.reviewCard('something'));
-    events.on('jpdbReviewHard', () => this.reviewCard('hard'));
-    events.on('jpdbReviewOkay', () => this.reviewCard('okay'));
-    events.on('jpdbReviewEasy', () => this.reviewCard('easy'));
-    events.on('jpdbReviewFail', () => this.reviewCard('fail'));
-    events.on('jpdbReviewPass', () => this.reviewCard('pass'));
+    events.on('jitenReviewNothing', () => this.reviewCard('unknown'));
+    events.on('jitenReviewSomething', () => this.reviewCard('again'));
+    events.on('jitenReviewHard', () => this.reviewCard('hard'));
+    events.on('jitenReviewOkay', () => this.reviewCard('good'));
+    events.on('jitenReviewEasy', () => this.reviewCard('easy'));
+    events.on('jitenReviewFail', () => this.reviewCard('again'));
+    events.on('jitenReviewPass', () => this.reviewCard('good'));
   }
 
   public activate(context: HTMLElement): void {
@@ -40,11 +40,11 @@ export class GradingActions {
     this._keyManager.deactivate();
   }
 
-  private reviewCard(grade: JPDBGrade): void {
+  private reviewCard(rating: JitenRating): void {
     if (!this._card) {
       return;
     }
 
-    this._controller.gradeCard(this._card, grade);
+    this._controller.gradeCard(this._card, rating);
   }
 }

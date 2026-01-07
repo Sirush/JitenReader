@@ -7,7 +7,7 @@ Here are some common customizations you might want. Feel free to use multiple of
 > **Important:**  
 > In most cases, you will need to use `!important` in your CSS rules to override the extension's default styles and the website's own styles. For example:  
 > ```css
-> .jpdb-word { color: red !important; }
+> .jiten-word { color: red !important; }
 > ```
 > Without `!important`, your custom styles may not be applied.
 > 
@@ -16,66 +16,49 @@ Here are some common customizations you might want. Feel free to use multiple of
 
 Don't color words:
 ```css
-.jpdb-word { color: inherit !important; /* inherit color from the website instead of using a custom color */ }
+.jiten-word { color: inherit !important; /* inherit color from the website instead of using a custom color */ }
 ```
 
 Only color new words:
 ```css
-.jpdb-word { color: inherit !important; }
-.jpdb-word.new { color: rgb(75, 141, 255) !important; }
-.jpdb-word.not-in-deck { color: rgb(126, 173, 255) !important; }
+.jiten-word { color: inherit !important; }
+.jiten-word.new { color: rgb(75, 141, 255) !important; }
 ```
 
 Only color new words, but mark more frequent words additionally:
 ```css
-.jpdb-word { color: inherit !important; }
-.jpdb-word.new, .jpdb-word.not-in-deck { color: rgb(75, 141, 255) !important; }
-.jpdb-word.frequent { color: rgb(126, 173, 122) !important; }
+.jiten-word { color: inherit !important; }
+.jiten-word.new { color: rgb(75, 141, 255) !important; }
+.jiten-word.frequent { color: rgb(126, 173, 122) !important; }
 ```
 
 Show an underline rather than changing the text color:
 ```css
-.jpdb-word.new {
+.jiten-word.new {
     color: inherit !important;
     text-decoration: underline 3px rgb(75, 141, 255) !important;
 }
 ```
 
-Hide all jpdb furigana:
+Hide all generated furigana:
 ```css
-.jpdb-furi { display: none !important; }
+.jiten-furi { display: none !important; }
 ```
 
-Hide jpdb furigana only for some classes of words:
+Hide generated furigana only for some classes of words:
 ```css
-.jpdb-word:is(.never-forget, .known, .due, .failed) .jpdb-furi { display: none !important; }
+.jiten-word:is(.mastered, .mature, .due, .failed) .jiten-furi { display: none !important; }
 ```
 
-Only show jpdb furigana while hovering:
+Only show generated furigana while hovering:
 ```css
-.jpdb-word:not(:hover) .jpdb-furi { visibility: hidden !important; }
-```
-
-Mark misparsed words:
-```css
-.jpdb-word.misparsed {
-    color: rgb(255, 0, 0) !important;
-    background-color: lightgray !important;
-}
-```
-
-Disable misparsed word coloring:
-```css
-.jpdb-word.misparsed {
-  color: unset !important;
-  background-color: unset !important;
-}
+.jiten-word:not(:hover) .jiten-furi { visibility: hidden !important; }
 ```
 
 Add extra styles only for asbplayer subtitles:
 ```css
 .asb-player-parser {
-  .jpdb-word { color: white !important; }
+  .jiten-word { color: white !important; }
 }
 ```
 
@@ -83,34 +66,29 @@ Add extra styles only for asbplayer subtitles:
 
 - **You will usually need to use `!important`** to override the extension's and website's styles.
 - CSS supports many color formats, like color names (`green`), hex `#a2ff0e`, or `rgb(126, 230, 17)`. Pick whichever you find most convenient.
-- Selectors with more classes are higher priority. For example, `.jpdb-word.new` will override `.jpdb-word`.
+- Selectors with more classes are higher priority. For example, `.jiten-word.new` will override `.jiten-word`.
 - For selectors with the same number of classes, *lower/later lines* have higher priority.
 - You can add `!important` after a property (like `color: red !important;`) to overwrite the priority system.
-- You can use `:is(.class, .class)` to select any element that has *at least one* of those classes. For example, `.jpdb-word:is(.due, .failed)` selects all words that are due *or* failed.
-- You can use `:not(.class)` to select any element that does *not* have that class. For example, `.jpdb-word:not(.new)` selects all words that are *not* new.
-- You can nest recurring classes to make the CSS simpler to read. To combine selectors (like `.jpdb-word.new`) you may use:
+- You can use `:is(.class, .class)` to select any element that has *at least one* of those classes. For example, `.jiten-word:is(.due)` selects all words that are due *or* failed.
+- You can use `:not(.class)` to select any element that does *not* have that class. For example, `.jiten-word:not(.new)` selects all words that are *not* new.
+- You can nest recurring classes to make the CSS simpler to read. To combine selectors (like `.jiten-word.new`) you may use:
 ```css
-.jpdb-word {
+.jiten-word {
     &.new { color: rgb(75, 141, 255) !important; }
 }
 ```
 
 ## List of classes
 
-- `.jpdb-word` - Any part of the text that was run through the jpdb parser.
-- `.jpdb-furi` - Furigana added via jpdb. Note that these might not necessarily be correct, as they are machine-generated.
-- `.unparsed` - Parts where jpdb could not identify any words.
-- `.not-in-deck` - Words that were not in any of your decks. Note that these are not necessarily new; they might have been reviewed before. jpdb does not track the state of words that are not in any decks.
-- `.locked` - Locked words.
-- `.redundant` - Redundant words.
+- `.jiten-word` - Any part of the text that was run through the jiten parser.
+- `.jiten-furi` - Furigana added via jiten. Note that these might not necessarily be correct, as they are machine-generated.
+- `.unparsed` - Parts where jiten could not identify any words.
 - `.new` - New words.
-- `.learning` - Learning words.
-- `.known` - Known words.
-- `.never-forget` - Words that are marked as never forget, or are part of a deck that is marked never forget.
-- `.due` - Due words (that is, words that are in the `Due` state. If you have failed your last review, the words will be `Failed` instead!)
-- `.failed` - Failed words.
-- `.suspended` - Suspended words (for example, through the "Suspend words outside of a given top most common words" feature).
-- `.blacklisted` - Blacklisted words (either individually, or through settings like "Blacklist particles", "Blacklist katakana loanwords", etc.).
+- `.young` - Words you recently learned.
+- `.mature` - Known words.
+- `.mastered` - Words that are marked as mastered, will never be due.
+- `.due` - Due words.
+- `.blacklisted` - Blacklisted words.
 - `.frequent` - Words in a top most frequency range. Only applied if enabled in the settings.
 
 ### List of pitch pattern classes
@@ -123,7 +101,6 @@ Add extra styles only for asbplayer subtitles:
 
 ### List of miscellaneous classes
 
-- `.misparsed` - Words that are clearly mistaken by jpdb. Only works if the source already has furigana.
 - `.unknown-pattern` - Words where the pitch accent pattern could not be determined.
 
 ### List of app container classes
@@ -133,7 +110,6 @@ Add extra styles only for asbplayer subtitles:
 - `.ex-static-parser`
 - `.readwok-parser`
 - `.ttsu-parser`
-- `.youtube-parser`
 - `.mokuro-parser`
 - `.mokuro-legacy-parser`
 - `.wikipedia-parser`

@@ -1,4 +1,4 @@
-import { JPDBCard } from '@shared/jpdb/types';
+import { JitenCard } from '@shared/jiten/types';
 import { UpdateCardStateCommand } from '@shared/messages/background/update-card-state.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 
@@ -15,20 +15,20 @@ export abstract class BaseController {
     BaseController._suspendUpdateWordStates = true;
   }
 
-  public resumeUpdateWordStates(card: JPDBCard): void {
+  public resumeUpdateWordStates(card: JitenCard): void {
     BaseController._suspendUpdateWordStates = false;
 
     this.updateCardState(card);
   }
 
-  public updateCardState(card: JPDBCard): void {
-    const { vid, sid } = card;
+  public updateCardState(card: JitenCard): void {
+    const { wordId, readingIndex } = card;
 
     if (BaseController._suspendUpdateWordStates) {
       return;
     }
 
-    new UpdateCardStateCommand(vid, sid).send();
+    new UpdateCardStateCommand(wordId, readingIndex).send();
   }
 
   protected abstract applyConfiguration(): Promise<void>;

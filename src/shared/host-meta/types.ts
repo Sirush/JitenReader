@@ -31,6 +31,7 @@ export type PredefinedHostMeta = AdditionalHostMeta & {
    * Optional custom parser implementation to use.
    */
   custom?:
+    | 'AozoraParser'
     | 'BunproParser'
     | 'MokuroParser'
     | 'MokuroLegacyParser'

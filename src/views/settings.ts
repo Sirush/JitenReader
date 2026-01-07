@@ -6,22 +6,31 @@ import { displayToast } from '@shared/dom/display-toast';
 import { findElement } from '@shared/dom/find-element';
 import { withElement } from '@shared/dom/with-element';
 import { withElements } from '@shared/dom/with-elements';
-import { ping } from '@shared/jpdb/ping';
-import { JPDBDeck } from '@shared/jpdb/types';
-import { FetchDecksCommand } from '@shared/messages/background/fetch-decks.command';
+import { ping } from '@shared/jiten/ping';
 import { ConfigurationUpdatedCommand } from '@shared/messages/broadcast/configuration-updated.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
+import { getThemeCssVars } from '@shared/theme/get-theme-css-vars';
 import { HTMLFeaturesInputElement } from './elements/html-features-input-element';
 import { HTMLKeybindInputElement } from './elements/html-keybind-input-element';
 import { HTMLMiningInputElement } from './elements/html-mining-input-element';
 import { HTMLNewStateInputElement } from './elements/html-new-state-input-element';
 import { HTMLParsersInputElement } from './elements/html-parsers-input-element';
+import { HTMLProfileManagerElement } from './elements/html-profile-manager-element';
+import { HTMLProfileSelectorElement } from './elements/html-profile-selector-element';
 
 customElements.define('mining-input', HTMLMiningInputElement);
+customElements.define('profile-selector', HTMLProfileSelectorElement);
 customElements.define('keybind-input', HTMLKeybindInputElement);
 customElements.define('parsers-input', HTMLParsersInputElement);
 customElements.define('features-input', HTMLFeaturesInputElement);
 customElements.define('new-state-input', HTMLNewStateInputElement);
+customElements.define('profile-manager', HTMLProfileManagerElement);
+
+withElement('#currentProfile', (selector: HTMLProfileSelectorElement) => {
+  selector.addEventListener('profilechange', () => {
+    window.location.reload();
+  });
+});
 
 const localConfiguration = new Map<
   keyof ConfigurationSchema,
@@ -31,13 +40,87 @@ const bindings = new Map<string, Set<HTMLElement>>();
 const validators: Partial<
   Record<keyof ConfigurationSchema, (value: unknown) => boolean | Promise<boolean>>
 > = {
-  jpdbApiToken: validateJPDBApiKey,
+  jitenApiKey: validateJitenApiKey,
 };
 
 const configurationUpdatedCommand = new ConfigurationUpdatedCommand();
-const fetchDecksCommand = new FetchDecksCommand();
 
-const jpdbDeckFields = new Map<HTMLSelectElement, string>();
+//#region Theme Variables
+
+const getThemeStyleEl = (): HTMLStyleElement => {
+  let styleEl = document.getElementById('jiten-theme-vars') as HTMLStyleElement;
+
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'jiten-theme-vars';
+    document.head.appendChild(styleEl);
+  }
+
+  return styleEl;
+};
+
+const applyThemeVars = async (): Promise<void> => {
+  getThemeStyleEl().textContent = await getThemeCssVars();
+};
+
+const applyThemeVarsFromInputs = (): void => {
+  const bg = (document.getElementById('themeBgColour') as HTMLInputElement)?.value || '#181818';
+  const accent = (document.getElementById('themeAccentColour') as HTMLInputElement)?.value || '#D8B9FA';
+  getThemeStyleEl().textContent = `:root, :host { --jiten-bg: ${bg}; --jiten-accent: ${accent}; }`;
+};
+
+void applyThemeVars();
+onBroadcastMessage('configurationUpdated', () => void applyThemeVars());
+
+const setupColourPicker = (colourId: string, textId: string): void => {
+  const colourInput = document.getElementById(colourId) as HTMLInputElement;
+  const textInput = document.getElementById(textId) as HTMLInputElement;
+
+  if (!colourInput || !textInput) return;
+
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  const saveAndApply = (value: string): void => {
+    if (debounceTimer) clearTimeout(debounceTimer);
+
+    // Apply theme vars immediately from current input values for instant visual feedback
+    applyThemeVarsFromInputs();
+
+    // Debounce the save to avoid spamming storage
+    debounceTimer = setTimeout(async () => {
+      await setConfiguration(colourId as keyof ConfigurationSchema, value);
+      configurationUpdatedCommand.send();
+    }, 150);
+  };
+
+  // Initial load: sync text input from colour input (which is loaded by withElements)
+  const syncTextFromColour = (): void => {
+    textInput.value = colourInput.value.toUpperCase();
+  };
+
+  // Wait for colour input to be loaded by withElements, then sync text
+  setTimeout(syncTextFromColour, 50);
+
+  // When user types in text input, update colour picker and save
+  textInput.addEventListener('input', () => {
+    const value = textInput.value.trim();
+    if (/^#[0-9A-Fa-f]{6}$/i.test(value)) {
+      colourInput.value = value;
+      saveAndApply(value);
+    }
+  });
+
+  // When user picks colour, update text input and save
+  colourInput.addEventListener('input', () => {
+    textInput.value = colourInput.value.toUpperCase();
+    saveAndApply(colourInput.value);
+  });
+};
+
+setupColourPicker('themeBgColour', 'themeBgColourText');
+setupColourPicker('themeAccentColour', 'themeAccentColourText');
+
+//#endregion
 
 //#region Init Interactions
 
@@ -47,7 +130,6 @@ withElements(
     const internal = field.hasAttribute('internal');
     const ignored = ['hidden', 'submit', 'button'];
     const checkbox = field.type === 'checkbox';
-    const isJPDBDeck = field.getAttribute('data-type') === 'jpdb-deck';
 
     if (internal || ignored.includes(field.type)) {
       return;
@@ -56,12 +138,6 @@ withElements(
     void getConfiguration(field.name as keyof ConfigurationSchema)
       // Load current or default configuration
       .then((value) => {
-        if (isJPDBDeck) {
-          jpdbDeckFields.set(field as unknown as HTMLSelectElement, value as string);
-
-          return;
-        }
-
         if (checkbox) {
           field.checked = value as boolean;
         } else {
@@ -88,8 +164,8 @@ withElements(
 
 withElement('#apiTokenButton', (button) => {
   button.onclick = (): void => {
-    withElement('#jpdbApiToken', (i: HTMLInputElement) => {
-      void validateJPDBApiKey(i.value);
+    withElement('#jitenApiKey', (i: HTMLInputElement) => {
+      void validateJitenApiKey(i.value);
     });
   };
 });
@@ -102,7 +178,15 @@ withElement('#export-settings', (button) => {
     const downloadTitleWithDate = `configuration-${new Date().toISOString().slice(0, 10)}.json`;
 
     void chrome.storage.local.get().then((configuration) => {
-      delete configuration.jpdbApiToken;
+      const includeApiKey = (document.getElementById('exportApiKey') as HTMLInputElement)?.checked;
+
+      if (!includeApiKey) {
+        Object.keys(configuration).forEach((key) => {
+          if (key.includes('jitenApiKey')) {
+            delete configuration[key];
+          }
+        });
+      }
 
       const blob = new Blob([JSON.stringify(configuration, null, 2)], {
         type: 'application/json',
@@ -138,9 +222,14 @@ withElement('#import-settings', (button) => {
 
       const file = fileInput.files[0];
       const text = await file.text();
-      const data = JSON.parse(text) as ConfigurationSchema;
 
-      data.jpdbApiToken = await getConfiguration('jpdbApiToken');
+      let data: Record<string, unknown>;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        alert('Failed to import settings: invalid JSON file');
+        return;
+      }
 
       await chrome.storage.local.clear();
       await chrome.storage.local.set(data);
@@ -154,26 +243,11 @@ withElement('#import-settings', (button) => {
   };
 });
 
-onBroadcastMessage('deckListUpdated', (decks) => {
-  const dropdownDecks: (JPDBDeck | { id: ''; name: string })[] = [
-    { id: '', name: '[None]' },
-    ...decks,
-  ];
-
-  withElements('select[data-type=jpdb-deck]', (element: HTMLSelectElement) => {
-    const currentValue = jpdbDeckFields.get(element);
-
-    element.replaceChildren(
-      ...dropdownDecks.map((deck) =>
-        createElement('option', {
-          innerText: deck.name,
-          attributes: { value: deck.id!.toString() },
-        }),
-      ),
-    );
-
-    if (dropdownDecks.some((deck) => deck.id == currentValue)) {
-      element.value = currentValue!;
+withElement('#exportApiKey', (checkbox: HTMLInputElement) => {
+  checkbox.addEventListener('change', () => {
+    const warning = document.getElementById('exportApiKeyWarning');
+    if (warning) {
+      warning.style.display = checkbox.checked ? 'block' : 'none';
     }
   });
 });
@@ -358,7 +432,7 @@ function parseCondition(expr: string): boolean {
 //#endregion
 //#region Validators
 
-async function validateJPDBApiKey(value: string): Promise<boolean> {
+async function validateJitenApiKey(value: string): Promise<boolean> {
   let isValid = false;
 
   if (value?.length) {
@@ -372,14 +446,10 @@ async function validateJPDBApiKey(value: string): Promise<boolean> {
   }
 
   const button = findElement('#apiTokenButton');
-  const input = findElement('#jpdbApiToken');
+  const input = findElement('#jitenApiKey');
 
   button.classList.toggle('v1', !isValid);
   input.classList.toggle('v1', !isValid);
-
-  if (isValid) {
-    fetchDecksCommand.send();
-  }
 
   return isValid;
 }

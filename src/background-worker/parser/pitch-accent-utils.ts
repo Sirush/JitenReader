@@ -1,85 +1,48 @@
-const smallSyllables = ['ゃ', 'ゅ', 'ょ', 'ァ', 'ィ', 'ゥ', 'ェ', 'ォ', 'ッ', 'ャ', 'ュ', 'ョ'];
+// Small yoon vowels that do NOT form a separate mora (small tsu DOES count as a mora)
+const smallNonMora = new Set(['ゃ', 'ゅ', 'ょ', 'ャ', 'ュ', 'ョ', 'ァ', 'ィ', 'ゥ', 'ェ', 'ォ']);
 
-const adjustForSmallSyllables = (reading: string, first: string, parts: string[]): void => {
-  if (reading.length > 1 && smallSyllables.includes(reading.charAt(1))) {
-    if (first === parts[0]) {
-      parts.shift();
+const countMorae = (reading: string): number => {
+  let count = 0;
+
+  for (const ch of reading) {
+    if (!smallNonMora.has(ch)) {
+      count++;
     }
   }
+
+  return count;
 };
 
-const countRises = (pitch: string): number => pitch.match(/LH/g)?.length ?? 0;
-const countDrops = (pitch: string): number => pitch.match(/HL/g)?.length ?? 0;
-
-const determinePitchClass = (
-  startsHigh: boolean,
-  drops: number,
-  parts: string[],
-  startsLow: boolean,
-  endsLow: boolean,
-  rises: number,
-  allHigh: boolean,
-  endsHigh: boolean,
-): string => {
-  if (startsHigh && drops === 1 && parts[0] === 'L') {
-    return 'atamadaka';
-  }
-
-  if (startsLow && endsLow && rises === 1) {
-    return 'nakadaka';
-  }
-
-  if (startsLow && rises === 1 && (endsLow || parts.length === 1)) {
-    return 'odaka';
-  }
-
-  if (startsLow && allHigh && endsHigh) {
-    return 'heiban';
-  }
-
-  if (rises > 1 || drops > 1) {
-    return 'kifuku';
-  }
-
-  return 'unknown-pattern';
-};
-
-export const getPitchClass = (pitchAccent: string[], reading: string): string => {
+export const getPitchClass = (pitchAccent: number[], reading: string): string => {
   if (!pitchAccent.length) {
     return '';
   }
 
-  const [pitch] = pitchAccent;
-  const parts = pitch.split('');
-  const first = parts.shift(); // The first syllable
-  const last = parts.pop(); // The particle
+  const [accent] = pitchAccent; // hatsuon accent number: 0, 1, 2, ...
+  const morae = countMorae(reading);
 
-  adjustForSmallSyllables(reading, first!, parts);
+  // Map accent number to pattern name
+  if (accent === 0) {
+    return 'heiban';
+  }
 
-  const rises = countRises(pitch);
-  const drops = countDrops(pitch);
-
-  const startsLow = first === 'L';
-  const startsHigh = !startsLow;
-
-  const endsLow = last === 'L';
-  const endsHigh = !endsLow;
-
-  const allHigh = !parts.includes('L');
-
-  // Special case: Handle very short words with "HL" pattern
-  if (reading.length === 1 && pitch === 'HL') {
+  // Maintain prior special-case behavior for 1-mora words
+  if (morae === 1 && accent === 1) {
     return 'odaka';
   }
 
-  return determinePitchClass(
-    startsHigh,
-    drops,
-    parts,
-    startsLow,
-    endsLow,
-    rises,
-    allHigh,
-    endsHigh,
-  );
+  if (accent === 1) {
+    return 'atamadaka';
+  }
+
+  if (morae > 0 && accent === morae) {
+    return 'odaka';
+  }
+
+  if (accent > 1 && accent < morae) {
+    return 'nakadaka';
+  }
+
+  // If none matched, it's an unknown or unsupported pattern
+  return 'unknown-pattern';
 };

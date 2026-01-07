@@ -34,7 +34,7 @@ const noRestrictedImportsPatterns = [
 
 export default [
   {
-    ignores: ['**/anki-jpdb.breader/', 'src/alt_orig/', '**/webpack.*.js'],
+    ignores: ['**/jiten.reader/', 'src/alt_orig/', '**/webpack.*.js'],
   },
   ...compat
     .extends(
@@ -241,7 +241,7 @@ export default [
           patterns: [
             ...noRestrictedImportsPatterns,
             {
-              group: ['@shared/anki/**/*', '@shared/jpdb/**/*'],
+              group: ['@shared/anki/**/*', '@shared/jiten/**/*'],
               allowImportNamePattern: '^[A-Z]',
               caseSensitive: true,
               message: 'Only use those APIs in background context.',

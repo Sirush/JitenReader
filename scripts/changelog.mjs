@@ -14,7 +14,7 @@ const execute = (command) => {
   });
 };
 
-const CMD = 'git log -1 --format=%ai v';
+// const CMD = 'git log -1 --format=%ai v';
 const MD = [];
 const HTML = [
   '<link rel="stylesheet" media="screen" href="../css/changelog.css" />',
@@ -25,9 +25,9 @@ let newest = true;
 for (const key of Object.keys(changelog).reverse()) {
   let DATE = new Date().toISOString().split('T')[0].replaceAll('-', '.');
 
-  if (!newest) {
-    DATE = (await execute(CMD + key)).split(' ')[0].replaceAll('-', '.');
-  }
+  // if (!newest) {
+  //   DATE = (await execute(CMD + key)).split(' ')[0].replaceAll('-', '.');
+  // }
 
   newest = false;
 
@@ -73,11 +73,11 @@ for (const key of Object.keys(changelog).reverse()) {
         linkMD = issue
           .map(
             (num) =>
-              ` [#${num}](https://github.com/Kagu-chan/anki-jpdb.reader/issues/${num})`
+              ` [#${num}](https://github.com/Sirush/JitenReader/issues/${num})`
           )
           .join('');
       } else {
-        linkMD = ` [#${issue}](https://github.com/Kagu-chan/anki-jpdb.reader/issues/${issue})`;
+        linkMD = ` [#${issue}](https://github.com/Sirush/JitenReader/issues/${issue})`;
       }
     }
     const catMD = Array.isArray(category) ? category.join(', ') : category;
@@ -91,11 +91,11 @@ for (const key of Object.keys(changelog).reverse()) {
           issue
             .map(
               (num) =>
-                `<a href="https://github.com/Kagu-chan/anki-jpdb.reader/issues/${num}" target="_blank">#${num}</a>`
+                `<a href="https://github.com/Sirush/JitenReader/issues/${num}" target="_blank">#${num}</a>`
             )
             .join(' ');
       } else {
-        linkTextHtml = ` <a href="https://github.com/Kagu-chan/anki-jpdb.reader/issues/${issue}" target="_blank">#${issue}</a>`;
+        linkTextHtml = ` <a href="https://github.com/Sirush/JitenReader/issues/${issue}" target="_blank">#${issue}</a>`;
       }
     }
     if (linkTextHtml) linkTextHtml = ` [${linkTextHtml}]`;

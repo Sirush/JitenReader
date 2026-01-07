@@ -1,5 +1,5 @@
 # Compiled output
-/anki-jpdb.reader
+/jiten.reader
 /packages
 
 # Node
@@ -23,3 +23,7 @@ submission/
 
 *.bak
 *.bak.*
+
+nul
+.claude
+*.zip

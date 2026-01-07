@@ -192,6 +192,19 @@
       overflow: auto;
       margin-top: 0.5em;
 
+      #conjugations {
+        font-size: 0.9em;
+        margin-bottom: 0.75em;
+        padding: 0.4em;
+        background-color: rgba(128, 128, 128, 0.1);
+        border-radius: 0.3em;
+
+        .label {
+          font-weight: 600;
+          color: map.get(colors.$colors, text-color);
+        }
+      }
+
       .pos {
         display: flex;
         flex-direction: row;
@@ -209,6 +222,62 @@
       ol {
         margin: 0;
         padding: 0 0 0 1.5em;
+      }
+    }
+  }
+}
+
+#confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2147483647;
+
+  #confirm-dialog {
+    background-color: map.get(colors.$colors, background-color);
+    border-radius: 0.5em;
+    padding: 1em;
+    max-width: 300px;
+    box-shadow: 5px 5px 15px 0px rgba(0, 0, 0, 0.5);
+
+    #confirm-message {
+      color: map.get(colors.$colors, text-color);
+      margin: 0 0 1em 0;
+      font-size: 0.9em;
+      line-height: 1.4;
+    }
+
+    #confirm-buttons {
+      display: flex;
+      gap: 0.5em;
+      justify-content: flex-end;
+
+      a.outline {
+        font-size: 0.8em;
+        padding: 0.4em 1em;
+        cursor: pointer;
+
+        @each $id, $color in colors.$decks {
+          &.#{$id} {
+            color: $color;
+            border-color: $color;
+            box-shadow: inset 0 0 3px $color;
+          }
+        }
+
+        &:hover {
+          filter: brightness(1.2);
+        }
+
+        &:active {
+          filter: brightness(0.8);
+        }
       }
     }
   }

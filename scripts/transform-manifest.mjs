@@ -14,8 +14,12 @@ export const transformManifest = (content, env) => {
       },
       browser_specific_settings: {
         gecko: {
-          id: '{67e602c3-7324-4b00-85cd-b652eb47b0f9}',
+          id: 'reader@jiten.moe',
           strict_min_version: '126.0',
+          data_collection_permissions: {
+            required: ['websiteContent'],
+            optional: []
+          }
         },
       },
     });

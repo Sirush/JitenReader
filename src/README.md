@@ -16,6 +16,6 @@ npm: 10.9.2
 # Install dependencies
 npm i
 
-# Build the production Firefox version of the extension to packages/anki-jpdb.reader-firefox.xpi
+# Build the production Firefox version of the extension to packages/jiten.reader-firefox.xpi
 npm run pack firefox
 ```

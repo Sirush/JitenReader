@@ -1,5 +1,5 @@
 import { displayToast } from '@shared/dom/display-toast';
-import { JPDBToken } from '@shared/jpdb/types';
+import { JitenToken } from '@shared/jiten/types';
 import { ParseCommand } from '@shared/messages/background/parse.command';
 import { Registry } from '../integration/registry';
 import { Canceled } from '../sequence/canceled';
@@ -9,7 +9,7 @@ import { getParagraphs } from './get-paragraphs';
 import { Paragraph, RegisterOptions } from './types';
 
 export class BatchController {
-  private _pendingBatches = new Map<Node, AbortableSequence<JPDBToken[], Paragraph>[]>();
+  private _pendingBatches = new Map<Node, AbortableSequence<JitenToken[], Paragraph>[]>();
 
   public registerNodes(nodes: (Element | Node)[], options: RegisterOptions = {}): void {
     nodes.forEach((node) => this.registerNode(node, options));
@@ -54,7 +54,7 @@ export class BatchController {
     applyFn: typeof applyTokens,
   ): void {
     const batches = paragraphs.map((paragraph) =>
-      Registry.sequenceManager.getAbortableSequence<JPDBToken[], Paragraph>(paragraph),
+      Registry.sequenceManager.getAbortableSequence<JitenToken[], Paragraph>(paragraph),
     );
 
     this._pendingBatches.set(node, batches);
@@ -64,42 +64,35 @@ export class BatchController {
   private prepareBatches(node: HTMLElement | Node, applyFn: typeof applyTokens): void {
     const batches = this._pendingBatches.get(node)!;
 
-    batches.forEach((batch) => {
-      void batch.promise
-        .then((value) => {
+    // Process paragraphs sequentially to prevent parallel DOM flooding
+    void batches.reduce(
+      (previousPromise, batch) =>
+        previousPromise.then(async () => {
           try {
-            applyFn(batch.data, value);
+            const value = await batch.promise;
+            await applyFn(batch.data, value);
           } catch (error) {
+            if (error instanceof Canceled) {
+              return;
+            }
+
+            if ((error as Error).message === 'Failed to fetch') {
+              displayToast('error', 'api.jiten.moe is unreachable', (error as Error).message);
+
+              return;
+            }
+
             // eslint-disable-next-line no-console
             console.error(error);
 
             displayToast(
               'error',
-              'An error occurred while applying the tokens',
+              'An error occurred while parsing the text',
               (error as Error).message,
             );
           }
-        })
-        .catch((error) => {
-          if (error instanceof Canceled) {
-            return;
-          }
-
-          if ((error as Error).message === 'Failed to fetch') {
-            displayToast('error', 'JPDB.io is unreachable', (error as Error).message);
-
-            return;
-          }
-
-          // eslint-disable-next-line no-console
-          console.error(error);
-
-          displayToast(
-            'error',
-            'An error occurred while parsing the text',
-            (error as Error).message,
-          );
-        });
-    });
+        }),
+      Promise.resolve(),
+    );
   }
 }

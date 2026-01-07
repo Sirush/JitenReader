@@ -1,5 +1,5 @@
 import { getConfiguration } from '@shared/configuration/get-configuration';
-import { JPDBCard } from '@shared/jpdb/types';
+import { JitenCard } from '@shared/jiten/types';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { KeybindManager } from '../../integration/keybind-manager';
 import { Registry } from '../../integration/registry';
@@ -9,8 +9,8 @@ import { RotationController } from './rotation-controller';
  * Handles keybinds for rotating flags on cards.
  */
 export class RotationActions {
-  private _keyManager = new KeybindManager(['jpdbRotateForward', 'jpdbRotateBackward']);
-  private _card?: JPDBCard;
+  private _keyManager = new KeybindManager(['jitenRotateForward', 'jitenRotateBackward']);
+  private _card?: JitenCard;
 
   private _rotateCycle = false;
   private _cycleNeverForget = false;
@@ -23,16 +23,16 @@ export class RotationActions {
     onBroadcastMessage(
       'configurationUpdated',
       async (): Promise<void> => {
-        this._rotateCycle = await getConfiguration('jpdbRotateCycle');
-        this._cycleNeverForget = await getConfiguration('jpdbCycleNeverForget');
-        this._cycleBlacklist = await getConfiguration('jpdbCycleBlacklist');
-        this._cycleSuspended = await getConfiguration('jpdbCycleSuspended');
+        this._rotateCycle = await getConfiguration('jitenRotateCycle');
+        this._cycleNeverForget = await getConfiguration('jitenCycleNeverForget');
+        this._cycleBlacklist = await getConfiguration('jitenCycleBlacklist');
+        this._cycleSuspended = await getConfiguration('jitenCycleSuspended');
       },
       true,
     );
 
-    events.on('jpdbRotateForward', () => this.rotateFlags(true));
-    events.on('jpdbRotateBackward', () => this.rotateFlags(false));
+    events.on('jitenRotateForward', () => this.rotateFlags(true));
+    events.on('jitenRotateBackward', () => this.rotateFlags(false));
   }
 
   public activate(context: HTMLElement): void {

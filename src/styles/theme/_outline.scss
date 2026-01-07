@@ -1,8 +1,8 @@
 @use 'sass:map';
 @use '../variables/_colors' as colors;
 
-$outline-input-shadow-color: #4b8dff;
-$outline-input-color: #4b8dff;
+$outline-input-shadow-color: var(--jiten-accent, #D8B9FA);
+$outline-input-color: var(--jiten-accent, #D8B9FA);
 $outline-input-background-color: #171717;
 
 input, a, label {
@@ -42,7 +42,7 @@ a, label {
     border: 1px solid map.get(colors.$buttons, button-background-color);
     padding: 0.6em 2.25em;
     text-align: center;
-    transition: all ease-in-out 0.2s;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
 
     &:focus {
       border: 1px solid map.get(colors.$buttons, button-focused-border-color);

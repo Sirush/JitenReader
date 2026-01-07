@@ -2,11 +2,13 @@ import { DisplayCategory, Fragment, Paragraph } from '../batches/types';
 import { BaseParagraphReader } from './base.paragraph-reader';
 
 export class ParagraphReader extends BaseParagraphReader {
+  private _styleCache = new WeakMap<Element, CSSStyleDeclaration>();
+
   public read(): Paragraph[] {
     const fragments: Fragment[] = [];
     const paragraphs: Paragraph[] = [];
 
-    this.recurse(paragraphs, fragments, 0, this.node, false, this.filter);
+    this.recurse(paragraphs, fragments, 0, this.node, false, null, this.filter);
 
     if (!paragraphs.length && fragments.length) {
       paragraphs.push(fragments);
@@ -21,6 +23,7 @@ export class ParagraphReader extends BaseParagraphReader {
     offset: number,
     node: Element | Node,
     hasRuby: boolean,
+    currentRubyElement: Element | null,
     filter?: (node: Element | Node) => boolean,
   ): number {
     if (node instanceof Element && node.hasAttribute('ajb')) {
@@ -43,15 +46,16 @@ export class ParagraphReader extends BaseParagraphReader {
     }
 
     if (display === 'text') {
-      return this.pushText(fragments, offset, node as Text | CDATASection, hasRuby);
+      return this.pushText(fragments, offset, node as Text | CDATASection, hasRuby, currentRubyElement);
     }
 
     if (display === 'ruby') {
       hasRuby = true;
+      currentRubyElement = node as Element;
     }
 
     for (const child of node.childNodes) {
-      offset = this.recurse(paragraphs, fragments, offset, child, hasRuby, filter);
+      offset = this.recurse(paragraphs, fragments, offset, child, hasRuby, currentRubyElement, filter);
     }
 
     if (display === 'block') {
@@ -86,8 +90,8 @@ export class ParagraphReader extends BaseParagraphReader {
     offset: number,
     text: Text | CDATASection,
     hasRuby: boolean,
+    rubyElement: Element | null,
   ): number {
-    // Ignore empty text nodes, as well as whitespace at the beginning of the run
     if (text.data.length > 0 && !(fragments.length === 0 && text.data.trim().length === 0)) {
       fragments.push({
         start: offset,
@@ -95,6 +99,7 @@ export class ParagraphReader extends BaseParagraphReader {
         end: (offset += text.length),
         node: text,
         hasRuby,
+        rubyElement: rubyElement ?? undefined,
       });
     }
 
@@ -107,7 +112,12 @@ export class ParagraphReader extends BaseParagraphReader {
     }
 
     if (node instanceof Element) {
-      const display = getComputedStyle(node).display.split(/\s/g);
+      let style = this._styleCache.get(node);
+      if (!style) {
+        style = getComputedStyle(node);
+        this._styleCache.set(node, style);
+      }
+      const display = style.display.split(/\s/g);
       const [first] = display;
 
       if (first === 'none') {

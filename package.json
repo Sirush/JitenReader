@@ -1,7 +1,7 @@
 {
-  "name": "anki-jpdb.reader",
-  "version": "0.7.1",
-  "description": "Japanese text parsing + sentence mining with JPDB and Anki",
+  "name": "jiten.reader",
+  "version": "1.0.0",
+  "description": "Japanese text parsing with Jiten",
   "private": true,
   "scripts": {
     "build": "node scripts/build.mjs",
@@ -14,53 +14,55 @@
     "release": "node scripts/build.mjs --pack --ff-submission",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "lint:ff": "node scripts/build.mjs firefox && web-ext lint --source-dir anki-jpdb.reader"
+    "lint:ff": "node scripts/build.mjs firefox && web-ext lint --source-dir jiten.reader"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Kagu-chan/jpd-breader.git"
+    "url": "git+https://github.com/Sirush/JitenReader.git"
   },
   "keywords": [
     "anki",
-    "jpdb",
+    "jiten",
     "mining",
     "parser"
   ],
-  "author": "Kagu-chan",
+  "author": "Sirus",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Kagu-chan/jpd-breader/issues"
+    "url": "https://github.com/Sirush/JitenReader/issues"
   },
-  "homepage": "https://github.com/Kagu-chan/jpd-breader#readme",
+  "homepage": "https://github.com/Sirush/JitenReader#readme",
   "browserslist": [
     "chrome >= 116"
   ],
   "devDependencies": {
-    "@eslint/compat": "^1.3.2",
+    "@eslint/compat": "^1.4.1",
     "@eslint/eslintrc": "^3.3.1",
-    "@eslint/js": "^9.33.0",
-    "@types/chrome": "^0.1.11",
-    "@types/node": "^24.3.0",
-    "@typescript-eslint/eslint-plugin": "^8.43.0",
-    "@typescript-eslint/parser": "^8.39.1",
+    "@eslint/js": "^9.39.1",
+    "@types/chrome": "^0.1.29",
+    "@types/node": "^24.10.1",
+    "@typescript-eslint/eslint-plugin": "^8.46.4",
+    "@typescript-eslint/parser": "^8.46.4",
+    "ajv": "^8.17.1",
+    "ajv-keywords": "^5.1.0",
     "browserlist": "^1.0.1",
     "copy-webpack-plugin": "^13.0.1",
-    "eslint": "^9.33.0",
+    "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsdoc": "^56.1.2",
     "eslint-plugin-prettier": "^5.5.4",
     "glob": "^11.0.3",
-    "globals": "^16.3.0",
+    "globals": "^16.5.0",
     "prettier": "^3.6.2",
-    "rimraf": "^6.0.1",
-    "sass": "^1.90.0",
-    "sass-loader": "^16.0.5",
-    "ts-loader": "^9.5.2",
-    "typescript": "^5.8.3",
-    "web-ext": "^8.9.0",
-    "webpack": "^5.101.2",
+    "rimraf": "^6.1.0",
+    "sass": "^1.94.0",
+    "sass-loader": "^16.0.6",
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.9.3",
+    "web-ext": "^8.10.0",
+    "webpack": "^5.102.1",
     "webpack-cli": "^6.0.1",
     "zip-a-folder": "^3.1.9"
   }

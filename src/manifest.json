@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Anki JPDB Reader",
-  "version": "0.7.1",
-  "description": "Japanese text parsing + sentence mining with JPDB",
+  "name": "Jiten Reader",
+  "version": "1.0.0",
+  "description": "Japanese text parsing with Jiten",
   "minimum_chrome_version": "116",
   "background": {
     "service_worker": "js/background-worker.js"
@@ -18,7 +18,7 @@
       "96": "assets/96.png",
       "128": "assets/128.png"
     },
-    "default_title": "Anki JPDB Reader"
+    "default_title": "Jiten Reader"
   },
   "options_ui": {
     "page": "views/settings.html",

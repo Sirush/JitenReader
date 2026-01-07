@@ -23,8 +23,8 @@ file:///*local-japanese*.html
 ## Custom meta
 App integration is done by configuring a JSON object which matches one or multiple hosts.
 
-* [The complete schema can be viewed here](https://github.com/Kagu-chan/anki-jpdb.reader/blob/dev/src/shared/host-meta/public-api.ts)
-* [All internal integrations are here](https://github.com/Kagu-chan/anki-jpdb.reader/blob/dev/src/shared/host-meta/default-hosts.ts)
+* [The complete schema can be viewed here](https://github.com/Sirush/JitenReader/blob/dev/src/shared/host-meta/public-api.ts)
+* [All internal integrations are here](https://github.com/Sirush/JitenReader/blob/dev/src/shared/host-meta/default-hosts.ts)
   * Please be aware that the samples use configuration objects that are ignored for custom meta. This serves only as a sample!
 
 The configuration can be added as a JSON array in the settings (*you won't see them in the list, however; they are not processed in the settings page. To disable them, remove them from your configuration*).
@@ -73,14 +73,6 @@ The configuration can be added as a JSON array in the settings (*you won't see t
     },
     // Don't parse elements matching this class
     "filter": ".meaning-subsection-label"
-  },
-  {
-    "host": ["*://*.youtube.com/*", "*://*.youtu.be/*"],
-    "parseVisibleObserver": true,
-    "parserClass": "youtube-parser",
-    "addedObserver": {
-      "notifyFor": "ytd-comment-view-model"
-    }
   },
   {
     "host": ["*://ja.wikipedia.org/*", "*://ja.m.wikipedia.org/*"],

@@ -57,17 +57,12 @@ export class PopupManager {
   /**
    * Register a node for keybinds and the popup itself. Shows the popup if configured to do so.
    *
-   * @param {MouseEvent} event The mouse event containing the target node
+   * @param {HTMLElement} element The jiten-word element being hovered
+   * @param {string} [sentence] The sentence containing this word
    * @returns {void}
    */
-  public enter(event: MouseEvent, sentence?: string): void {
-    const { target } = event;
-
-    if (!target) {
-      return;
-    }
-
-    this._currentHover = target as HTMLElement;
+  public enter(element: HTMLElement, sentence?: string): void {
+    this._currentHover = element;
     this._currentSentence = sentence;
 
     this._keyManager.activate();
@@ -80,14 +75,8 @@ export class PopupManager {
     }
   }
 
-  public touch(event: MouseEvent, sentence?: string): void {
-    let target: HTMLElement | null = event.target as HTMLElement;
-
-    if (!target?.classList?.contains('jpdb-word')) {
-      target = target?.closest('.jpdb-word');
-    }
-
-    if (!this._touchscreenSupport || !target || Registry.skipTouchEvents) {
+  public touch(element: HTMLElement, event: MouseEvent, sentence?: string): void {
+    if (!this._touchscreenSupport || !element || Registry.skipTouchEvents) {
       return;
     }
 
@@ -95,7 +84,7 @@ export class PopupManager {
     event.stopPropagation();
     event.stopImmediatePropagation();
 
-    this._currentHover = target;
+    this._currentHover = element;
     this._currentSentence = sentence;
 
     this._keyManager.activate();

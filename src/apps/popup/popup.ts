@@ -3,13 +3,17 @@ import { createElement } from '@shared/dom/create-element';
 import { findElements } from '@shared/dom/find-elements';
 import { withElement } from '@shared/dom/with-element';
 import { getStyleUrl } from '@shared/extension/get-style-url';
-import { JPDBCard, JPDBCardState } from '@shared/jpdb/types';
+import { JitenCard, JitenCardState } from '@shared/jiten/types';
+import { ForgetCardCommand } from '@shared/messages/background/forget-card.command';
+import { UpdateCardStateCommand } from '@shared/messages/background/update-card-state.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
+import { getThemeCssVars } from '@shared/theme/get-theme-css-vars';
 import { KeybindManager } from '../integration/keybind-manager';
 import { Registry } from '../integration/registry';
 import { GradingController } from './actions/grading-controller';
 import { MiningController } from './actions/mining-controller';
 import { RotationController } from './actions/rotation-controller';
+import { ConfirmDialog } from './confirm-dialog';
 import { PARTS_OF_SPEECH } from './part-of-speech';
 
 export class Popup {
@@ -41,7 +45,9 @@ export class Popup {
 
   //#region Utility Accessors
 
-  /** The user declared styles - syncronized with extension storage */
+  /** Theme CSS variables - syncronised with extension storage */
+  private _themeStyles: HTMLStyleElement = createElement('style');
+  /** The user declared styles - syncronised with extension storage */
   private _customStyles: HTMLStyleElement = createElement('style');
 
   private _closeButton = createElement('section', {
@@ -93,12 +99,17 @@ export class Popup {
   private _moveMiningActions: boolean;
   private _moveRotationActions: boolean;
   private _moveGradingActions: boolean;
+  private _showConjugations: boolean;
 
   private _hideTimer?: NodeJS.Timeout;
   private _isHover?: boolean;
+  private _confirmDialog?: ConfirmDialog;
+  private _popupLeft = 0;
+  private _popupTop = 0;
 
   private _cardContext?: HTMLElement;
-  private _card?: JPDBCard;
+  private _conjugations?: string[];
+  private _card?: JitenCard;
   private _sentence?: string;
 
   constructor(
@@ -108,9 +119,9 @@ export class Popup {
   ) {
     this.renderNodes();
 
-    onBroadcastMessage('cardStateUpdated', (vid, sid) => {
+    onBroadcastMessage('cardStateUpdated', (wordId, readingIndex) => {
       setTimeout(() => {
-        this._card = Registry.getCard(vid, sid);
+        this._card = Registry.getCard(wordId, readingIndex);
 
         if (this._hideAfterAction) {
           return this.hide();
@@ -126,6 +137,7 @@ export class Popup {
     this._cardContext = context;
     this._card = Registry.getCardFromElement(context);
     this._sentence = sentence;
+    this._conjugations = Registry.getConjugations(context);
 
     this.clearTimer();
     this.updateParentElement();
@@ -189,7 +201,9 @@ export class Popup {
     this._moveMiningActions = await getConfiguration('moveMiningActions');
     this._moveRotationActions = await getConfiguration('moveRotateActions');
     this._moveGradingActions = await getConfiguration('moveGradingActions');
+    this._showConjugations = await getConfiguration('showConjugations');
 
+    this._themeStyles.textContent = await getThemeCssVars();
     this._customStyles.textContent = await getConfiguration('customPopupCSS');
 
     this._closeButton.style.display =
@@ -212,9 +226,15 @@ export class Popup {
 
     shadowRoot.append(
       createElement('link', { attributes: { rel: 'stylesheet', href: getStyleUrl('popup') } }),
+      this._themeStyles,
       this._customStyles,
       this._popup,
     );
+
+    this._confirmDialog = new ConfirmDialog(shadowRoot, () => ({
+      x: this._popupLeft,
+      y: this._popupTop,
+    }));
   }
 
   private updateParentElement(): void {
@@ -347,6 +367,8 @@ export class Popup {
       this._popup.style.width = `${innerWidth - 32}px`;
     }
 
+    this._popupLeft = popupLeft;
+    this._popupTop = popupTop;
     this._root.style.transform = `translate(${popupLeft}px, ${popupTop}px)`;
   }
 
@@ -426,19 +448,51 @@ export class Popup {
     this._mineButtons.replaceChildren();
     this._mineButtons.style.display = this._mining.showActions ? '' : 'none';
 
-    this.addMiningButton(this._mining.miningDeck, 'mining', 'Add', () =>
-      performDeckAction('add', 'mining', this._sentence),
-    );
+    // this.addMiningButton("mining", 'mining', 'Add', () =>
+    //   performDeckAction('add', 'mining', this._sentence),
+    // );
 
-    this.addMiningButton(this._mining.neverForgetDeck, 'never-forget', undefined, () =>
+    this.addMiningButton('neverForget', 'never-forget', undefined, () =>
       performFlaggedDeckAction('neverForget'),
     );
-    this.addMiningButton(this._mining.blacklistDeck, 'blacklist', undefined, () =>
+    this.addMiningButton('blacklist', 'blacklist', undefined, () =>
       performFlaggedDeckAction('blacklist'),
     );
-    this.addMiningButton(this._mining.suspendDeck, 'suspend', undefined, () =>
-      performFlaggedDeckAction('suspend'),
+    // this.addMiningButton(this._mining.suspendDeck, 'suspend', undefined, () =>
+    //   performFlaggedDeckAction('suspend'),
+    // );
+
+    this._mineButtons.appendChild(
+      createElement('a', {
+        id: 'forget-deck',
+        class: ['outline', 'forget'],
+        innerText: 'Forget',
+        handler: () => this.handleForgetClick(),
+      }),
     );
+  }
+
+  private async handleForgetClick(): Promise<void> {
+    if (!this._card || !this._confirmDialog) {
+      return;
+    }
+
+    const confirmed = await this._confirmDialog.show({
+      message: 'Forget this card? The card state and all reviews will be permanently deleted.',
+      confirmText: 'Forget',
+      cancelText: 'Cancel',
+      confirmClass: 'forget',
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    const { wordId, readingIndex } = this._card;
+
+    new ForgetCardCommand(wordId, readingIndex).send(() => {
+      new UpdateCardStateCommand(wordId, readingIndex).send();
+    });
   }
 
   private addMiningButton(
@@ -515,17 +569,14 @@ export class Popup {
   //#endregion
   //#region Card Utils
 
-  private cardHasState(state: 'neverForget' | 'blacklist' | 'suspend', card: JPDBCard): boolean {
-    const { cardState } = card;
-    const lookupState: JPDBCardState = (
-      {
-        neverForget: 'never-forget',
-        blacklist: 'blacklisted',
-        suspend: 'suspended',
-      } as Record<typeof state, JPDBCardState>
-    )[state];
+  private cardHasState(state: 'neverForget' | 'blacklist' | 'suspend', card: JitenCard): boolean {
+    const stateMap: Record<'neverForget' | 'blacklist' | 'suspend', JitenCardState> = {
+      neverForget: JitenCardState.MASTERED,
+      blacklist: JitenCardState.BLACKLISTED,
+      suspend: JitenCardState.BLACKLISTED,
+    };
 
-    return cardState.includes(lookupState);
+    return card.cardState.includes(stateMap[state]);
   }
 
   //#endregion
@@ -544,23 +595,23 @@ export class Popup {
     this._popup.setAttribute('class', `popup ${this._card.cardState.join(' ')}`);
   }
 
-  private adjustMiningButtons(card: JPDBCard): void {
+  private adjustMiningButtons(card: JitenCard): void {
     const isNF = this.cardHasState('neverForget', card);
     const isBL = this.cardHasState('blacklist', card);
     const isSP = this.cardHasState('suspend', card);
 
     withElement(this._mineButtons, '#never-forget-deck', (el) => {
-      el.innerText = isNF ? 'Forget' : 'Never forget';
+      el.innerText = isNF ? 'Remove Never Forget' : 'Never forget';
     });
     withElement(this._mineButtons, '#blacklist-deck', (el) => {
-      el.innerText = isBL ? 'Whitelist' : 'Blacklist';
+      el.innerText = isBL ? 'Remove Blacklist' : 'Blacklist';
     });
     withElement(this._mineButtons, '#suspend-deck', (el) => {
       el.innerText = isSP ? 'Unsuspend' : 'Suspend';
     });
   }
 
-  private adjustRotateButtons(card: JPDBCard): void {
+  private adjustRotateButtons(card: JitenCard): void {
     const previous = this._rotation.getNextCardState(card, -1);
     const next = this._rotation.getNextCardState(card, 1);
     const same = previous === next;
@@ -604,7 +655,7 @@ export class Popup {
     });
   }
 
-  private adjustContext(card: JPDBCard): void {
+  private adjustContext(card: JitenCard): void {
     this._context.replaceChildren(
       createElement('div', {
         id: 'header',
@@ -619,9 +670,9 @@ export class Popup {
     );
   }
 
-  private getReadingBlock(card: JPDBCard): HTMLAnchorElement {
-    const { vid, spelling, reading, wordWithReading } = card;
-    const url = `https://jpdb.io/vocabulary/${vid}/${encodeURIComponent(spelling)}/${encodeURIComponent(reading)}`;
+  private getReadingBlock(card: JitenCard): HTMLAnchorElement {
+    const { wordId, spelling, readingIndex, wordWithReading } = card;
+    const url = `https://jiten.moe/vocabulary/${wordId}/${readingIndex}`;
 
     const a = createElement('a', {
       id: 'link',
@@ -674,7 +725,7 @@ export class Popup {
     return nodes;
   }
 
-  private getCardStateBlock(card: JPDBCard): HTMLDivElement {
+  private getCardStateBlock(card: JitenCard): HTMLDivElement {
     const { cardState } = card;
 
     return createElement('div', {
@@ -683,7 +734,7 @@ export class Popup {
     });
   }
 
-  private getPitchAccentBlock(card: JPDBCard): HTMLDivElement {
+  private getPitchAccentBlock(card: JitenCard): HTMLDivElement {
     const { reading, pitchAccent } = card;
 
     return createElement('div', {
@@ -692,12 +743,31 @@ export class Popup {
     });
   }
 
-  private getFrequencyBlock(card: JPDBCard): HTMLDivElement {
+  private getFrequencyBlock(card: JitenCard): HTMLDivElement {
     const { frequencyRank } = card;
 
     return createElement('div', {
       id: 'frequency',
-      innerText: `Top ${frequencyRank}`,
+      innerText: `#${frequencyRank}`,
+    });
+  }
+
+  private getConjugationsBlock(conjugations: string[]): HTMLDivElement | null {
+    if (!conjugations || conjugations.length === 0) {
+      return null;
+    }
+
+    return createElement('div', {
+      id: 'conjugations',
+      children: [
+        createElement('span', {
+          class: 'label',
+          innerText: 'Conjugations: ',
+        }),
+        createElement('span', {
+          innerText: conjugations.join(' ; '),
+        }),
+      ],
     });
   }
 
@@ -740,14 +810,24 @@ export class Popup {
     }
   }
 
-  private adjustDetails(card: JPDBCard): void {
+  private adjustDetails(card: JitenCard): void {
     const groupedMeanings = this.getGroupedMeanings(card);
+    const conjugationsBlock =
+      this._conjugations && this._showConjugations
+        ? this.getConjugationsBlock(this._conjugations)
+        : null;
 
-    this._details.replaceChildren(
-      ...groupedMeanings.flatMap(({ partOfSpeech, glosses, startIndex }) => [
+    const children = [];
+
+    if (conjugationsBlock) {
+      children.push(conjugationsBlock);
+    }
+
+    children.push(
+      ...groupedMeanings.flatMap(({ partsOfSpeech, glosses, startIndex }) => [
         createElement('div', {
           class: 'pos',
-          children: partOfSpeech
+          children: partsOfSpeech
             .map((pos) => PARTS_OF_SPEECH[pos] ?? 'Unknown')
             .filter(Boolean)
             .map((pos) => createElement('span', { innerText: pos })),
@@ -764,16 +844,18 @@ export class Popup {
         }),
       ]),
     );
+
+    this._details.replaceChildren(...children);
   }
 
-  private getGroupedMeanings(card: JPDBCard): {
-    partOfSpeech: string[];
+  private getGroupedMeanings(card: JitenCard): {
+    partsOfSpeech: string[];
     glosses: string[][];
     startIndex: number;
   }[] {
     const { meanings } = card;
     const groupedMeanings: {
-      partOfSpeech: string[];
+      partsOfSpeech: string[];
       glosses: string[][];
       startIndex: number;
     }[] = [];
@@ -781,21 +863,25 @@ export class Popup {
     let lastPos: string[] = [];
 
     for (const [index, meaning] of meanings.entries()) {
+      const currentPartsOfSpeech = Array.isArray(meaning.partsOfSpeech)
+        ? meaning.partsOfSpeech
+        : [meaning.partsOfSpeech];
+
       if (
-        meaning.partOfSpeech.length == lastPos.length &&
-        meaning.partOfSpeech.every((p, i) => p === lastPos[i])
+        currentPartsOfSpeech.length == lastPos.length &&
+        currentPartsOfSpeech.every((p, i) => p === lastPos[i])
       ) {
         groupedMeanings[groupedMeanings.length - 1].glosses.push(meaning.glosses);
 
         continue;
       }
       groupedMeanings.push({
-        partOfSpeech: meaning.partOfSpeech,
+        partsOfSpeech: currentPartsOfSpeech,
         glosses: [meaning.glosses],
         startIndex: index,
       });
 
-      lastPos = meaning.partOfSpeech;
+      lastPos = meaning.partsOfSpeech;
     }
 
     return groupedMeanings;
@@ -821,6 +907,10 @@ export class Popup {
     this._isHover = false;
 
     if (!this.isVisibile()) {
+      return;
+    }
+
+    if (this._confirmDialog?.isOpen) {
       return;
     }
 

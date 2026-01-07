@@ -1,34 +1,33 @@
-import { JPDBCardState } from '../jpdb/types';
+import { JitenCardState } from '../jiten/types';
 import { ConfigurationSchema } from './types';
 
 export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   schemaVersion: 1,
 
+  //#region Theme
+  themeBgColour: '#181818',
+  themeAccentColour: '#D8B9FA',
+  //#endregion
+
   //#region JPDB Integration
 
-  jpdbApiToken: '',
+  jitenApiKey: '',
+  jitenApiEndpoint: 'https://api.jiten.moe/api',
 
   //#endregion
   //#region Mining configuration
 
-  jpdbAddToForq: false,
+  jitenAddToForq: false,
   setSentences: false,
-  jpdbDisableReviews: false,
-  jpdbUseTwoGrades: false,
+  jitenDisableReviews: false,
+  jitenUseTwoGrades: false,
 
   // JPDB Flag settings
-  jpdbRotateFlags: false,
-  jpdbRotateCycle: false,
-  jpdbCycleNeverForget: true,
-  jpdbCycleBlacklist: true,
-  jpdbCycleSuspended: false,
-
-  // JPDB decks
-  jpdbMiningDeck: '',
-  jpdbBlacklistDeck: 'blacklist',
-  jpdbForqDeck: 'forq',
-  jpdbSuspendDeck: '',
-  jpdbNeverForgetDeck: 'never-forget',
+  jitenRotateFlags: false,
+  jitenRotateCycle: false,
+  jitenCycleNeverForget: true,
+  jitenCycleBlacklist: true,
+  jitenCycleSuspended: false,
 
   //#endregion
   //#region Parsing
@@ -45,7 +44,7 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   //#endregion
   //#region Texthighlighting
 
-  newStates: [JPDBCardState.NOT_IN_DECK, JPDBCardState.NEW],
+  newStates: [JitenCardState.NEW],
 
   markTopX: false,
   markAllTypes: false,
@@ -81,6 +80,8 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   showRotateActions: false,
   moveRotateActions: false,
 
+  showConjugations: true,
+
   customPopupCSS: '',
 
   //#endregion
@@ -99,17 +100,17 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   addToSuspendedKey: [],
 
   // Review keybinds
-  jpdbReviewNothing: [],
-  jpdbReviewSomething: [],
-  jpdbReviewHard: [],
-  jpdbReviewOkay: [],
-  jpdbReviewEasy: [],
-  jpdbReviewFail: [],
-  jpdbReviewPass: [],
+  jitenReviewNothing: [],
+  jitenReviewSomething: [],
+  jitenReviewHard: [],
+  jitenReviewOkay: [],
+  jitenReviewEasy: [],
+  jitenReviewFail: [],
+  jitenReviewPass: [],
 
   // Rotation keybinds
-  jpdbRotateForward: [],
-  jpdbRotateBackward: [],
+  jitenRotateForward: [],
+  jitenRotateBackward: [],
 
   //#endregion
   //#region Anki Integration (not implemented!)
@@ -142,6 +143,16 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
     templateTargets: [],
   },
   ankiReadonlyConfigs: [],
+
+  //#endregion
+  //#region Status Bar
+
+  statusBarEnabled: true,
+  statusBarAutoHide: true,
+  statusBarHideIcon: false,
+  statusBarShowBadge: true,
+  statusBarPosition: 'bottom',
+  toggleStatusBarKey: [{ key: 'S', code: 'KeyS', modifiers: ['Alt'] }],
 
   //#endregion
 

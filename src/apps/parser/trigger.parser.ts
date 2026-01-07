@@ -1,6 +1,7 @@
 import { getConfiguration } from '@shared/configuration/get-configuration';
 import { debug } from '@shared/debug';
 import { createElement } from '@shared/dom/create-element';
+import { getParsingPaused } from '@shared/extension/get-parsing-paused';
 import { getStyleUrl } from '@shared/extension/get-style-url';
 import { isDisabled } from '@shared/host-meta/is-disabled';
 import { HostMeta } from '@shared/host-meta/types';
@@ -32,17 +33,39 @@ export class TriggerParser extends BaseParser {
       'configurationUpdated',
       async () => {
         const show = await getConfiguration('showParseButton');
+        const paused = await getParsingPaused();
 
-        this._buttonRoot.style.display = show ? 'block' : 'none';
+        this._buttonRoot.style.display = show && !paused ? 'block' : 'none';
       },
       true,
     );
 
-    void isDisabled(window.location.href).then((disabled) => {
-      if (!disabled) {
-        this.installParseButton();
-      }
-    });
+    onBroadcastMessage(
+      'parsingPaused',
+      async (paused: boolean) => {
+        if (paused) {
+          this._buttonRoot.style.display = 'none';
+          this._parseKeyManager.deactivate();
+        } else {
+          const show = await getConfiguration('showParseButton');
+
+          this._buttonRoot.style.display = show ? 'block' : 'none';
+          this._parseKeyManager.activate();
+        }
+      },
+    );
+
+    void Promise.all([isDisabled(window.location.href), getParsingPaused()]).then(
+      ([disabled, paused]) => {
+        if (!disabled && !paused) {
+          this.installParseButton();
+        }
+
+        if (paused) {
+          this._parseKeyManager.deactivate();
+        }
+      },
+    );
   }
 
   private initParse(): void {

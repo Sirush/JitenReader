@@ -1,5 +1,5 @@
 import { MessageSender } from '@shared/extension/types';
-import { JPDBToken } from '@shared/jpdb/types';
+import { JitenToken } from '@shared/jiten/types';
 import { SequenceErrorCommand } from '@shared/messages/foreground/sequence-error.command';
 import { SequenceSuccessCommand } from '@shared/messages/foreground/sequence-success.command';
 import { Parser } from './parser';
@@ -7,8 +7,8 @@ import { Batch, Handle } from './parser.types';
 import { WorkerQueue } from './worker-queue';
 
 export class ParseController {
-  private BATCH_SIZE = 16384;
-  private JPDB_TIMEOUT = 200;
+  private BATCH_SIZE = 80000;
+  private JITEN_TIMEOUT = 50;
 
   private _pendingParagraphs = new Map<number, Handle>();
   private _workerQueue = new WorkerQueue();
@@ -24,7 +24,7 @@ export class ParseController {
   }
 
   private queueParagraph(sequenceId: number, sender: MessageSender, text: string): void {
-    const promise = new Promise<JPDBToken[]>((resolve, reject) => {
+    const promise = new Promise<JitenToken[]>((resolve, reject) => {
       this._pendingParagraphs.set(sequenceId, {
         resolve,
         reject,
@@ -39,7 +39,7 @@ export class ParseController {
       .finally(() => this._pendingParagraphs.delete(sequenceId));
   }
 
-  private succeedSequence(sequenceId: number, tokens: JPDBToken[], sender: MessageSender): void {
+  private succeedSequence(sequenceId: number, tokens: JitenToken[], sender: MessageSender): void {
     new SequenceSuccessCommand(sequenceId, tokens).send(sender.tab!.id!);
   }
 
@@ -80,7 +80,7 @@ export class ParseController {
       this._workerQueue.push(
         () => new Parser(batch).parse(),
         (e) => batch.handles.forEach((handle) => handle.reject(e)),
-        this.JPDB_TIMEOUT,
+        this.JITEN_TIMEOUT,
       );
     }
   }

@@ -3,15 +3,15 @@ import { PotentialPromise } from '../../types';
 type KeybindEvent = [[e: KeyboardEvent | MouseEvent], PotentialPromise<void>];
 
 type KeybindEvents = {
-  jpdbReviewNothing: KeybindEvent;
-  jpdbReviewSomething: KeybindEvent;
-  jpdbReviewHard: KeybindEvent;
-  jpdbReviewOkay: KeybindEvent;
-  jpdbReviewEasy: KeybindEvent;
-  jpdbReviewFail: KeybindEvent;
-  jpdbReviewPass: KeybindEvent;
-  jpdbRotateForward: KeybindEvent;
-  jpdbRotateBackward: KeybindEvent;
+  jitenReviewNothing: KeybindEvent;
+  jitenReviewSomething: KeybindEvent;
+  jitenReviewHard: KeybindEvent;
+  jitenReviewOkay: KeybindEvent;
+  jitenReviewEasy: KeybindEvent;
+  jitenReviewFail: KeybindEvent;
+  jitenReviewPass: KeybindEvent;
+  jitenRotateForward: KeybindEvent;
+  jitenRotateBackward: KeybindEvent;
   parseKey: KeybindEvent;
   showPopupKey: KeybindEvent;
   showAdvancedDialogKey: KeybindEvent;
