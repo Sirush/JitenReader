@@ -1,5 +1,11 @@
 # Jiten Reader
 
+A browser extension to parse Japanese texts anywhere, get your coverage and keep track of words you know, powered by [Jiten](https://jiten.moe).
+
+This extension is a fork of [Kagu-chan's Anki JPDB Reader](https://github.com/Kagu-chan/anki-jpdb.reader) which is itself a fork of [JPDB Web Reader extension](https://github.com/max-kamps/jpd-breader). It is not associated with their authors in any way.
+
+![Screenshot](store/screenshot_01.jpg)
+
 ## Contents
 
 1. [Downloads](#downloads)
@@ -20,9 +26,7 @@
 * [Firefox (Browser Extension) for Firefox and Firefox Android](#)
 * [All Releases](https://github.com/Sirush/JitenReader/releases)
 
-A browser extension to parse Japanese texts anywhere, get your coverage and keep track of words you know, powered by [Jiten](https://jiten.moe).
 
-This extension is a fork of [Kagu-chan's Anki JPDB Reader](https://github.com/Kagu-chan/anki-jpdb.reader) which is itself a fork of [JPDB Web Reader extension](https://github.com/max-kamps/jpd-breader). It is not associated with their authors in any way.
 
 Thanks to Kagu-chan, Max, and all of those that contributed to the original projects and made a solid foundation for this fork!
 
