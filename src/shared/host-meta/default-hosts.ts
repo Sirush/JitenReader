@@ -198,6 +198,7 @@ export const DEFAULT_HOSTS: PredefinedHostMeta[] = [
       '*://*.nhk.or.jp/news/easy/*',
       '*://news.web.nhk/news/easy/*',
       '*://news.web.nhk/news/html/*',
+      '*://news.web.nhk/news/newsweb/*',
     ],
     auto: true,
     optOut: true,

@@ -23,3 +23,7 @@ submission/
 
 *.bak
 *.bak.*
+
+nul
+.claude
+*.zip

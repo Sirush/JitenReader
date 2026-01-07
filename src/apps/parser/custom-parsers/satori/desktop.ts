@@ -10,12 +10,12 @@ export class SatoriDesktop implements ISatori {
     children: [
       {
         tag: 'h3',
-        innerText: 'JPDB Reader',
+        innerText: 'Jiten Reader',
       },
       {
         tag: 'div',
         class: 'control-group',
-        id: 'jpdb-reader',
+        id: 'jiten-reader',
         children: [
           {
             tag: 'span',

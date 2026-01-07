@@ -765,9 +765,8 @@ export class TextHighlighter extends BaseTextHighlighter {
 
     element.setAttribute('ajb', 'true');
 
-    //TODO: reintroduce
     if (markIPlus1) {
-      Registry.sentenceManager.addElement(element, undefined);
+      Registry.sentenceManager.addElement(element, token);
     }
 
     if (!skipFurigana) {
