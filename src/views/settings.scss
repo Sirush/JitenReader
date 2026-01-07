@@ -20,6 +20,12 @@ form {
   :where(.form-box-parent, .accordion) ~ :where(.form-box-parent, .accordion) {
     margin-top: 1.5em;
   }
+
+  > .section {
+    border: 1px solid #3a3a3a;
+    border-radius: 8px;
+    padding: 1.5em;
+  }
 }
 
 .pitch-accent div {

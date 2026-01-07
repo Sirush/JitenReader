@@ -9,7 +9,7 @@ export class SatoriMobile implements ISatori {
   private displayCategoryAll = findElements(this.displayCategory, '.tab');
   private displayCategoryBreader = createElement('div', {
     class: ['tab', 'off'],
-    innerText: 'JPDB Reader',
+    innerText: 'Jiten Reader',
     id: 'nav-mobile-category-display-breader-tab',
     handler: (): void => this.activateTab('nav-mobile-category-display-breader-tab'),
   });

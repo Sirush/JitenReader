@@ -75,14 +75,6 @@ The configuration can be added as a JSON array in the settings (*you won't see t
     "filter": ".meaning-subsection-label"
   },
   {
-    "host": ["*://*.youtube.com/*", "*://*.youtu.be/*"],
-    "parseVisibleObserver": true,
-    "parserClass": "youtube-parser",
-    "addedObserver": {
-      "notifyFor": "ytd-comment-view-model"
-    }
-  },
-  {
     "host": ["*://ja.wikipedia.org/*", "*://ja.m.wikipedia.org/*"],
     "parserClass": "wikipedia-parser",
     // Wikipedia works like most other extensions, but it contains a very large amount of text.
