@@ -22,8 +22,8 @@ This extension is a fork of [Kagu-chan's Anki JPDB Reader](https://github.com/Ka
 
 ## Downloads
 
-* [Chrome (Browser Extension) for Chromium-based browsers](#)
-* [Firefox (Browser Extension) for Firefox and Firefox Android](#)
+* [Chrome (Browser Extension) for Chromium-based browsers](https://chromewebstore.google.com/detail/jiten-reader/fkegmlkjkenojfiplaclhlmncfeooaeo)
+* [Firefox (Browser Extension) for Firefox and Firefox Android](https://addons.mozilla.org/en-US/firefox/addon/jiten-reader/)
 * [All Releases](https://github.com/Sirush/JitenReader/releases)
 
 
@@ -66,7 +66,7 @@ Some web apps and sites require special attention to work properly; therefore, t
 
 ### Chrome
 
-[Chrome Browser Extension](#) **or**
+[Chrome Browser Extension](https://chromewebstore.google.com/detail/jiten-reader/fkegmlkjkenojfiplaclhlmncfeooaeo) **or**
 
 1. Download the latest `*-chromium.zip` file from the releases page.
 2. Unpack the zip file in a location of your choosing.
@@ -79,7 +79,7 @@ Some web apps and sites require special attention to work properly; therefore, t
 
 ### Firefox
 
-[Firefox Browser Extension](#), or install it via Firefox for Android **or**
+[Firefox Browser Extension](https://addons.mozilla.org/en-US/firefox/addon/jiten-reader/), or install it via Firefox for Android **or**
 
 1. Download the latest `-firefox.xpi` file from the releases page.
 2. Open your browser and navigate to `about:debugging`.
