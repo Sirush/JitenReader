@@ -40,20 +40,17 @@ export class TriggerParser extends BaseParser {
       true,
     );
 
-    onBroadcastMessage(
-      'parsingPaused',
-      async (paused: boolean) => {
-        if (paused) {
-          this._buttonRoot.style.display = 'none';
-          this._parseKeyManager.deactivate();
-        } else {
-          const show = await getConfiguration('showParseButton');
+    onBroadcastMessage('parsingPaused', async (paused: boolean) => {
+      if (paused) {
+        this._buttonRoot.style.display = 'none';
+        this._parseKeyManager.deactivate();
+      } else {
+        const show = await getConfiguration('showParseButton');
 
-          this._buttonRoot.style.display = show ? 'block' : 'none';
-          this._parseKeyManager.activate();
-        }
-      },
-    );
+        this._buttonRoot.style.display = show ? 'block' : 'none';
+        this._parseKeyManager.activate();
+      }
+    });
 
     void Promise.all([isDisabled(window.location.href), getParsingPaused()]).then(
       ([disabled, paused]) => {

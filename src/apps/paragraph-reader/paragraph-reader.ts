@@ -46,7 +46,13 @@ export class ParagraphReader extends BaseParagraphReader {
     }
 
     if (display === 'text') {
-      return this.pushText(fragments, offset, node as Text | CDATASection, hasRuby, currentRubyElement);
+      return this.pushText(
+        fragments,
+        offset,
+        node as Text | CDATASection,
+        hasRuby,
+        currentRubyElement,
+      );
     }
 
     if (display === 'ruby') {
@@ -55,7 +61,15 @@ export class ParagraphReader extends BaseParagraphReader {
     }
 
     for (const child of node.childNodes) {
-      offset = this.recurse(paragraphs, fragments, offset, child, hasRuby, currentRubyElement, filter);
+      offset = this.recurse(
+        paragraphs,
+        fragments,
+        offset,
+        child,
+        hasRuby,
+        currentRubyElement,
+        filter,
+      );
     }
 
     if (display === 'block') {
@@ -113,6 +127,7 @@ export class ParagraphReader extends BaseParagraphReader {
 
     if (node instanceof Element) {
       let style = this._styleCache.get(node);
+
       if (!style) {
         style = getComputedStyle(node);
         this._styleCache.set(node, style);

@@ -6,7 +6,6 @@ import { BaseController } from './base-controller';
 export class MiningController extends BaseController {
   private _showActions: boolean;
 
-
   public get showActions(): boolean {
     return this._showActions;
   }

@@ -5,180 +5,15 @@ import { Registry } from '../integration/registry';
 import { BaseTextHighlighter } from './base.text-highlighter';
 
 export class TextHighlighter extends BaseTextHighlighter {
-  private static readonly CHUNK_SIZE = 40;
-
   protected _fragments = new Set<Fragment>(this.fragments);
   protected _tokens = new Set<JitenToken>(this.tokens);
   protected _tokenToFragmentsMap = new Map<JitenToken, Fragment[]>();
   protected _fragmentToTokensMap = new Map<Fragment, JitenToken[]>();
 
-  public async apply(): Promise<void> {
-    await this.preprocess();
+  private static readonly CHUNK_SIZE = 40;
 
-    this.patchUnparsedFragments();
-
-    await this.yieldToMainThread();
-
-    await this.patchNonRubyTokensChunked();
-    await this.patchContainedRubyElementsChunked();
-    await this.patchFragmentedRubyTokensChunked();
-
-    this.patchRemainingMisparses();
-
-    if (Registry.textHighlighterOptions.markIPlus1) {
-      Registry.sentenceManager.calculateTargetSentences();
-    }
-  }
-
-  private yieldToMainThread(): Promise<void> {
-    return new Promise((resolve) => requestAnimationFrame(() => resolve()));
-  }
-
-  private async processInChunks<T>(
-    items: Map<T, Fragment[]>,
-    processor: (item: T, fragments: Fragment[]) => void,
-  ): Promise<void> {
-    const entries = [...items.entries()];
-    let processed = 0;
-
-    for (const [item, fragments] of entries) {
-      processor(item, fragments);
-      processed++;
-
-      if (processed % TextHighlighter.CHUNK_SIZE === 0 && processed < entries.length) {
-        await this.yieldToMainThread();
-      }
-    }
-  }
-
-  private async splitMultiTokenFragmentsChunked(): Promise<void> {
-    const filtered = this.filterMap(
-      this._fragmentToTokensMap,
-      (tokens, _fragment) => tokens.length > 1,
-    );
-
-    const entries = [...filtered.entries()];
-    let processed = 0;
-
-    for (const [fragment, tokens] of entries) {
-      let token: JitenToken | undefined;
-
-      while ((token = tokens.pop())) {
-        this.cutoffTokenEnd(token, fragment);
-
-        if (token.start < fragment.start) {
-          tokens.push(token);
-          this._tokenToFragmentsMap.get(token)?.push(fragment);
-          break;
-        }
-
-        const newFragmentNode = this.splitFragmentsNode(fragment, token.start);
-        const newFragment = this.insertNewFragment(newFragmentNode, token.start, fragment.rubyElement);
-
-        this._fragmentToTokensMap.set(newFragment, [token]);
-        this._tokenToFragmentsMap.set(token, [newFragment]);
-
-        this.fixFragmentParameters(fragment);
-      }
-
-      if (fragment.length && !this._fragmentToTokensMap.get(fragment)?.length) {
-        this.patchOrWrap(fragment);
-        this.dismissElements(fragment);
-      }
-
-      processed++;
-      if (processed % TextHighlighter.CHUNK_SIZE === 0 && processed < entries.length) {
-        await this.yieldToMainThread();
-      }
-    }
-  }
-
-  private async adjustUnmatchedFragmentsChunked(): Promise<void> {
-    const filtered = this.filterMap(
-      this._tokenToFragmentsMap,
-      (fragments, token) => !this.areBoundariesExactMatch(token, fragments),
-    );
-
-    const entries = [...filtered.entries()];
-    let processed = 0;
-
-    for (const [token, fragments] of entries) {
-      this.adjustFragmentEnds(fragments, token);
-      this.adjustFragmentStarts(fragments, token);
-
-      processed++;
-      if (processed % TextHighlighter.CHUNK_SIZE === 0 && processed < entries.length) {
-        await this.yieldToMainThread();
-      }
-    }
-  }
-
-  private async patchNonRubyTokensChunked(): Promise<void> {
-    const filtered = this.filterMap(
-      this._tokenToFragmentsMap,
-      (fragments, token) => !token.rubies.length && this.areBoundariesExactMatch(token, fragments),
-    );
-
-    await this.processInChunks(filtered, (token, fragments) => {
-      fragments.forEach((fragment) => this.patchOrWrap(fragment, token));
-    });
-  }
-
-  private async patchContainedRubyElementsChunked(): Promise<void> {
-    const filtered = this.filterMap(
-      this._tokenToFragmentsMap,
-      (fragments, token) =>
-        !!token.rubies.length &&
-        this.areBoundariesExactMatch(token, fragments) &&
-        this.fragmentsShareSingleRuby(fragments),
-    );
-
-    await this.processInChunks(filtered, (token, fragments) => {
-      const rubyElement = this.getSharedRubyElement(fragments);
-
-      fragments.forEach((fragment) => this.dismissElements(fragment, token));
-
-      if (!rubyElement) {
-        return this.applyRubiesToFragment(fragments[0], token);
-      }
-
-      if (this.isMisparsedRuby(rubyElement, token)) {
-        return this.markElementAsMisparsed(rubyElement);
-      }
-
-      this.patchElement(rubyElement, token);
-    });
-  }
-
-  private async patchFragmentedRubyTokensChunked(): Promise<void> {
-    const filtered = this.filterMap(this._tokenToFragmentsMap, (fragments) => fragments.length > 0);
-
-    await this.processInChunks(filtered, (token, fragments) => {
-      if (this.applyOnSharedParent(fragments, token)) {
-        return;
-      }
-
-      fragments.forEach((fragment) => {
-        const fragmentsRuby = this.findParent(fragment.node, 'RUBY');
-
-        if (fragmentsRuby) {
-          this.patchElement(fragmentsRuby, token);
-          this.dismissElements(fragment, token);
-
-          return;
-        }
-
-        const fragmentRubies = token.rubies.filter(
-          (ruby) => ruby.start >= fragment.start && ruby.end <= fragment.end,
-        );
-
-        if (fragmentRubies?.length) {
-          return this.applyRubiesToFragment(fragment, token, fragmentRubies);
-        }
-
-        this.patchOrWrap(fragment, token);
-      });
-    });
+  public override apply(): void {
+    void this.applyAsync();
   }
 
   /**
@@ -244,8 +79,10 @@ export class TextHighlighter extends BaseTextHighlighter {
 
       // Scan through potentially overlapping fragments
       let scanIndex = fragIndex;
+
       while (scanIndex < sortedFragments.length && sortedFragments[scanIndex].start < token.end) {
         const fragment = sortedFragments[scanIndex];
+
         if (this.isFragmentWithinToken(fragment, token)) {
           matchingFragments.push(fragment);
           this._fragmentToTokensMap.get(fragment)!.push(token);
@@ -284,7 +121,11 @@ export class TextHighlighter extends BaseTextHighlighter {
           // We cut off the token length from the fragment and save it as a new fragment
           // this shortens the original fragment and may fix its length
           const newFragmentNode = this.splitFragmentsNode(fragment, token.start);
-          const newFragment = this.insertNewFragment(newFragmentNode, token.start, fragment.rubyElement);
+          const newFragment = this.insertNewFragment(
+            newFragmentNode,
+            token.start,
+            fragment.rubyElement,
+          );
 
           this._fragmentToTokensMap.set(newFragment, [token]);
           this._tokenToFragmentsMap.set(token, [newFragment]);
@@ -826,30 +667,34 @@ export class TextHighlighter extends BaseTextHighlighter {
   }
 
   protected fragmentsShareSingleRuby(fragments: Fragment[]): boolean {
-    if (fragments.length === 0) return false;
+    if (fragments.length === 0) {
+      return false;
+    }
 
     const rubyElements = fragments
       .map((f) => f.rubyElement ?? this.findParent(f.node, 'RUBY'))
       .filter((el): el is Element => el !== null);
 
-    if (rubyElements.length !== fragments.length) return false;
+    if (rubyElements.length !== fragments.length) {
+      return false;
+    }
 
     const firstRuby = rubyElements[0];
+
     return rubyElements.every((ruby) => ruby === firstRuby);
   }
 
   protected getSharedRubyElement(fragments: Fragment[]): HTMLElement | null {
-    if (fragments.length === 0) return null;
+    if (fragments.length === 0) {
+      return null;
+    }
 
     const first = fragments[0];
+
     return (first.rubyElement as HTMLElement) ?? this.findParent(first.node, 'RUBY');
   }
 
-  protected isMisparsedRuby(rubyElement: HTMLElement, token: JitenToken): boolean {
-    const originalRubyText = Array.from(rubyElement.querySelectorAll('rt'))
-      .map((rt) => rt.innerText)
-      .join('');
-
+  protected isMisparsedRuby(_rubyElement: HTMLElement, _token: JitenToken): boolean {
     return false;
 
     // const cardsRubyText =
@@ -868,4 +713,180 @@ export class TextHighlighter extends BaseTextHighlighter {
   }
 
   //#endregion Shared Helpers
+
+  private async applyAsync(): Promise<void> {
+    await this.preprocess();
+
+    this.patchUnparsedFragments();
+
+    await this.yieldToMainThread();
+
+    await this.patchNonRubyTokensChunked();
+    await this.patchContainedRubyElementsChunked();
+    await this.patchFragmentedRubyTokensChunked();
+
+    this.patchRemainingMisparses();
+
+    if (Registry.textHighlighterOptions.markIPlus1) {
+      Registry.sentenceManager.calculateTargetSentences();
+    }
+  }
+
+  private yieldToMainThread(): Promise<void> {
+    return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+  }
+
+  private async processInChunks<T>(
+    items: Map<T, Fragment[]>,
+    processor: (item: T, fragments: Fragment[]) => void,
+  ): Promise<void> {
+    const entries = [...items.entries()];
+    let processed = 0;
+
+    for (const [item, fragments] of entries) {
+      processor(item, fragments);
+      processed++;
+
+      if (processed % TextHighlighter.CHUNK_SIZE === 0 && processed < entries.length) {
+        await this.yieldToMainThread();
+      }
+    }
+  }
+
+  private async splitMultiTokenFragmentsChunked(): Promise<void> {
+    const filtered = this.filterMap(
+      this._fragmentToTokensMap,
+      (tokens, _fragment) => tokens.length > 1,
+    );
+
+    const entries = [...filtered.entries()];
+    let processed = 0;
+
+    for (const [fragment, tokens] of entries) {
+      let token: JitenToken | undefined;
+
+      while ((token = tokens.pop())) {
+        this.cutoffTokenEnd(token, fragment);
+
+        if (token.start < fragment.start) {
+          tokens.push(token);
+          this._tokenToFragmentsMap.get(token)?.push(fragment);
+
+          break;
+        }
+
+        const newFragmentNode = this.splitFragmentsNode(fragment, token.start);
+        const newFragment = this.insertNewFragment(
+          newFragmentNode,
+          token.start,
+          fragment.rubyElement,
+        );
+
+        this._fragmentToTokensMap.set(newFragment, [token]);
+        this._tokenToFragmentsMap.set(token, [newFragment]);
+
+        this.fixFragmentParameters(fragment);
+      }
+
+      if (fragment.length && !this._fragmentToTokensMap.get(fragment)?.length) {
+        this.patchOrWrap(fragment);
+        this.dismissElements(fragment);
+      }
+
+      processed++;
+
+      if (processed % TextHighlighter.CHUNK_SIZE === 0 && processed < entries.length) {
+        await this.yieldToMainThread();
+      }
+    }
+  }
+
+  private async adjustUnmatchedFragmentsChunked(): Promise<void> {
+    const filtered = this.filterMap(
+      this._tokenToFragmentsMap,
+      (fragments, token) => !this.areBoundariesExactMatch(token, fragments),
+    );
+
+    const entries = [...filtered.entries()];
+    let processed = 0;
+
+    for (const [token, fragments] of entries) {
+      this.adjustFragmentEnds(fragments, token);
+      this.adjustFragmentStarts(fragments, token);
+
+      processed++;
+
+      if (processed % TextHighlighter.CHUNK_SIZE === 0 && processed < entries.length) {
+        await this.yieldToMainThread();
+      }
+    }
+  }
+
+  private async patchNonRubyTokensChunked(): Promise<void> {
+    const filtered = this.filterMap(
+      this._tokenToFragmentsMap,
+      (fragments, token) => !token.rubies.length && this.areBoundariesExactMatch(token, fragments),
+    );
+
+    await this.processInChunks(filtered, (token, fragments) => {
+      fragments.forEach((fragment) => this.patchOrWrap(fragment, token));
+    });
+  }
+
+  private async patchContainedRubyElementsChunked(): Promise<void> {
+    const filtered = this.filterMap(
+      this._tokenToFragmentsMap,
+      (fragments, token) =>
+        !!token.rubies.length &&
+        this.areBoundariesExactMatch(token, fragments) &&
+        this.fragmentsShareSingleRuby(fragments),
+    );
+
+    await this.processInChunks(filtered, (token, fragments) => {
+      const rubyElement = this.getSharedRubyElement(fragments);
+
+      fragments.forEach((fragment) => this.dismissElements(fragment, token));
+
+      if (!rubyElement) {
+        return this.applyRubiesToFragment(fragments[0], token);
+      }
+
+      if (this.isMisparsedRuby(rubyElement, token)) {
+        return this.markElementAsMisparsed(rubyElement);
+      }
+
+      this.patchElement(rubyElement, token);
+    });
+  }
+
+  private async patchFragmentedRubyTokensChunked(): Promise<void> {
+    const filtered = this.filterMap(this._tokenToFragmentsMap, (fragments) => fragments.length > 0);
+
+    await this.processInChunks(filtered, (token, fragments) => {
+      if (this.applyOnSharedParent(fragments, token)) {
+        return;
+      }
+
+      fragments.forEach((fragment) => {
+        const fragmentsRuby = this.findParent(fragment.node, 'RUBY');
+
+        if (fragmentsRuby) {
+          this.patchElement(fragmentsRuby, token);
+          this.dismissElements(fragment, token);
+
+          return;
+        }
+
+        const fragmentRubies = token.rubies.filter(
+          (ruby) => ruby.start >= fragment.start && ruby.end <= fragment.end,
+        );
+
+        if (fragmentRubies?.length) {
+          return this.applyRubiesToFragment(fragment, token, fragmentRubies);
+        }
+
+        this.patchOrWrap(fragment, token);
+      });
+    });
+  }
 }

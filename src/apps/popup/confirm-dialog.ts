@@ -30,6 +30,7 @@ export class ConfirmDialog {
 
     this._overlay = this.createOverlay();
     const dialog = this.createDialog(message, confirmText, cancelText, confirmClass);
+
     this._overlay.appendChild(dialog);
     this._shadowRoot.appendChild(this._overlay);
 
@@ -44,7 +45,9 @@ export class ConfirmDialog {
       id: 'confirm-overlay',
       handler: () => this.close(false),
     });
+
     overlay.style.transform = `translate(${-x}px, ${-y}px)`;
+
     return overlay;
   }
 

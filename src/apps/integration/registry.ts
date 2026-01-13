@@ -41,6 +41,7 @@ export class Registry {
 
   public static addCard(card: JitenCard, element: HTMLElement, conjugations?: string[]): void {
     const key = `${card.wordId}/${card.readingIndex}`;
+
     this.cards.set(key, card);
 
     if (conjugations && conjugations.length > 0) {

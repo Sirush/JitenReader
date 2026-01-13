@@ -8,6 +8,7 @@ export abstract class BackgroundCommand<
 > extends Command<TArguments> {
   public send<T>(afterCall?: (r: TResult) => T | Promise<T>): void {
     this.call(afterCall).catch((error: Error) => {
+      // eslint-disable-next-line no-console
       console.error(`[BackgroundCommand] ${this.constructor.name} failed:`, error);
     });
   }
@@ -28,7 +29,7 @@ export abstract class BackgroundCommand<
             return reject(lastError as Error);
           }
 
-          if (!response || !response.success) {
+          if (!response?.success) {
             return reject(new Error('Command failed or received invalid response'));
           }
 

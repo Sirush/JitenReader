@@ -3,7 +3,10 @@ export const matchUrl = (matchPattern: string, host: string): boolean => {
     return true;
   }
 
-  let [patternSchema, patternUrl] = matchPattern.split('://', 2);
+  const parts = matchPattern.split('://', 2);
+  let patternSchema = parts[0];
+  const patternUrl = parts[1];
+
   const [patternHost, patternPath] = patternUrl.split(/\/(.*)/, 2);
   const [hostSchema, hostUrl] = host.split('://', 2);
   const [hostHost, hostPath] = hostUrl.split(/\/(.*)/, 2);

@@ -50,6 +50,7 @@ export const createProfile = async (
 
   if (copyFromCurrent) {
     const currentProfileId = await getActiveProfileId();
+
     await copyProfileData(currentProfileId, newProfile.id);
   } else {
     await initProfileWithDefaults(newProfile.id);
@@ -139,8 +140,10 @@ const copyProfileData = async (sourceProfileId: string, targetProfileId: string)
 
   for (const key of configKeys) {
     const sourceKey = getProfileKey(sourceProfileId, key);
+
     if (sourceKey in storage) {
       const targetKey = getProfileKey(targetProfileId, key);
+
       newData[targetKey] = storage[sourceKey] as string;
     }
   }
@@ -157,6 +160,7 @@ const initProfileWithDefaults = async (profileId: string): Promise<void> => {
   for (const key of configKeys) {
     const profileKey = getProfileKey(profileId, key);
     const defaultValue = DEFAULT_CONFIGURATION[key];
+
     newData[profileKey] =
       typeof defaultValue === 'object' || Array.isArray(defaultValue)
         ? JSON.stringify(defaultValue)

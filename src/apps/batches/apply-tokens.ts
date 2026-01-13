@@ -5,8 +5,8 @@ import { Fragment } from './types';
 
 let statsUpdateTimeout: number | undefined;
 
-export const applyTokens = async (fragments: Fragment[], tokens: JitenToken[]): Promise<void> => {
-  await new TextHighlighter(fragments, tokens).apply();
+export const applyTokens = (fragments: Fragment[], tokens: JitenToken[]): void => {
+  new TextHighlighter(fragments, tokens).apply();
 
   // Debounce stats recalculation to avoid calling it too often when there's a lot of paragraphs
   if (statsUpdateTimeout) {

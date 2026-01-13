@@ -139,7 +139,7 @@ class MokuroMangaPanel {
         // Thus we track on which page change cycle we are and don't apply tokens to the wrong page
         applyFn: (paragraph: Paragraph, tokens: JitenToken[]) => {
           if (currentId === this._currentId) {
-            applyTokens(paragraph, tokens);
+            void applyTokens(paragraph, tokens);
           }
         },
       });

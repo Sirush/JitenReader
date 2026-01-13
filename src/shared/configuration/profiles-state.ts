@@ -19,7 +19,9 @@ export const getProfilesState = async (): Promise<ProfilesState> => {
 
   if (!stored) {
     const defaultState = createDefaultProfilesState();
+
     await setProfilesState(defaultState);
+
     return defaultState;
   }
 
@@ -28,14 +30,18 @@ export const getProfilesState = async (): Promise<ProfilesState> => {
 
     if (!parsed.profiles || parsed.profiles.length === 0) {
       const defaultState = createDefaultProfilesState();
+
       await setProfilesState(defaultState);
+
       return defaultState;
     }
 
     return parsed;
   } catch {
     const defaultState = createDefaultProfilesState();
+
     await setProfilesState(defaultState);
+
     return defaultState;
   }
 };
@@ -48,5 +54,6 @@ export const setProfilesState = async (state: ProfilesState): Promise<void> => {
 
 export const getActiveProfileId = async (): Promise<string> => {
   const state = await getProfilesState();
+
   return state.activeProfileId;
 };

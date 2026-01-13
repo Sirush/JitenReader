@@ -18,6 +18,7 @@ export const setConfiguration = async <K extends keyof ConfigurationSchema>(
   }
 
   const profileKey = getProfileKey(cachedProfileId, key);
+
   await writeStorage(
     profileKey,
     typeof value === 'object' || Array.isArray(value) ? JSON.stringify(value) : value.toString(),

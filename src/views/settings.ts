@@ -65,7 +65,9 @@ const applyThemeVars = async (): Promise<void> => {
 
 const applyThemeVarsFromInputs = (): void => {
   const bg = (document.getElementById('themeBgColour') as HTMLInputElement)?.value || '#181818';
-  const accent = (document.getElementById('themeAccentColour') as HTMLInputElement)?.value || '#D8B9FA';
+  const accent =
+    (document.getElementById('themeAccentColour') as HTMLInputElement)?.value || '#D8B9FA';
+
   getThemeStyleEl().textContent = `:root, :host { --jiten-bg: ${bg}; --jiten-accent: ${accent}; }`;
 };
 
@@ -76,20 +78,25 @@ const setupColourPicker = (colourId: string, textId: string): void => {
   const colourInput = document.getElementById(colourId) as HTMLInputElement;
   const textInput = document.getElementById(textId) as HTMLInputElement;
 
-  if (!colourInput || !textInput) return;
+  if (!colourInput || !textInput) {
+    return;
+  }
 
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   const saveAndApply = (value: string): void => {
-    if (debounceTimer) clearTimeout(debounceTimer);
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
 
     // Apply theme vars immediately from current input values for instant visual feedback
     applyThemeVarsFromInputs();
 
     // Debounce the save to avoid spamming storage
-    debounceTimer = setTimeout(async () => {
-      await setConfiguration(colourId as keyof ConfigurationSchema, value);
-      configurationUpdatedCommand.send();
+    debounceTimer = setTimeout(() => {
+      void setConfiguration(colourId as keyof ConfigurationSchema, value).then(() => {
+        configurationUpdatedCommand.send();
+      });
     }, 150);
   };
 
@@ -104,6 +111,7 @@ const setupColourPicker = (colourId: string, textId: string): void => {
   // When user types in text input, update colour picker and save
   textInput.addEventListener('input', () => {
     const value = textInput.value.trim();
+
     if (/^#[0-9A-Fa-f]{6}$/i.test(value)) {
       colourInput.value = value;
       saveAndApply(value);
@@ -223,11 +231,13 @@ withElement('#import-settings', (button) => {
       const file = fileInput.files[0];
       const text = await file.text();
 
-      let data: Record<string, unknown>;
+      let data: Record<string, unknown> | undefined;
+
       try {
-        data = JSON.parse(text);
+        data = JSON.parse(text) as Record<string, unknown>;
       } catch {
         alert('Failed to import settings: invalid JSON file');
+
         return;
       }
 
@@ -246,6 +256,7 @@ withElement('#import-settings', (button) => {
 withElement('#exportApiKey', (checkbox: HTMLInputElement) => {
   checkbox.addEventListener('change', () => {
     const warning = document.getElementById('exportApiKeyWarning');
+
     if (warning) {
       warning.style.display = checkbox.checked ? 'block' : 'none';
     }

@@ -8,8 +8,8 @@ import { openView } from '@shared/extension/open-view';
 import { setParsingPaused } from '@shared/extension/set-parsing-paused';
 import { isDisabled } from '@shared/host-meta/is-disabled';
 import { ParsingPausedCommand } from '@shared/messages/broadcast/parsing-paused.command';
-import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { ParsePageCommand } from '@shared/messages/foreground/parse-page.command';
+import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { getThemeCssVars } from '@shared/theme/get-theme-css-vars';
 import { HTMLProfileSelectorElement } from './elements/html-profile-selector-element';
 
@@ -50,11 +50,12 @@ onLoaded(async () => {
 
   updatePauseToggle(pauseToggle, isPaused);
 
-  pauseToggle.addEventListener('click', async () => {
+  pauseToggle.addEventListener('click', () => {
     isPaused = !isPaused;
-    await setParsingPaused(isPaused);
-    updatePauseToggle(pauseToggle, isPaused);
-    new ParsingPausedCommand(isPaused).send();
+    void setParsingPaused(isPaused).then(() => {
+      updatePauseToggle(pauseToggle, isPaused);
+      new ParsingPausedCommand(isPaused).send();
+    });
   });
 
   if (isPaused) {

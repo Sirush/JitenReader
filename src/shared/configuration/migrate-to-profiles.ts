@@ -31,6 +31,7 @@ export const migrateToProfiles = async (): Promise<void> => {
   for (const key of configKeys) {
     if (key in storage) {
       const profileKey = getProfileKey(DEFAULT_PROFILE_ID, key);
+
       newStorage[profileKey] = storage[key] as string;
       keysToRemove.push(key);
     }
@@ -39,7 +40,5 @@ export const migrateToProfiles = async (): Promise<void> => {
   try {
     await chrome.storage.local.set(newStorage);
     await chrome.storage.local.remove(keysToRemove);
-  } catch (error) {
-    console.error('Failed to migrate to profiles:', error);
-  }
+  } catch {}
 };

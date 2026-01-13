@@ -12,7 +12,7 @@ import { displayToast } from '@shared/dom/display-toast';
 
 export class HTMLProfileManagerElement extends HTMLElement {
   protected _profiles: ProfileMetadata[] = [];
-  protected _activeProfileId: string = '';
+  protected _activeProfileId = '';
   protected _tableHost: HTMLElement;
   protected _createButton: HTMLButtonElement;
   protected _limitWarning: HTMLElement;
@@ -22,8 +22,26 @@ export class HTMLProfileManagerElement extends HTMLElement {
     this.render();
   }
 
+  public async refresh(): Promise<void> {
+    await this.loadProfiles();
+    this.renderProfileRows();
+    this.updateLimitWarning();
+  }
+
+  public async switchToProfile(profileId: string): Promise<boolean> {
+    const success = await switchProfile(profileId);
+
+    if (success) {
+      this._activeProfileId = profileId;
+      this.renderProfileRows();
+    }
+
+    return success;
+  }
+
   protected async loadProfiles(): Promise<void> {
     const state = await getProfilesState();
+
     this._profiles = state.profiles;
     this._activeProfileId = state.activeProfileId;
   }
@@ -47,7 +65,7 @@ export class HTMLProfileManagerElement extends HTMLElement {
       class: ['outline', 'create-profile-btn'],
       innerText: '+ Create New Profile',
       handler: () => this.showCreateDialog(),
-    }) as HTMLButtonElement;
+    });
 
     this.appendChild(this._createButton);
     this.updateLimitWarning();
@@ -57,16 +75,21 @@ export class HTMLProfileManagerElement extends HTMLElement {
     this._tableHost.innerHTML = '';
 
     const headerRow = createElement('div', { class: ['row', 'header'] });
-    headerRow.appendChild(createElement('div', {
-      class: 'col',
-      innerText: 'Profile',
-      style: { fontWeight: 'bold', flex: '1' },
-    }));
-    headerRow.appendChild(createElement('div', {
-      class: 'col',
-      innerText: 'Actions',
-      style: { fontWeight: 'bold', width: '200px' },
-    }));
+
+    headerRow.appendChild(
+      createElement('div', {
+        class: 'col',
+        innerText: 'Profile',
+        style: { fontWeight: 'bold', flex: '1' },
+      }),
+    );
+    headerRow.appendChild(
+      createElement('div', {
+        class: 'col',
+        innerText: 'Actions',
+        style: { fontWeight: 'bold', width: '200px' },
+      }),
+    );
     this._tableHost.appendChild(headerRow);
 
     for (const profile of this._profiles) {
@@ -79,13 +102,17 @@ export class HTMLProfileManagerElement extends HTMLElement {
         class: 'col',
         style: { flex: '1', display: 'flex', alignItems: 'center', gap: '0.5em' },
       });
+
       nameCol.appendChild(createElement('span', { innerText: profile.name }));
+
       if (isActive) {
-        nameCol.appendChild(createElement('span', {
-          class: 'active-badge',
-          innerText: '(active)',
-          style: { opacity: '0.6' },
-        }));
+        nameCol.appendChild(
+          createElement('span', {
+            class: 'active-badge',
+            innerText: '(active)',
+            style: { opacity: '0.6' },
+          }),
+        );
       }
       row.appendChild(nameCol);
 
@@ -93,22 +120,30 @@ export class HTMLProfileManagerElement extends HTMLElement {
         class: 'col',
         style: { width: '200px', display: 'flex', gap: '0.5em' },
       });
-      actionsCol.appendChild(createElement('button', {
-        class: 'outline',
-        innerText: 'Rename',
-        handler: () => this.showRenameDialog(profile),
-      }));
-      actionsCol.appendChild(createElement('button', {
-        class: 'outline',
-        innerText: 'Duplicate',
-        handler: () => this.handleDuplicate(profile),
-      }));
+
+      actionsCol.appendChild(
+        createElement('button', {
+          class: 'outline',
+          innerText: 'Rename',
+          handler: () => this.showRenameDialog(profile),
+        }),
+      );
+      actionsCol.appendChild(
+        createElement('button', {
+          class: 'outline',
+          innerText: 'Duplicate',
+          handler: () => void this.handleDuplicate(profile),
+        }),
+      );
+
       if (canDelete) {
-        actionsCol.appendChild(createElement('button', {
-          class: ['outline', 'v1'],
-          innerText: 'Delete',
-          handler: () => this.showDeleteDialog(profile),
-        }));
+        actionsCol.appendChild(
+          createElement('button', {
+            class: ['outline', 'v1'],
+            innerText: 'Delete',
+            handler: () => this.showDeleteDialog(profile),
+          }),
+        );
       }
       row.appendChild(actionsCol);
 
@@ -118,6 +153,7 @@ export class HTMLProfileManagerElement extends HTMLElement {
 
   protected updateLimitWarning(): void {
     const atLimit = this._profiles.length >= MAX_PROFILES;
+
     this._limitWarning.style.display = atLimit ? 'block' : 'none';
     this._createButton.disabled = atLimit;
   }
@@ -163,6 +199,7 @@ export class HTMLProfileManagerElement extends HTMLElement {
   protected async handleDuplicate(profile: ProfileMetadata): Promise<void> {
     if (this._profiles.length >= MAX_PROFILES) {
       displayToast('error', `Maximum of ${MAX_PROFILES} profiles reached`);
+
       return;
     }
 
@@ -177,7 +214,9 @@ export class HTMLProfileManagerElement extends HTMLElement {
   }
 
   protected showDeleteDialog(profile: ProfileMetadata): void {
-    const confirmed = confirm(`Are you sure you want to delete profile "${profile.name}"?\n\nThis action cannot be undone.`);
+    const confirmed = confirm(
+      `Are you sure you want to delete profile "${profile.name}"?\n\nThis action cannot be undone.`,
+    );
 
     if (confirmed) {
       void this.handleDelete(profile);
@@ -193,22 +232,5 @@ export class HTMLProfileManagerElement extends HTMLElement {
     } else {
       displayToast('error', 'Failed to delete profile');
     }
-  }
-
-  public async refresh(): Promise<void> {
-    await this.loadProfiles();
-    this.renderProfileRows();
-    this.updateLimitWarning();
-  }
-
-  public async switchToProfile(profileId: string): Promise<boolean> {
-    const success = await switchProfile(profileId);
-
-    if (success) {
-      this._activeProfileId = profileId;
-      this.renderProfileRows();
-    }
-
-    return success;
   }
 }

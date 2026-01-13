@@ -114,7 +114,15 @@ export class StatusBar {
 
   private _hideTimeout?: NodeJS.Timeout;
   private _statsDropdownTimeout?: NodeJS.Timeout;
-  private _stats: StatusBarStats = { total: 0, mastered: 0, mature: 0, young: 0, blacklisted: 0, new: 0, due: 0 };
+  private _stats: StatusBarStats = {
+    total: 0,
+    mastered: 0,
+    mature: 0,
+    young: 0,
+    blacklisted: 0,
+    new: 0,
+    due: 0,
+  };
   private _isVisible = false;
   private _isHovering = false;
   private _isStatsHovering = false;

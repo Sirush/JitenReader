@@ -467,7 +467,7 @@ export class Popup {
         id: 'forget-deck',
         class: ['outline', 'forget'],
         innerText: 'Forget',
-        handler: () => this.handleForgetClick(),
+        handler: () => void this.handleForgetClick(),
       }),
     );
   }

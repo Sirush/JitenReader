@@ -5,7 +5,7 @@ import { getProfilesState } from '@shared/configuration/profiles-state';
 export class HTMLProfileSelectorElement extends HTMLElement {
   protected _select: HTMLSelectElement;
   protected _profiles: ProfileMetadata[] = [];
-  protected _activeProfileId: string = '';
+  protected _activeProfileId = '';
 
   public get value(): string {
     return this._select?.value ?? '';
@@ -16,8 +16,26 @@ export class HTMLProfileSelectorElement extends HTMLElement {
     this.buildSelect();
   }
 
+  public async refresh(): Promise<void> {
+    await this.loadProfiles();
+
+    while (this._select.firstChild) {
+      this._select.removeChild(this._select.firstChild);
+    }
+
+    for (const profile of this._profiles) {
+      const option = document.createElement('option');
+
+      option.value = profile.id;
+      option.textContent = profile.name;
+      option.selected = profile.id === this._activeProfileId;
+      this._select.appendChild(option);
+    }
+  }
+
   protected async loadProfiles(): Promise<void> {
     const state = await getProfilesState();
+
     this._profiles = state.profiles;
     this._activeProfileId = state.activeProfileId;
   }
@@ -28,13 +46,14 @@ export class HTMLProfileSelectorElement extends HTMLElement {
 
     for (const profile of this._profiles) {
       const option = document.createElement('option');
+
       option.value = profile.id;
       option.textContent = profile.name;
       option.selected = profile.id === this._activeProfileId;
       this._select.appendChild(option);
     }
 
-    this._select.addEventListener('change', () => this.onSelectionChange());
+    this._select.addEventListener('change', () => void this.onSelectionChange());
 
     this.appendChild(this._select);
   }
@@ -47,26 +66,12 @@ export class HTMLProfileSelectorElement extends HTMLElement {
 
       if (success) {
         this._activeProfileId = newProfileId;
-        this.dispatchEvent(new CustomEvent('profilechange', { detail: { profileId: newProfileId } }));
+        this.dispatchEvent(
+          new CustomEvent('profilechange', { detail: { profileId: newProfileId } }),
+        );
       } else {
         this._select.value = this._activeProfileId;
       }
-    }
-  }
-
-  public async refresh(): Promise<void> {
-    await this.loadProfiles();
-
-    while (this._select.firstChild) {
-      this._select.removeChild(this._select.firstChild);
-    }
-
-    for (const profile of this._profiles) {
-      const option = document.createElement('option');
-      option.value = profile.id;
-      option.textContent = profile.name;
-      option.selected = profile.id === this._activeProfileId;
-      this._select.appendChild(option);
     }
   }
 }

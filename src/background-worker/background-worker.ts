@@ -2,13 +2,13 @@ import { getConfiguration, invalidateProfileCache } from '@shared/configuration/
 import { migrateToProfiles } from '@shared/configuration/migrate-to-profiles';
 import { invalidateSetConfigurationCache } from '@shared/configuration/set-configuration';
 import { addContextMenu } from '@shared/extension/add-context-menu';
-import { addInstallListener, OnInstalledReason } from '@shared/extension/add-install-listener';
+import { addInstallListener } from '@shared/extension/add-install-listener';
 import { openOptionsPage } from '@shared/extension/open-options-page';
 import { openView } from '@shared/extension/open-view';
 import { setParsingPaused } from '@shared/extension/set-parsing-paused';
-import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { ParsePageCommand } from '@shared/messages/foreground/parse-page.command';
 import { ParseSelectionCommand } from '@shared/messages/foreground/parse-selection.command';
+import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { DeckManager } from './jiten/deck-manager';
 import { FetchDecksCommandHandler } from './jiten/fetch-decks-command.handler';
 import { ForgetCardCommandHandler } from './jiten-card-actions/forget-card-command.handler';
@@ -78,12 +78,12 @@ onBroadcastMessage('profileSwitched', () => {
 });
 
 addInstallListener(async ({ reason }) => {
-  if (reason === OnInstalledReason.INSTALL) {
+  if (reason === 'install') {
     await migrateToProfiles();
     await openOptionsPage();
   }
 
-  if (reason === OnInstalledReason.UPDATE) {
+  if (reason === 'update') {
     await migrateToProfiles();
 
     const skipReleaseNotes = await getConfiguration('skipReleaseNotes');
