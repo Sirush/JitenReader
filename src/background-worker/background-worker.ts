@@ -5,7 +5,6 @@ import { addContextMenu } from '@shared/extension/add-context-menu';
 import { addInstallListener } from '@shared/extension/add-install-listener';
 import { openOptionsPage } from '@shared/extension/open-options-page';
 import { openView } from '@shared/extension/open-view';
-import { setParsingPaused } from '@shared/extension/set-parsing-paused';
 import { ParsePageCommand } from '@shared/messages/foreground/parse-page.command';
 import { ParseSelectionCommand } from '@shared/messages/foreground/parse-selection.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
@@ -69,8 +68,6 @@ const handlerCollection = new BackgroundCommandHandlerCollection(
 );
 
 handlerCollection.listen();
-
-void setParsingPaused(false);
 
 onBroadcastMessage('profileSwitched', () => {
   invalidateProfileCache();
