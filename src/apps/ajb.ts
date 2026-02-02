@@ -73,7 +73,8 @@ export class AJB {
         const markAllTypes = await getConfiguration('markAllTypes');
         const markIPlus1 = await getConfiguration('markIPlus1');
         const minSentenceLength = await getConfiguration('minSentenceLength');
-        const markOnlyFrequent = await getConfiguration('markOnlyFrequent');
+        const iPlusOneMaxFrequency = await getConfiguration('iPlusOneMaxFrequency');
+        const iPlusOneMaxFrequencyCount = await getConfiguration('iPlusOneMaxFrequencyCount');
         const newStates = await getConfiguration('newStates');
 
         Registry.textHighlighterOptions.skipFurigana = skipFurigana;
@@ -82,7 +83,9 @@ export class AJB {
         Registry.textHighlighterOptions.markAll = markAllTypes;
         Registry.textHighlighterOptions.markFrequency = markTopX ? markTopXCount : false;
         Registry.textHighlighterOptions.minSentenceLength = minSentenceLength;
-        Registry.textHighlighterOptions.markOnlyFrequent = markOnlyFrequent;
+        Registry.textHighlighterOptions.iPlusOneMaxFrequency = iPlusOneMaxFrequency
+          ? iPlusOneMaxFrequencyCount
+          : false;
         Registry.textHighlighterOptions.newStates = newStates;
       },
       true,

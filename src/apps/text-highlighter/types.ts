@@ -7,6 +7,6 @@ export type TextHighlighterOptions = {
   markAll: boolean;
   markIPlus1: boolean;
   minSentenceLength: number;
-  markOnlyFrequent: boolean;
+  iPlusOneMaxFrequency: false | number;
   newStates: JitenCardState[];
 };

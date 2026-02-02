@@ -51,7 +51,8 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   markTopXCount: 10_000,
   markIPlus1: false,
   minSentenceLength: 3,
-  markOnlyFrequent: false,
+  iPlusOneMaxFrequency: false,
+  iPlusOneMaxFrequencyCount: 15_000,
   skipFurigana: false,
   generatePitch: false,
 

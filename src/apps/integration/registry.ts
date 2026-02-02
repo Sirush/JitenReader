@@ -28,7 +28,7 @@ export class Registry {
     markAll: false,
     markIPlus1: false,
     minSentenceLength: 3,
-    markOnlyFrequent: false,
+    iPlusOneMaxFrequency: false,
     newStates: [],
   };
 

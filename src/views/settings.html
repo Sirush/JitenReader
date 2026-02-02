@@ -459,9 +459,20 @@
                     />
                   </div>
 
-                  <div data-show="markTopX && markIPlus1" class="checkbox" indent>
-                    <input type="checkbox" id="markOnlyFrequent" name="markOnlyFrequent" />
-                    <label for="markOnlyFrequent">Mark only when matching frequency above</label>
+                  <div data-show="markIPlus1" class="checkbox" indent>
+                    <input type="checkbox" id="iPlusOneMaxFrequency" name="iPlusOneMaxFrequency" />
+                    <label for="iPlusOneMaxFrequency">Only mark when below frequency rank</label>
+                  </div>
+
+                  <div data-show="markIPlus1 && iPlusOneMaxFrequency" indent down>
+                    <label for="iPlusOneMaxFrequencyCount">Maximum frequency rank</label>
+                    <input
+                      style="width: 100%"
+                      type="number"
+                      id="iPlusOneMaxFrequencyCount"
+                      name="iPlusOneMaxFrequencyCount"
+                      min="1"
+                    />
                   </div>
                 </div>
 

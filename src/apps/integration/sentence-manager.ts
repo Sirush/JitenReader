@@ -196,8 +196,7 @@ export class SentenceManager {
   }
 
   protected calculateSentence(sentence: string): void {
-    const { markOnlyFrequent, markFrequency, minSentenceLength, newStates } =
-      Registry.textHighlighterOptions;
+    const { iPlusOneMaxFrequency, minSentenceLength, newStates } = Registry.textHighlighterOptions;
 
     this._processedSentences.add(sentence);
 
@@ -211,11 +210,10 @@ export class SentenceManager {
     let notIPlusOne =
       unknownCards.length === 0 || unknownCards.length > 1 || cards.length < minSentenceLength;
 
-    if (markFrequency && markOnlyFrequent && !notIPlusOne) {
-      // Apply frequency-based filtering
+    if (iPlusOneMaxFrequency && !notIPlusOne) {
       const relevantFrequency = this._cardToFrequency.get(unknownCards[0])!;
 
-      if (relevantFrequency > markFrequency) {
+      if (relevantFrequency > iPlusOneMaxFrequency) {
         notIPlusOne = true;
       }
     }

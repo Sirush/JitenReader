@@ -53,7 +53,8 @@ export type ConfigurationSchema = {
   markAllTypes: boolean;
   markIPlus1: boolean;
   minSentenceLength: number;
-  markOnlyFrequent: boolean;
+  iPlusOneMaxFrequency: boolean;
+  iPlusOneMaxFrequencyCount: number;
   skipFurigana: boolean;
   generatePitch: boolean;
 
