@@ -65,6 +65,7 @@ export type ConfigurationSchema = {
   showPopupOnHover: boolean;
   renderCloseButton: boolean;
   touchscreenSupport: boolean;
+  touchscreenMode: 'touch' | 'pen' | 'both';
   disableFadeAnimation: boolean;
   leftAlignPopupToWord: boolean;
 

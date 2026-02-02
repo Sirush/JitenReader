@@ -546,6 +546,15 @@
                 </div>
 
                 <div data-show="touchscreenSupport" indent>
+                  <label for="touchscreenMode">Input method</label>
+                  <select id="touchscreenMode" name="touchscreenMode">
+                    <option value="touch">Touch</option>
+                    <option value="pen">Pen / Stylus</option>
+                    <option value="both">Both</option>
+                  </select>
+                </div>
+
+                <div data-show="touchscreenSupport" indent>
                   <div class="checkbox">
                     <input type="checkbox" id="renderCloseButton" name="renderCloseButton" />
                     <label for="renderCloseButton">Add a close button to the popup</label>

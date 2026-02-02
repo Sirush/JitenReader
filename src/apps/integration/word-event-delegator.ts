@@ -111,8 +111,14 @@ export class WordEventDelegator {
 
     if (target) {
       const sentence = this._sentenceMap.get(target);
+      const pointerType = (event as PointerEvent).pointerType;
 
-      Registry.popupManager?.touch(target as HTMLElement, event as MouseEvent, sentence);
+      Registry.popupManager?.touch(
+        target as HTMLElement,
+        event as MouseEvent,
+        sentence,
+        pointerType,
+      );
     }
   };
 }

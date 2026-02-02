@@ -29,6 +29,7 @@ export class PopupManager {
 
   private _showPopupOnHover: boolean;
   private _touchscreenSupport: boolean;
+  private _touchscreenMode: 'touch' | 'pen' | 'both';
   private _currentHover?: HTMLElement;
   private _currentSentence?: string;
 
@@ -46,6 +47,7 @@ export class PopupManager {
       async () => {
         this._showPopupOnHover = await getConfiguration('showPopupOnHover');
         this._touchscreenSupport = await getConfiguration('touchscreenSupport');
+        this._touchscreenMode = await getConfiguration('touchscreenMode');
       },
       true,
     );
@@ -75,8 +77,17 @@ export class PopupManager {
     }
   }
 
-  public touch(element: HTMLElement, event: MouseEvent, sentence?: string): void {
+  public touch(
+    element: HTMLElement,
+    event: MouseEvent,
+    sentence?: string,
+    pointerType?: string,
+  ): void {
     if (!this._touchscreenSupport || !element || Registry.skipTouchEvents) {
+      return;
+    }
+
+    if (pointerType && !this.isMatchingPointerType(pointerType)) {
       return;
     }
 
@@ -110,6 +121,17 @@ export class PopupManager {
     this._gradingActions.deactivate();
 
     this._popup.initHide();
+  }
+
+  private isMatchingPointerType(pointerType: string): boolean {
+    switch (this._touchscreenMode) {
+      case 'touch':
+        return pointerType === 'touch';
+      case 'pen':
+        return pointerType === 'pen';
+      case 'both':
+        return pointerType === 'touch' || pointerType === 'pen';
+    }
   }
 
   /**
