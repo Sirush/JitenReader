@@ -248,4 +248,17 @@ export const DEFAULT_HOSTS: PredefinedHostMeta[] = [
     parserClass: 'aozora-parser',
     custom: 'AozoraParser',
   },
+  {
+    id: 'readest-parser',
+    name: 'Readest Parser',
+    description: 'Parses Readest web',
+    host: ['*://web.readest.com/reader/*'],
+    auto: true,
+    allFrames: true,
+    parseVisibleObserver: true,
+    addedObserver: {
+      notifyFor: 'p',
+      observeFrom: ['main', 'div'],
+    },
+  },
 ];
