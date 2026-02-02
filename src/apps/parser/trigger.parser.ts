@@ -17,6 +17,12 @@ export class TriggerParser extends BaseParser {
     id: 'ajb-parse-button',
   });
 
+  public override destroy(): void {
+    this._parseKeyManager.deactivate();
+    this._buttonRoot.remove();
+    super.destroy();
+  }
+
   constructor(meta: HostMeta) {
     super(meta);
 

@@ -12,6 +12,13 @@ export class HostEvaluator {
 
   private _host: string;
 
+  public get metaKey(): string {
+    return this.relevantMeta
+      .map((meta) => ('id' in meta && meta.id) || JSON.stringify(meta))
+      .sort()
+      .join(',');
+  }
+
   public get relevantMeta(): HostMeta[] {
     const result: HostMeta[] = [];
 
@@ -66,6 +73,10 @@ export class HostEvaluator {
         // Cross-origin parent; keep the about: URL
       }
     }
+  }
+
+  public updateUrl(url: string): void {
+    this._host = url;
   }
 
   public async load(): Promise<HostEvaluator> {

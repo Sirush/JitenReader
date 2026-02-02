@@ -33,7 +33,16 @@ export class AutomaticParser extends BaseParser {
     }, 1);
   }
 
+  public override destroy(): void {
+    this.disconnectObservers();
+    super.destroy();
+  }
+
   protected startParsing(): void {
+    if (this._destroyed) {
+      return;
+    }
+
     if (this._meta.parseVisibleObserver) {
       debug('AutomaticParser: Setting up visible observer', this._meta.parseVisibleObserver);
 
@@ -63,6 +72,10 @@ export class AutomaticParser extends BaseParser {
   }
 
   protected reconnectObservers(): void {
+    if (this._destroyed) {
+      return;
+    }
+
     debug('AutomaticParser: Reconnecting observers after unpause');
 
     this.startParsing();

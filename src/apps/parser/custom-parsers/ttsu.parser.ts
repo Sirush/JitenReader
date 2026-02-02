@@ -5,6 +5,12 @@ export class TtsuParser extends AutomaticParser {
   protected _pageObserver?: MutationObserver;
   protected _chapterObserver?: IntersectionObserver;
 
+  public override destroy(): void {
+    this._pageObserver?.disconnect();
+    this._chapterObserver?.disconnect();
+    super.destroy();
+  }
+
   protected setupVisibleObserver(): void {
     this._visibleObserver = this.getParseVisibleObserver();
   }

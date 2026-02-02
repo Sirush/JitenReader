@@ -159,8 +159,17 @@ class MokuroMangaPanel {
  * of which there should theoretically only be one.
  */
 export class MokuroParser extends AutomaticParser {
+  private _pollIntervalId?: ReturnType<typeof setInterval>;
   private _mangaPanels = new Map<HTMLElement, MokuroMangaPanel>();
   private _observedElements = new Set<HTMLElement>();
+
+  public override destroy(): void {
+    clearInterval(this._pollIntervalId);
+    this._mangaPanels.forEach((instance) => instance.destroy());
+    this._mangaPanels.clear();
+    this._observedElements.clear();
+    super.destroy();
+  }
 
   protected override init(): void {
     Registry.sentenceManager.disable();
@@ -202,7 +211,7 @@ export class MokuroParser extends AutomaticParser {
 
     // Check immediately and then periodically (keep polling for SPA navigation)
     checkForPanel();
-    setInterval(checkForPanel, 500);
+    this._pollIntervalId = setInterval(checkForPanel, 500);
   }
 
   /**

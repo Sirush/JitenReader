@@ -21,6 +21,9 @@ import { StatusBar } from './status-bar/status-bar';
 export class AJB {
   private _lookupKeyManager = new KeybindManager(['lookupSelectionKey']);
   private _statusBarKeyManager = new KeybindManager(['toggleStatusBarKey']);
+  private _lastUrl = location.href;
+  private _lastMetaKey = '';
+  private _navigationGeneration = 0;
 
   constructor() {
     debug('Initialize AJB', { mainFrame: window === window.top });
@@ -39,6 +42,7 @@ export class AJB {
     });
 
     this.installParsers();
+    this.watchNavigation();
 
     Registry.popupManager = new PopupManager();
 
@@ -118,8 +122,15 @@ export class AJB {
   protected installParsers(): void {
     const { hostEvaluator, parsers } = Registry;
     const isPredefined = (meta: HostMeta): meta is PredefinedHostMeta => 'id' in meta;
+    const generation = this._navigationGeneration;
 
     void hostEvaluator.load().then(({ canBeTriggered, relevantMeta }) => {
+      if (generation !== this._navigationGeneration) {
+        return;
+      }
+
+      this._lastMetaKey = hostEvaluator.metaKey;
+
       if (!canBeTriggered) {
         parsers.push(new NoParser(hostEvaluator.rejectionReason));
       }
@@ -150,6 +161,57 @@ export class AJB {
     for (const feature of features) {
       feature.apply();
     }
+  }
+
+  private watchNavigation(): void {
+    setInterval(() => {
+      if (location.href !== this._lastUrl) {
+        this._lastUrl = location.href;
+        this.handleNavigationChange();
+      }
+    }, 500);
+
+    window.addEventListener('popstate', () => {
+      if (location.href !== this._lastUrl) {
+        this._lastUrl = location.href;
+        this.handleNavigationChange();
+      }
+    });
+  }
+
+  private handleNavigationChange(): void {
+    const { hostEvaluator } = Registry;
+    const generation = ++this._navigationGeneration;
+
+    hostEvaluator.updateUrl(location.href);
+
+    void hostEvaluator.load().then(() => {
+      if (generation !== this._navigationGeneration) {
+        return;
+      }
+
+      const newMetaKey = hostEvaluator.metaKey;
+
+      if (newMetaKey === this._lastMetaKey) {
+        return;
+      }
+
+      debug('SPA navigation detected, reinstalling parsers');
+
+      this.destroyParsers();
+      this.installParsers();
+    });
+  }
+
+  private destroyParsers(): void {
+    const { batchController, parsers, sentenceManager } = Registry;
+
+    batchController.abortAll();
+    parsers.forEach((parser) => parser.destroy());
+    parsers.length = 0;
+    sentenceManager.reset();
+    Registry.clearCards();
+    Registry.statusBar?.recalculateStats();
   }
 }
 

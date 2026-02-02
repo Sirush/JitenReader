@@ -42,6 +42,11 @@ export class BatchController {
     this._pendingBatches.delete(node);
   }
 
+  public abortAll(): void {
+    this._pendingBatches.forEach((batches) => batches.forEach((batch) => batch.abort()));
+    this._pendingBatches.clear();
+  }
+
   public parseBatches(afterSend?: () => void): void {
     const batches = Array.from(this._pendingBatches.values());
     const sequences = batches.flatMap((b) => b);

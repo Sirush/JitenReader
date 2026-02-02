@@ -99,4 +99,8 @@ export class Registry {
   public static getAllCards(): Map<string, JitenCard> {
     return this.cards;
   }
+
+  public static clearCards(): void {
+    this.cards.clear();
+  }
 }

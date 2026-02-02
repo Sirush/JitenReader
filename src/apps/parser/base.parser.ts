@@ -5,6 +5,7 @@ import { getParagraphs } from '../batches/get-paragraphs';
 import { Registry } from '../integration/registry';
 
 export abstract class BaseParser {
+  protected _destroyed = false;
   protected _hasInjectedClass = false;
   protected getParagraphsFn?: typeof getParagraphs;
 
@@ -31,6 +32,10 @@ export abstract class BaseParser {
 
   /** @param {HostMeta} _meta The host meta */
   constructor(protected _meta: HostMeta) {}
+
+  public destroy(): void {
+    this._destroyed = true;
+  }
 
   /**
    * Parse the currently selected text
@@ -84,6 +89,10 @@ export abstract class BaseParser {
     nodes: (Node | Element)[],
     filter?: (node: Node | Element) => boolean,
   ): void {
+    if (this._destroyed) {
+      return;
+    }
+
     this.installAppStyles();
 
     const { batchController } = Registry;
