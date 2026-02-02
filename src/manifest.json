@@ -46,7 +46,8 @@
       "js": [
         "js/ajb.js"
       ],
-      "all_frames": true
+      "all_frames": true,
+      "match_about_blank": true
     }
   ],
   "host_permissions": [

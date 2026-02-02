@@ -58,6 +58,14 @@ export class HostEvaluator {
 
   constructor() {
     this._host = window.location.href;
+
+    if (this._host === 'about:srcdoc' || this._host === 'about:blank') {
+      try {
+        this._host = window.parent.location.href;
+      } catch {
+        // Cross-origin parent; keep the about: URL
+      }
+    }
   }
 
   public async load(): Promise<HostEvaluator> {

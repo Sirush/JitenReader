@@ -1,4 +1,5 @@
 import { debug } from '@shared/debug';
+import { getStyleUrl } from '@shared/extension/get-style-url';
 import { HostMeta } from '@shared/host-meta/types';
 import { getParagraphs } from '../batches/get-paragraphs';
 import { Registry } from '../integration/registry';
@@ -354,6 +355,15 @@ export abstract class BaseParser {
         style.textContent = this._meta.css;
         document.head.appendChild(style);
       }
+    }
+
+    if (!document.querySelector('link[data-jiten-style="word"]')) {
+      const link = document.createElement('link');
+
+      link.rel = 'stylesheet';
+      link.href = getStyleUrl('word');
+      link.setAttribute('data-jiten-style', 'word');
+      document.head.appendChild(link);
     }
   }
 
