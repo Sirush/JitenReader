@@ -5,6 +5,10 @@ export class ParagraphReader extends BaseParagraphReader {
   private _styleCache = new WeakMap<Element, CSSStyleDeclaration>();
 
   public read(): Paragraph[] {
+    if (this.collapseWhitespace) {
+      this.splitTextNodesAtWhitespace(this.node);
+    }
+
     const fragments: Fragment[] = [];
     const paragraphs: Paragraph[] = [];
 
@@ -213,5 +217,42 @@ export class ParagraphReader extends BaseParagraphReader {
     }
 
     return 'none';
+  }
+
+  private splitTextNodesAtWhitespace(root: Element | Node): void {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const textNodes: Text[] = [];
+
+    while (walker.nextNode()) {
+      textNodes.push(walker.currentNode as Text);
+    }
+
+    for (const text of textNodes) {
+      if (!/[\n\r\t]/.test(text.data)) {
+        continue;
+      }
+
+      const parent = text.parentNode;
+
+      if (!parent) {
+        continue;
+      }
+
+      const normalised = text.data.replace(/\r\n/g, '\n').replace(/[\r\t]/g, '');
+      const parts = normalised.split('\n');
+      const fragment = document.createDocumentFragment();
+
+      parts.forEach((part, i) => {
+        if (i > 0) {
+          fragment.appendChild(document.createElement('br'));
+        }
+
+        if (part.length > 0) {
+          fragment.appendChild(document.createTextNode(part));
+        }
+      });
+
+      parent.replaceChild(fragment, text);
+    }
   }
 }

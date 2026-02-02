@@ -16,13 +16,19 @@ export class BatchController {
   }
 
   public registerNode(node: Element | Node, options: RegisterOptions = {}): void {
-    const { filter, onEmpty, getParagraphsFn = getParagraphs, applyFn = applyTokens } = options;
+    const {
+      filter,
+      onEmpty,
+      getParagraphsFn = getParagraphs,
+      applyFn = applyTokens,
+      collapseWhitespace,
+    } = options;
 
     if (this._pendingBatches.has(node)) {
       return;
     }
 
-    const paragraphs = getParagraphsFn(node, filter);
+    const paragraphs = getParagraphsFn(node, filter, collapseWhitespace);
 
     if (!paragraphs.length) {
       return onEmpty?.(node);

@@ -90,7 +90,10 @@ export abstract class BaseParser {
 
     debug('parseNodes called with nodes:', nodes, 'filter:', filter);
 
-    batchController.registerNodes(nodes, { filter });
+    batchController.registerNodes(nodes, {
+      filter,
+      collapseWhitespace: this._meta.collapseWhitespace,
+    });
     batchController.parseBatches();
   }
 
@@ -319,6 +322,7 @@ export abstract class BaseParser {
       filter,
       onEmpty: (e) => e instanceof Element && observer.unobserve(e),
       getParagraphsFn: this.getParagraphsFn,
+      collapseWhitespace: this._meta.collapseWhitespace,
     });
     batchController.parseBatches();
   }

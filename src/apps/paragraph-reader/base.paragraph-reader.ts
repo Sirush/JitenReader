@@ -4,6 +4,7 @@ export abstract class BaseParagraphReader {
   constructor(
     protected node: Element | Node,
     protected filter?: (node: Element | Node) => boolean,
+    protected collapseWhitespace?: boolean,
   ) {}
 
   public abstract read(): Paragraph[];

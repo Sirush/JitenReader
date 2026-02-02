@@ -115,4 +115,10 @@ export type CustomHostMeta = {
    * Optional class to add to the document body to indicate that the parser is active and to style its elements.
    */
   parserClass?: string;
+
+  /**
+   * Collapses whitespace characters (newlines, carriage returns, tabs) in text nodes before parsing.
+   * Useful for OCR-based readers where literal newlines in text break the parser.
+   */
+  collapseWhitespace?: boolean;
 };

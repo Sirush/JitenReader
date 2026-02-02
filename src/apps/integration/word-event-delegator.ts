@@ -51,22 +51,34 @@ export class WordEventDelegator {
 
     let prev = element.previousElementSibling;
 
-    while (
-      prev?.getAttribute('wordId') === wordId &&
-      prev?.getAttribute('readingIndex') === readingIndex
-    ) {
-      elements.unshift(prev);
-      prev = prev.previousElementSibling;
+    while (prev) {
+      if (
+        prev.getAttribute('wordId') === wordId &&
+        prev.getAttribute('readingIndex') === readingIndex
+      ) {
+        elements.unshift(prev);
+        prev = prev.previousElementSibling;
+      } else if (!prev.hasAttribute('wordId')) {
+        prev = prev.previousElementSibling;
+      } else {
+        break;
+      }
     }
 
     let next = element.nextElementSibling;
 
-    while (
-      next?.getAttribute('wordId') === wordId &&
-      next?.getAttribute('readingIndex') === readingIndex
-    ) {
-      elements.push(next);
-      next = next.nextElementSibling;
+    while (next) {
+      if (
+        next.getAttribute('wordId') === wordId &&
+        next.getAttribute('readingIndex') === readingIndex
+      ) {
+        elements.push(next);
+        next = next.nextElementSibling;
+      } else if (!next.hasAttribute('wordId')) {
+        next = next.nextElementSibling;
+      } else {
+        break;
+      }
     }
 
     return elements;

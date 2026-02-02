@@ -17,4 +17,5 @@ export type RegisterOptions = {
   onEmpty?: (node: Element | Node) => void;
   getParagraphsFn?: typeof getParagraphs;
   applyFn?: typeof applyTokens;
+  collapseWhitespace?: boolean;
 };

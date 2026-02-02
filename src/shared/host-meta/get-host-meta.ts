@@ -63,6 +63,7 @@ export async function getHostMeta(
           parseVisibleObserver,
           addedObserver,
           parserClass,
+          collapseWhitespace,
         }) => ({
           host,
           auto,
@@ -74,6 +75,7 @@ export async function getHostMeta(
           parseVisibleObserver,
           addedObserver,
           parserClass,
+          collapseWhitespace,
         }),
       ),
     );

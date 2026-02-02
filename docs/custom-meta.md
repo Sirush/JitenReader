@@ -95,6 +95,16 @@ The configuration can be added as a JSON array in the settings (*you won't see t
     "parserClass": "satori-reader-parser",
     "parse": "#article-content", // Satori is nothing special - only automated parsing for the content
     "filter": ".play-button-container, .notes-button-container, .fg, .wpr" // We exclude some learning and play-related elements and buttons here.
+  },
+  { // OCR-based manga readers often have literal newlines in their text elements, which breaks parsing.
+    // collapseWhitespace replaces newlines with <br> elements to preserve the visual formatting while sending clean text to the parser.
+    "host": "*://localhost:4568/manga/*",
+    "allFrames": true,
+    "collapseWhitespace": true,
+    "parseVisibleObserver": true,
+    "addedObserver": {
+      "notifyFor": ".gemini-ocr-text-box"
+    }
   }
 ]
 ```
