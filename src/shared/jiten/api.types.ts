@@ -1,5 +1,5 @@
 import { Empty } from '../types';
-import { JPDBDeck, JitenParseResult, JitenCardState } from './types';
+import { JitenParseResult, JitenCardState } from './types';
 
 // type JPDBVidSidTuple = [vid: number, sid: number][];
 
@@ -33,13 +33,6 @@ type JitenSetVocabularyStateRequest = {
 //   sentence: string;
 // };
 
-type JPDBListUserDecksRequest = {
-  fields: JPDBDeckFields[];
-};
-type JPDBListUserDecksResult = {
-  decks: Exclude<JPDBDeck[keyof JPDBDeck], undefined>[][];
-};
-
 // export type JPDBAddVocabularyRequest = {
 //   id: number | JPDBSpecialDeckNames;
 //   vocabulary: JPDBVidSidTuple;
@@ -48,8 +41,6 @@ type JPDBListUserDecksResult = {
 //   ignore_unknown?: boolean;
 // };
 // export type JPDBRemoveVocabularyRequest = Pick<JPDBAddVocabularyRequest, 'id' | 'vocabulary'>;
-
-export type JPDBDeckFields = keyof JPDBDeck;
 
 export type JitenRequestOptions = {
   apiToken?: string;
@@ -65,7 +56,6 @@ export type JPDBEndpoints = {
   'srs/review': [JitenReviewRequest, void];
   'srs/set-vocabulary-state': [JitenSetVocabularyStateRequest, void];
   'reader/lookup-vocabulary': [JitenLookupVocabularyRequest, JitenLookupVocabularyResult];
-  'list-user-decks': [JPDBListUserDecksRequest, JPDBListUserDecksResult];
   // 'deck/add-vocabulary': [JPDBAddVocabularyRequest, void];
   // 'deck/remove-vocabulary': [JPDBRemoveVocabularyRequest, void];
   // 'set-card-sentence': [JPDBSetSentenceRequest, void];

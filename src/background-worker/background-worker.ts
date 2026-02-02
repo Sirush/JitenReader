@@ -8,8 +8,6 @@ import { openView } from '@shared/extension/open-view';
 import { ParsePageCommand } from '@shared/messages/foreground/parse-page.command';
 import { ParseSelectionCommand } from '@shared/messages/foreground/parse-selection.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
-import { DeckManager } from './jiten/deck-manager';
-import { FetchDecksCommandHandler } from './jiten/fetch-decks-command.handler';
 import { ForgetCardCommandHandler } from './jiten-card-actions/forget-card-command.handler';
 import { GradeCardCommandHandler } from './jiten-card-actions/grade-card-command.handler';
 import { RunDeckActionCommandHandler } from './jiten-card-actions/run-deck-action-command.handler';
@@ -44,9 +42,6 @@ const parseController = new ParseController();
 const parseCommandHandler = new ParseCommandHandler(parseController);
 const abortRequestCommandHandler = new AbortRequestCommandHandler(parseController);
 
-const deckManager = new DeckManager();
-
-const fetchDecksCommandHandler = new FetchDecksCommandHandler(deckManager);
 const updateCardStateCommandHandler = new UpdateCardStateCommandHandler();
 const gradeCardCommandHandler = new GradeCardCommandHandler();
 const runDeckActionCommandHandler = new RunDeckActionCommandHandler();
@@ -55,7 +50,6 @@ const openSettingsCommandHandler = new OpenSettingsCommandHandler();
 const updateBadgeCommandHandler = new UpdateBadgeCommandHandler();
 
 const handlerCollection = new BackgroundCommandHandlerCollection(
-  fetchDecksCommandHandler,
   lookupTextCommandHandler,
   parseCommandHandler,
   abortRequestCommandHandler,

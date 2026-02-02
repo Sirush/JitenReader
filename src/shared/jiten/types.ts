@@ -15,17 +15,6 @@ export type JitenParseResult = {
   vocabulary: JitenRawVocabulary[];
 };
 
-export type JPDBSpecialDeckNames = 'blacklist' | 'never-forget' | 'forq';
-export type JPDBDeck = {
-  id?: JPDBSpecialDeckNames | number;
-  name?: string;
-  vocabulary_count?: number;
-  word_count?: number;
-  vocabulary_known_coverage?: number;
-  vocabulary_in_progress_coverage?: number;
-  is_built_in?: boolean;
-};
-
 export type JitenRating = 'unknown' | 'again' | 'hard' | 'good' | 'easy';
 export const JitenRatingMap: Record<JitenRating, number> = {
   unknown: 0,
