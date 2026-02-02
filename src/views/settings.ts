@@ -1,4 +1,5 @@
 import { getConfiguration } from '@shared/configuration/get-configuration';
+import { getActiveProfileId } from '@shared/configuration/profiles-state';
 import { setConfiguration } from '@shared/configuration/set-configuration';
 import { ConfigurationSchema } from '@shared/configuration/types';
 import { createElement } from '@shared/dom/create-element';
@@ -8,6 +9,7 @@ import { withElement } from '@shared/dom/with-element';
 import { withElements } from '@shared/dom/with-elements';
 import { ping } from '@shared/jiten/ping';
 import { ConfigurationUpdatedCommand } from '@shared/messages/broadcast/configuration-updated.command';
+import { ProfileSwitchedCommand } from '@shared/messages/broadcast/profile-switched.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { getThemeCssVars } from '@shared/theme/get-theme-css-vars';
 import { HTMLFeaturesInputElement } from './elements/html-features-input-element';
@@ -244,6 +246,9 @@ withElement('#import-settings', (button) => {
       await chrome.storage.local.clear();
       await chrome.storage.local.set(data);
 
+      const activeProfileId = await getActiveProfileId();
+
+      new ProfileSwitchedCommand(activeProfileId).send();
       configurationUpdatedCommand.send();
 
       window.location.reload();
