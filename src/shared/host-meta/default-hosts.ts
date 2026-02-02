@@ -304,4 +304,18 @@ export const DEFAULT_HOSTS: PredefinedHostMeta[] = [
       checkNested: 'div',
     },
   },
+  {
+    id: 'kizuna-parser',
+    name: 'Kizuna',
+    description: 'Parses the text hooking page Kizuna.',
+    host: ['*://kizuna-texthooker-ui.app/rooms/*'],
+    auto: true,
+    optOut: true,
+    allFrames: false,
+    parseVisibleObserver: true,
+    addedObserver: {
+      notifyFor: '.text-line',
+      observeFrom: ['#text-container', 'body'],
+    },
+  },
 ];
