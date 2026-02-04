@@ -77,12 +77,7 @@ export class PopupManager {
     }
   }
 
-  public touch(
-    element: HTMLElement,
-    event: MouseEvent,
-    sentence?: string,
-    pointerType?: string,
-  ): void {
+  public touch(element: HTMLElement, event: Event, sentence?: string, pointerType?: string): void {
     if (!this._touchscreenSupport || !element || Registry.skipTouchEvents) {
       return;
     }
@@ -129,8 +124,10 @@ export class PopupManager {
         return pointerType === 'touch';
       case 'pen':
         return pointerType === 'pen';
-      case 'both':
-        return pointerType === 'touch' || pointerType === 'pen';
+      case 'mouse':
+        return pointerType === 'mouse';
+      default:
+        return true;
     }
   }
 
