@@ -1,5 +1,6 @@
 import { DeckConfiguration, DiscoverWordConfiguration } from '../anki/types';
 import { JitenCardState } from '../jiten/types';
+import { WordStyleConfig } from '../word-style/types';
 
 export type Keybind = { key: string; code: string; modifiers: string[] };
 export type Keybinds = Keybind | [Keybind?, Keybind?];
@@ -58,6 +59,7 @@ export type ConfigurationSchema = {
   skipFurigana: boolean;
   generatePitch: boolean;
 
+  wordStyleConfig: WordStyleConfig;
   customWordCSS: string;
 
   //#endregion

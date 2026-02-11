@@ -19,6 +19,7 @@ import { HTMLNewStateInputElement } from './elements/html-new-state-input-elemen
 import { HTMLParsersInputElement } from './elements/html-parsers-input-element';
 import { HTMLProfileManagerElement } from './elements/html-profile-manager-element';
 import { HTMLProfileSelectorElement } from './elements/html-profile-selector-element';
+import { HTMLWordStyleEditorElement } from './elements/html-word-style-editor-element';
 
 customElements.define('mining-input', HTMLMiningInputElement);
 customElements.define('profile-selector', HTMLProfileSelectorElement);
@@ -27,6 +28,7 @@ customElements.define('parsers-input', HTMLParsersInputElement);
 customElements.define('features-input', HTMLFeaturesInputElement);
 customElements.define('new-state-input', HTMLNewStateInputElement);
 customElements.define('profile-manager', HTMLProfileManagerElement);
+customElements.define('word-style-editor', HTMLWordStyleEditorElement);
 
 withElement('#currentProfile', (selector: HTMLProfileSelectorElement) => {
   selector.addEventListener('profilechange', () => {
@@ -135,7 +137,7 @@ setupColourPicker('themeAccentColour', 'themeAccentColourText');
 //#region Init Interactions
 
 withElements(
-  'input, textarea, select, keybind-input, parsers-input, features-input, new-state-input',
+  'input, textarea, select, keybind-input, parsers-input, features-input, new-state-input, word-style-editor',
   (field: HTMLInputElement) => {
     const internal = field.hasAttribute('internal');
     const ignored = ['hidden', 'submit', 'button'];

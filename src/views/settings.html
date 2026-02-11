@@ -128,29 +128,36 @@
       <div class="form-box-parent">
         <div class="form-box">
           <div>
-            <label for="customWordCSS">Custom Word CSS</label>
-            <textarea
-              id="customWordCSS"
-              name="customWordCSS"
-              placeholder="Custom Word CSS"
-              spellcheck="false"
-              style="height: 10em; margin-bottom: 0"
-            ></textarea>
-            <p style="opacity: 0.8">Custom CSS for words in text and subtitles.</p>
-          </div>
-          <div>
-            <label for="customPopupCSS">Custom Popup CSS</label>
-            <textarea
-              id="customPopupCSS"
-              name="customPopupCSS"
-              placeholder="Custom Popup CSS"
-              spellcheck="false"
-              style="height: 10em; margin-bottom: 0"
-            ></textarea>
-            <p style="opacity: 0.8">Custom CSS for the popup shown when hovering over words.</p>
+            <label>Word Styling</label>
+            <word-style-editor id="wordStyleConfig" name="wordStyleConfig"></word-style-editor>
           </div>
         </div>
       </div>
+      <details class="accordion">
+        <summary>Advanced CSS Overrides</summary>
+        <div>
+          <label for="customWordCSS">Custom Word CSS</label>
+          <textarea
+            id="customWordCSS"
+            name="customWordCSS"
+            placeholder="Custom Word CSS"
+            spellcheck="false"
+            style="height: 10em; margin-bottom: 0"
+          ></textarea>
+          <p style="opacity: 0.8">Additional CSS applied after the visual editor styles. Use this for overrides.</p>
+        </div>
+        <div>
+          <label for="customPopupCSS">Custom Popup CSS</label>
+          <textarea
+            id="customPopupCSS"
+            name="customPopupCSS"
+            placeholder="Custom Popup CSS"
+            spellcheck="false"
+            style="height: 10em; margin-bottom: 0"
+          ></textarea>
+          <p style="opacity: 0.8">Custom CSS for the popup shown when hovering over words.</p>
+        </div>
+      </details>
     </div>
 
     <div data-show="enableAnkiIntegration" class="collapsible section" skip-animation>

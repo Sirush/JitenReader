@@ -6,7 +6,8 @@ body {
 
   padding: 0 1em 1em;
 
-  .profile-row {
+  .profile-row,
+  .theme-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -35,6 +36,10 @@ body {
         outline: none;
       }
     }
+  }
+
+  .theme-row {
+    margin-top: 0.5em;
   }
 
   .pages {

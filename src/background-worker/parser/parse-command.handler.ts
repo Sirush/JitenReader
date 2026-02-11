@@ -4,8 +4,8 @@ import { openOptionsPage } from '@shared/extension/open-options-page';
 import { MessageSender } from '@shared/extension/types';
 import { ParseCommand } from '@shared/messages/background/parse.command';
 import { ToastCommand } from '@shared/messages/foreground/toast.command';
-import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { getThemeCssVars } from '@shared/theme/get-theme-css-vars';
+import { generateWordStyleCSS } from '@shared/word-style/generate-css';
 import { BackgroundCommandHandler } from '../lib/background-command-handler';
 import { ParseController } from './parse.controller';
 
@@ -34,17 +34,16 @@ export class ParseCommandHandler extends BackgroundCommandHandler<ParseCommand> 
       return;
     }
 
-    onBroadcastMessage(
-      'configurationUpdated',
-      async () => {
-        const themeVars = await getThemeCssVars();
-        const customWordCSS = await getConfiguration('customWordCSS');
-
-        await injectStyle(sender.tab!.id!, 'word', `${themeVars}\n${customWordCSS}`);
-      },
-      true,
-    );
-
+    await this.injectWordStyles(sender.tab!.id!);
     this._parseController.parseSequences(sender, data);
+  }
+
+  public async injectWordStyles(tabId: number): Promise<void> {
+    const themeVars = await getThemeCssVars();
+    const wordStyleConfig = await getConfiguration('wordStyleConfig');
+    const generatedCSS = generateWordStyleCSS(wordStyleConfig);
+    const customWordCSS = await getConfiguration('customWordCSS');
+
+    await injectStyle(tabId, 'word', `${themeVars}\n${generatedCSS}\n${customWordCSS}`);
   }
 }

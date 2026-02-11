@@ -1,4 +1,5 @@
 import { JitenCardState } from '../jiten/types';
+import { DEFAULT_WORD_STYLE_CONFIG } from '../word-style/themes';
 import { ConfigurationSchema } from './types';
 
 export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
@@ -56,6 +57,7 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   skipFurigana: false,
   generatePitch: false,
 
+  wordStyleConfig: structuredClone(DEFAULT_WORD_STYLE_CONFIG),
   customWordCSS: '',
 
   //#endregion

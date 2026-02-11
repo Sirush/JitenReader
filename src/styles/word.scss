@@ -1,3 +1,7 @@
+.jiten-word {
+  margin-inline: 0.5px;
+}
+
 .jiten-word ruby,
 .jiten-word rt {
   color: inherit !important;
@@ -11,69 +15,28 @@
   font-size: 60%;
 }
 
+a .jiten-word:not(.unparsed):last-child::after,
+a.jiten-word:not(.unparsed)::after {
+  content: '';
+  display: inline-block;
+  width: 0.65em;
+  height: 0.65em;
+  margin-left: 2px;
+  vertical-align: baseline;
+  opacity: 0.7;
+  background: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'/%3E%3C/svg%3E");
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71'/%3E%3C/svg%3E");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+}
+
 .jiten-word:not(.unparsed):hover,
 .jiten-word:not(.unparsed).hovered {
   text-decoration: underline;
   text-underline-position: under left;
-}
-
-.jiten-word.misparsed {
-  color: rgb(255, 0, 0);
-  background-color: lightgray;
-}
-
-.jiten-word.locked {
-  color: rgb(119, 119, 119);
-}
-
-.jiten-word.suspended {
-  color: rgb(119, 119, 119);
-}
-
-.jiten-word.blacklisted {
-  color: rgb(119, 119, 119);
-}
-
-.jiten-word.never-forget {
-  color: rgb(112, 192, 0);
-}
-
-.jiten-word.not-in-deck {
-  color: rgba(75, 141, 255, 0.5);
-}
-
-.jiten-word.new {
-  color: rgb(165, 102, 239);
-}
-
-.jiten-word.frequent {
-  color: rgb(75, 141, 127);
-}
-
-.jiten-word.young {
-  color: rgb(208, 135, 0)
-}
-
-.jiten-word.mastered {
-
-}
-
-.jiten-word.mature {
-  color: rgb(112, 192, 0);
-}
-
-.jiten-word.due {
-  color: rgb(255, 69, 0);
-}
-
-.jiten-word.failed {
-  color: rgb(255, 0, 0);
-}
-
-.jiten-word.i-plus-one {
-  text-shadow: 0 2px 6px #359eff,
-  0 4px 12px #359eff;
-  transition: text-shadow 0.3s ease-in-out;
 }
 
 .jiten-word.heiban {

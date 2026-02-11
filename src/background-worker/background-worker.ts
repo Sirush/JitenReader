@@ -1,13 +1,18 @@
 import { getConfiguration, invalidateProfileCache } from '@shared/configuration/get-configuration';
 import { migrateToProfiles } from '@shared/configuration/migrate-to-profiles';
-import { invalidateSetConfigurationCache } from '@shared/configuration/set-configuration';
+import {
+  invalidateSetConfigurationCache,
+  setConfiguration,
+} from '@shared/configuration/set-configuration';
 import { addContextMenu } from '@shared/extension/add-context-menu';
 import { addInstallListener } from '@shared/extension/add-install-listener';
+import { getStyledTabIds } from '@shared/extension/inject-style';
 import { openOptionsPage } from '@shared/extension/open-options-page';
 import { openView } from '@shared/extension/open-view';
 import { ParsePageCommand } from '@shared/messages/foreground/parse-page.command';
 import { ParseSelectionCommand } from '@shared/messages/foreground/parse-selection.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
+import { DEFAULT_WORD_STYLE_CONFIG } from '@shared/word-style/themes';
 import { ForgetCardCommandHandler } from './jiten-card-actions/forget-card-command.handler';
 import { GradeCardCommandHandler } from './jiten-card-actions/grade-card-command.handler';
 import { RunDeckActionCommandHandler } from './jiten-card-actions/run-deck-action-command.handler';
@@ -68,6 +73,24 @@ onBroadcastMessage('profileSwitched', () => {
   invalidateSetConfigurationCache();
 });
 
+onBroadcastMessage('configurationUpdated', async () => {
+  const tabIds = getStyledTabIds();
+
+  for (const tabId of tabIds) {
+    await parseCommandHandler.injectWordStyles(tabId);
+  }
+});
+
+async function migrateWordStyleConfig(): Promise<void> {
+  const existing = await getConfiguration('wordStyleConfig');
+
+  if (existing?.v) {
+    return;
+  }
+
+  await setConfiguration('wordStyleConfig', structuredClone(DEFAULT_WORD_STYLE_CONFIG));
+}
+
 addInstallListener(async ({ reason }) => {
   if (reason === 'install') {
     await migrateToProfiles();
@@ -76,6 +99,7 @@ addInstallListener(async ({ reason }) => {
 
   if (reason === 'update') {
     await migrateToProfiles();
+    await migrateWordStyleConfig();
 
     const skipReleaseNotes = await getConfiguration('skipReleaseNotes');
 

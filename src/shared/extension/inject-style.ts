@@ -80,6 +80,8 @@ const replaceRaw = async (
   }
 };
 
+export const getStyledTabIds = (): number[] => [...tabs.keys()];
+
 export const injectStyle = async (tabId: number, file?: string, raw?: string): Promise<void> => {
   const currentConfig = tabs.get(tabId) || {};
   const filePath = file?.length ? getPath(file) : undefined;
