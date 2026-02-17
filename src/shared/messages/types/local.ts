@@ -20,6 +20,7 @@ type KeybindEvents = {
   addToBlacklistKey: KeybindEvent;
   addToNeverForgetKey: KeybindEvent;
   addToSuspendedKey: KeybindEvent;
+  cycleMasterBlacklistKey: KeybindEvent;
 };
 
 type ReleaseKeybindEvents = {

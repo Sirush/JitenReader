@@ -101,6 +101,7 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   addToBlacklistKey: [],
   addToNeverForgetKey: [],
   addToSuspendedKey: [],
+  cycleMasterBlacklistKey: [],
 
   // Review keybinds
   jitenReviewNothing: [],

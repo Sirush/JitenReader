@@ -1,21 +1,30 @@
 import { JitenCard, JitenCardState } from '@shared/jiten/types';
+import { RunDeckActionCommand } from '@shared/messages/background/run-deck-action.command';
 import { KeybindManager } from '../../integration/keybind-manager';
 import { Registry } from '../../integration/registry';
 import { MiningController } from './mining-controller';
 
-/**
- * Handles keybinds for mining cards.
- */
 export class MiningActions {
+  private static readonly STATE_MAP: Record<string, JitenCardState> = {
+    neverForget: JitenCardState.MASTERED,
+    blacklist: JitenCardState.BLACKLISTED,
+    suspend: JitenCardState.BLACKLISTED,
+  };
+
   private _keyManager = new KeybindManager([
     'addToMiningKey',
     'addToBlacklistKey',
     'addToNeverForgetKey',
     'addToSuspendedKey',
+    'cycleMasterBlacklistKey',
   ]);
 
   private _card?: JitenCard;
   private _sentence?: string;
+
+  private _pendingCard?: JitenCard;
+  private _originalCardState?: JitenCardState[];
+  private _cycleTimer?: ReturnType<typeof setTimeout>;
 
   constructor(private _controller: MiningController) {
     const { events } = Registry;
@@ -24,6 +33,7 @@ export class MiningActions {
     events.on('addToBlacklistKey', () => this.addToDeck('blacklist'));
     events.on('addToNeverForgetKey', () => this.addToDeck('neverForget'));
     events.on('addToSuspendedKey', () => this.addToDeck('suspend'));
+    events.on('cycleMasterBlacklistKey', () => this.cycleMasterBlacklist());
   }
 
   public activate(context: HTMLElement, sentence?: string): void {
@@ -39,12 +49,6 @@ export class MiningActions {
     this._keyManager.deactivate();
   }
 
-  private static readonly STATE_MAP: Record<string, JitenCardState> = {
-    neverForget: JitenCardState.MASTERED,
-    blacklist: JitenCardState.BLACKLISTED,
-    suspend: JitenCardState.BLACKLISTED,
-  };
-
   private addToDeck(key: 'mining' | 'blacklist' | 'neverForget' | 'suspend'): void {
     if (!this._card) {
       return;
@@ -54,5 +58,102 @@ export class MiningActions {
     const action = state && this._card.cardState.includes(state) ? 'remove' : 'add';
 
     this._controller.addOrRemove(action, key, this._card, this._sentence);
+  }
+
+  private cycleMasterBlacklist(): void {
+    if (!this._card) {
+      return;
+    }
+
+    const card = this._card;
+    const { wordId, readingIndex } = card;
+
+    if (this._pendingCard?.wordId !== wordId || this._pendingCard?.readingIndex !== readingIndex) {
+      this._originalCardState = [...card.cardState];
+      this._pendingCard = card;
+    }
+
+    const nextState = this.getNextCycleState(card.cardState);
+
+    Registry.updateCard(wordId, readingIndex, nextState);
+
+    if (this._cycleTimer) {
+      clearTimeout(this._cycleTimer);
+    }
+
+    this._cycleTimer = setTimeout(() => this.flushCycle(), 400);
+  }
+
+  private getNextCycleState(cardState: JitenCardState[]): JitenCardState[] {
+    const next = cardState.filter(
+      (s) => s !== JitenCardState.MASTERED && s !== JitenCardState.BLACKLISTED,
+    );
+
+    if (cardState.includes(JitenCardState.MASTERED)) {
+      next.push(JitenCardState.BLACKLISTED);
+    } else if (!cardState.includes(JitenCardState.BLACKLISTED)) {
+      next.push(JitenCardState.MASTERED);
+    }
+
+    return next;
+  }
+
+  private flushCycle(): void {
+    this._cycleTimer = undefined;
+
+    const card = this._pendingCard;
+    const original = this._originalCardState;
+
+    if (!card || !original) {
+      return;
+    }
+
+    this._pendingCard = undefined;
+    this._originalCardState = undefined;
+
+    const hadMastered = original.includes(JitenCardState.MASTERED);
+    const hadBlacklisted = original.includes(JitenCardState.BLACKLISTED);
+    const hasMastered = card.cardState.includes(JitenCardState.MASTERED);
+    const hasBlacklisted = card.cardState.includes(JitenCardState.BLACKLISTED);
+
+    const instructions: RunDeckActionCommand[] = [];
+
+    if (hadMastered !== hasMastered) {
+      instructions.push(
+        new RunDeckActionCommand(
+          card.wordId,
+          card.readingIndex,
+          'neverForget',
+          hasMastered ? 'add' : 'remove',
+        ),
+      );
+    }
+
+    if (hadBlacklisted !== hasBlacklisted) {
+      instructions.push(
+        new RunDeckActionCommand(
+          card.wordId,
+          card.readingIndex,
+          'blacklist',
+          hasBlacklisted ? 'add' : 'remove',
+        ),
+      );
+    }
+
+    if (instructions.length === 0) {
+      return;
+    }
+
+    this._controller.suspendUpdateWordStates();
+
+    const executeInstructions = (index: number): void => {
+      if (index < instructions.length) {
+        instructions[index].send(() => executeInstructions(index + 1));
+      } else {
+        this._controller.resumeUpdateWordStates(card);
+      }
+    };
+
+    executeInstructions(0);
   }
 }

@@ -103,6 +103,7 @@ export type ConfigurationSchema = {
   addToBlacklistKey: Keybinds;
   addToNeverForgetKey: Keybinds;
   addToSuspendedKey: Keybinds;
+  cycleMasterBlacklistKey: Keybinds;
 
   // Review keybinds
   jitenReviewNothing: Keybinds;
