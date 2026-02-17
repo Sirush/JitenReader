@@ -1014,7 +1014,6 @@ export class HTMLWordStyleEditorElement extends HTMLElement {
     this._emitTimer = setTimeout(() => {
       this._emitTimer = null;
       this._input.dispatchEvent(new Event('change', { bubbles: true }));
-      this.dispatchEvent(new Event('change'));
     }, 250);
   }
 }

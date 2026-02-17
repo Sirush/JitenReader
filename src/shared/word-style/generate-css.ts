@@ -118,8 +118,16 @@ function generateEffectCSS(effects: Effect[]): { normal: string[]; hover: string
 export function generateWordStyleCSS(config: WordStyleConfig): string {
   const lines: string[] = [];
 
+  let iPlusOneStyle: { effects: Effect[] } | undefined;
+
   for (const [state, stateStyle] of Object.entries(config.states)) {
     if (!stateStyle?.effects?.length) {
+      continue;
+    }
+
+    if (state === 'i-plus-one') {
+      iPlusOneStyle = stateStyle;
+
       continue;
     }
 
@@ -137,6 +145,30 @@ export function generateWordStyleCSS(config: WordStyleConfig): string {
 
     if (hover.length) {
       lines.push(`.jiten-word.${state}:hover {`);
+
+      for (const decl of hover) {
+        lines.push(`  ${decl}`);
+      }
+
+      lines.push('}');
+    }
+  }
+
+  if (iPlusOneStyle?.effects?.length) {
+    const { normal, hover } = generateEffectCSS(iPlusOneStyle.effects);
+
+    if (normal.length) {
+      lines.push('.jiten-word.i-plus-one {');
+
+      for (const decl of normal) {
+        lines.push(`  ${decl}`);
+      }
+
+      lines.push('}');
+    }
+
+    if (hover.length) {
+      lines.push('.jiten-word.i-plus-one:hover {');
 
       for (const decl of hover) {
         lines.push(`  ${decl}`);

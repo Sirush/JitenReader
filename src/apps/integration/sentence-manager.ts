@@ -44,7 +44,9 @@ export class SentenceManager {
     const { wordId, readingIndex, cardState, frequencyRank } = card;
     const cardKey = `${wordId}/${readingIndex}`;
 
-    this.addToMap(this._sentenceToCards, sentence, cardKey);
+    if (!this._sentenceToCards.get(sentence)?.includes(cardKey)) {
+      this.addToMap(this._sentenceToCards, sentence, cardKey);
+    }
     this.addToMap(this._sentenceToElements, sentence, element);
     this.addToMap(this._cardToSentence, cardKey, sentence);
     this.addToMap(this._cardToElements, cardKey, element);
