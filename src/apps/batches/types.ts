@@ -18,4 +18,5 @@ export type RegisterOptions = {
   getParagraphsFn?: typeof getParagraphs;
   applyFn?: typeof applyTokens;
   collapseWhitespace?: boolean;
+  onComplete?: () => void;
 };

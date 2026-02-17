@@ -22,6 +22,7 @@ export class BatchController {
       getParagraphsFn = getParagraphs,
       applyFn = applyTokens,
       collapseWhitespace,
+      onComplete,
     } = options;
 
     if (this._pendingBatches.has(node)) {
@@ -34,7 +35,7 @@ export class BatchController {
       return onEmpty?.(node);
     }
 
-    this.prepareNode(node, paragraphs, applyFn);
+    this.prepareNode(node, paragraphs, applyFn, onComplete);
   }
 
   public dismissNode(node: Node): void {
@@ -63,48 +64,55 @@ export class BatchController {
     node: Element | Node,
     paragraphs: Paragraph[],
     applyFn: typeof applyTokens,
+    onComplete?: () => void,
   ): void {
     const batches = paragraphs.map((paragraph) =>
       Registry.sequenceManager.getAbortableSequence<JitenToken[], Paragraph>(paragraph),
     );
 
     this._pendingBatches.set(node, batches);
-    this.prepareBatches(node, applyFn);
+    this.prepareBatches(node, applyFn, onComplete);
   }
 
-  private prepareBatches(node: HTMLElement | Node, applyFn: typeof applyTokens): void {
+  private prepareBatches(
+    node: HTMLElement | Node,
+    applyFn: typeof applyTokens,
+    onComplete?: () => void,
+  ): void {
     const batches = this._pendingBatches.get(node)!;
 
     // Process paragraphs sequentially to prevent parallel DOM flooding
-    void batches.reduce(
-      (previousPromise, batch) =>
-        previousPromise.then(async () => {
-          try {
-            const value = await batch.promise;
+    void batches
+      .reduce(
+        (previousPromise, batch) =>
+          previousPromise.then(async () => {
+            try {
+              const value = await batch.promise;
 
-            applyFn(batch.data, value);
-          } catch (error) {
-            if (error instanceof Canceled) {
-              return;
+              applyFn(batch.data, value);
+            } catch (error) {
+              if (error instanceof Canceled) {
+                return;
+              }
+
+              if ((error as Error).message === 'Failed to fetch') {
+                displayToast('error', 'api.jiten.moe is unreachable', (error as Error).message);
+
+                return;
+              }
+
+              // eslint-disable-next-line no-console
+              console.error(error);
+
+              displayToast(
+                'error',
+                'An error occurred while parsing the text',
+                (error as Error).message,
+              );
             }
-
-            if ((error as Error).message === 'Failed to fetch') {
-              displayToast('error', 'api.jiten.moe is unreachable', (error as Error).message);
-
-              return;
-            }
-
-            // eslint-disable-next-line no-console
-            console.error(error);
-
-            displayToast(
-              'error',
-              'An error occurred while parsing the text',
-              (error as Error).message,
-            );
-          }
-        }),
-      Promise.resolve(),
-    );
+          }),
+        Promise.resolve(),
+      )
+      .then(() => onComplete?.());
   }
 }

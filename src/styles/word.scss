@@ -2,6 +2,28 @@
   margin-inline: 0.5px;
 }
 
+.ttsu-parser .jiten-word {
+  margin-inline: 0;
+}
+
+.ttsu-parser .jiten-word > ruby[data-furi] {
+  display: inline;
+  position: relative;
+}
+
+.ttsu-parser .jiten-word > ruby[data-furi]::after {
+  content: attr(data-furi);
+  position: absolute;
+  inset-block-end: 100%;
+  inset-inline: 0;
+  text-align: center;
+  font-size: 60%;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
 .jiten-word ruby,
 .jiten-word rt {
   color: inherit !important;
