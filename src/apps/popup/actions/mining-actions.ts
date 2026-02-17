@@ -1,4 +1,4 @@
-import { JitenCard } from '@shared/jiten/types';
+import { JitenCard, JitenCardState } from '@shared/jiten/types';
 import { KeybindManager } from '../../integration/keybind-manager';
 import { Registry } from '../../integration/registry';
 import { MiningController } from './mining-controller';
@@ -39,11 +39,20 @@ export class MiningActions {
     this._keyManager.deactivate();
   }
 
+  private static readonly STATE_MAP: Record<string, JitenCardState> = {
+    neverForget: JitenCardState.MASTERED,
+    blacklist: JitenCardState.BLACKLISTED,
+    suspend: JitenCardState.BLACKLISTED,
+  };
+
   private addToDeck(key: 'mining' | 'blacklist' | 'neverForget' | 'suspend'): void {
     if (!this._card) {
       return;
     }
 
-    this._controller.addOrRemove('add', key, this._card, this._sentence);
+    const state = MiningActions.STATE_MAP[key];
+    const action = state && this._card.cardState.includes(state) ? 'remove' : 'add';
+
+    this._controller.addOrRemove(action, key, this._card, this._sentence);
   }
 }
