@@ -471,6 +471,14 @@ if (toc) {
     }
   }
 
+  const scrollTocToLink = (link: HTMLAnchorElement): void => {
+    const tocRect = toc.getBoundingClientRect();
+    const linkRect = link.getBoundingClientRect();
+    const offset = linkRect.left - tocRect.left + linkRect.width / 2 - tocRect.width / 2;
+
+    toc.scrollBy({ left: offset, behavior: 'smooth' });
+  };
+
   toc.addEventListener('click', (e: Event) => {
     const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#"]');
 
@@ -489,7 +497,7 @@ if (toc) {
       }
 
       target.scrollIntoView({ behavior: 'smooth' });
-      link.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      scrollTocToLink(link);
     }
   });
 
@@ -505,7 +513,7 @@ if (toc) {
             activeLink?.classList.remove('active');
             link.classList.add('active');
             activeLink = link;
-            link.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            scrollTocToLink(link);
           }
         }
       }
