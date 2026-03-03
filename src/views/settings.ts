@@ -333,6 +333,8 @@ withElements('[data-show]', (element) => {
   }
 });
 
+const afterBindingsCallbacks: (() => void)[] = [];
+
 function updateBindings(key: keyof ConfigurationSchema): void {
   const affected = bindings.get(key);
 
@@ -348,6 +350,10 @@ function updateBindings(key: keyof ConfigurationSchema): void {
     }
 
     current.style.display = parseCondition(attributeValue) ? '' : 'none';
+  }
+
+  for (const cb of afterBindingsCallbacks) {
+    cb();
   }
 }
 
@@ -445,6 +451,270 @@ function parseCondition(expr: string): boolean {
   } catch {
     return false;
   }
+}
+
+//#endregion
+//#region TOC Navigation
+
+const toc = document.getElementById('settings-toc');
+
+if (toc) {
+  const tocLinks = Array.from(toc.querySelectorAll<HTMLAnchorElement>('a[href^="#"]'));
+  const sectionEls: Element[] = [];
+
+  for (const link of tocLinks) {
+    const id = link.getAttribute('href')!.slice(1);
+    const section = document.getElementById(id);
+
+    if (section) {
+      sectionEls.push(section);
+    }
+  }
+
+  toc.addEventListener('click', (e: Event) => {
+    const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#"]');
+
+    if (!link) {
+      return;
+    }
+
+    e.preventDefault();
+
+    const id = link.getAttribute('href')!.slice(1);
+    const target = document.getElementById(id);
+
+    if (target) {
+      if (target instanceof HTMLDetailsElement && !target.open) {
+        target.open = true;
+      }
+
+      target.scrollIntoView({ behavior: 'smooth' });
+      link.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  });
+
+  let activeLink: HTMLAnchorElement | null = null;
+
+  const observer = new IntersectionObserver(
+    (entries: IntersectionObserverEntry[]) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          const link = toc.querySelector<HTMLAnchorElement>(`a[href="#${entry.target.id}"]`);
+
+          if (link && link.style.display !== 'none') {
+            activeLink?.classList.remove('active');
+            link.classList.add('active');
+            activeLink = link;
+            link.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          }
+        }
+      }
+    },
+    { rootMargin: '-10% 0px -80% 0px' },
+  );
+
+  for (const section of sectionEls) {
+    observer.observe(section);
+  }
+
+  afterBindingsCallbacks.push(() => {
+    if (activeLink?.style.display === 'none') {
+      activeLink.classList.remove('active');
+      activeLink = null;
+    }
+  });
+}
+
+//#endregion
+//#region Settings Search
+
+const searchInput = document.getElementById('settings-search') as HTMLInputElement | null;
+
+if (searchInput) {
+  const searchSections: {
+    el: HTMLElement;
+    heading: string;
+    tocLink: HTMLAnchorElement | null;
+    items: { el: HTMLElement; text: string; container: HTMLElement | null }[];
+    containers: Set<HTMLElement>;
+  }[] = [];
+  const searchOpenedDetails = new Set<HTMLDetailsElement>();
+
+  const sectionSelector = 'form > .section[id], form > details.section-collapsible[id]';
+
+  for (const sectionEl of document.querySelectorAll<HTMLElement>(sectionSelector)) {
+    const heading = sectionEl.querySelector(':scope > h6, :scope > summary');
+    const tocLink = toc?.querySelector<HTMLAnchorElement>(`a[href="#${sectionEl.id}"]`) ?? null;
+    const items: { el: HTMLElement; text: string; container: HTMLElement | null }[] = [];
+    const containers = new Set<HTMLElement>();
+
+    for (const fbp of sectionEl.querySelectorAll<HTMLElement>('.form-box-parent')) {
+      containers.add(fbp);
+
+      for (const fb of fbp.querySelectorAll<HTMLElement>(':scope > .form-box')) {
+        for (const child of Array.from(fb.children) as HTMLElement[]) {
+          if (child.tagName !== 'DIV') {
+            continue;
+          }
+
+          items.push({ el: child, text: gatherText(child), container: fbp });
+        }
+      }
+    }
+
+    for (const acc of sectionEl.querySelectorAll<HTMLDetailsElement>('details.accordion')) {
+      if (acc.closest('.form-box-parent')) {
+        continue;
+      }
+
+      items.push({ el: acc, text: gatherText(acc), container: null });
+    }
+
+    searchSections.push({
+      el: sectionEl,
+      heading: heading?.textContent?.toLowerCase().trim() ?? '',
+      tocLink,
+      items,
+      containers,
+    });
+  }
+
+  function gatherText(el: HTMLElement): string {
+    const parts: string[] = [];
+
+    for (const node of el.querySelectorAll('label, p, summary')) {
+      if (node.textContent) {
+        parts.push(node.textContent);
+      }
+    }
+
+    return parts.join(' ').toLowerCase();
+  }
+
+  function isHiddenByShow(el: HTMLElement, root: HTMLElement): boolean {
+    if (root.style.display === 'none') {
+      return true;
+    }
+
+    let cur: HTMLElement | null = el;
+
+    while (cur && cur !== root) {
+      if (cur.style.display === 'none') {
+        return true;
+      }
+
+      cur = cur.parentElement;
+    }
+
+    return false;
+  }
+
+  let searchTimer: ReturnType<typeof setTimeout> | null = null;
+
+  searchInput.addEventListener('input', () => {
+    if (searchTimer) {
+      clearTimeout(searchTimer);
+    }
+
+    searchTimer = setTimeout(runSearch, 150);
+  });
+
+  searchInput.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      clearSearch();
+    }
+  });
+
+  searchInput.addEventListener('search', () => {
+    if (!searchInput.value) {
+      clearSearch();
+    }
+  });
+
+  function runSearch(): void {
+    const query = searchInput!.value.trim().toLowerCase();
+
+    if (!query) {
+      clearSearch();
+
+      return;
+    }
+
+    for (const section of searchSections) {
+      let sectionHasMatch = false;
+      const headingMatches = section.heading.includes(query);
+      const containerHits = new Map<HTMLElement, number>();
+
+      for (const c of section.containers) {
+        containerHits.set(c, 0);
+      }
+
+      for (const item of section.items) {
+        if (isHiddenByShow(item.el, section.el)) {
+          continue;
+        }
+
+        const matches = headingMatches || item.text.includes(query);
+
+        item.el.classList.toggle('search-hidden', !matches);
+        item.el.classList.toggle('search-match', matches);
+
+        if (matches) {
+          sectionHasMatch = true;
+
+          if (item.container) {
+            containerHits.set(item.container, (containerHits.get(item.container) ?? 0) + 1);
+          }
+
+          if (item.el instanceof HTMLDetailsElement && !item.el.open) {
+            item.el.open = true;
+            searchOpenedDetails.add(item.el);
+          }
+        }
+      }
+
+      for (const [c, hits] of containerHits) {
+        c.classList.toggle('search-hidden', hits === 0);
+      }
+
+      section.el.classList.toggle('search-hidden', !sectionHasMatch);
+      section.tocLink?.classList.toggle('search-hidden', !sectionHasMatch);
+
+      if (sectionHasMatch && section.el instanceof HTMLDetailsElement && !section.el.open) {
+        section.el.open = true;
+        searchOpenedDetails.add(section.el);
+      }
+    }
+  }
+
+  function clearSearch(): void {
+    searchInput!.value = '';
+
+    for (const section of searchSections) {
+      section.el.classList.remove('search-hidden');
+      section.tocLink?.classList.remove('search-hidden');
+
+      for (const c of section.containers) {
+        c.classList.remove('search-hidden');
+      }
+
+      for (const item of section.items) {
+        item.el.classList.remove('search-hidden', 'search-match');
+      }
+    }
+
+    for (const d of searchOpenedDetails) {
+      d.open = false;
+    }
+
+    searchOpenedDetails.clear();
+  }
+
+  afterBindingsCallbacks.push(() => {
+    if (searchInput.value.trim()) {
+      runSearch();
+    }
+  });
 }
 
 //#endregion

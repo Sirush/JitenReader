@@ -11,11 +11,17 @@ h6 {
   text-align: center;
 }
 
+.settings-layout {
+  display: flex;
+  flex-direction: column;
+}
+
 form {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 
-  gap: 3em;
+  gap: 2em;
 
   :where(.form-box-parent, .accordion) ~ :where(.form-box-parent, .accordion) {
     margin-top: 1.5em;
@@ -27,6 +33,140 @@ form {
     padding: 1.5em;
   }
 }
+
+.section,
+.section-collapsible {
+  scroll-margin-top: 7em;
+}
+
+// #region Settings Search
+
+.settings-search {
+  position: sticky;
+  top: 0;
+  z-index: 51;
+  padding: 0.5em 0;
+  background-color: map.get(colors.$colors, background-color);
+  border-bottom: 1px solid #3a3a3a;
+
+  input[type='search'] {
+    width: 100%;
+    margin-bottom: 0;
+  }
+}
+
+.search-hidden {
+  display: none !important;
+}
+
+.search-match {
+  border-left: 2px solid var(--jiten-accent, #D8B9FA);
+  padding-left: 0.5em;
+  background-color: color-mix(in srgb, var(--jiten-accent, #D8B9FA) 5%, transparent);
+  border-radius: 2px;
+}
+
+// #endregion
+
+// #region TOC Navigation
+
+#settings-toc {
+  position: sticky;
+  top: 3.5em;
+  z-index: 50;
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
+  gap: 0.25em;
+  padding: 0.5em 0.25em;
+  margin-bottom: 1em;
+  background-color: map.get(colors.$colors, background-color);
+  border-bottom: 1px solid #3a3a3a;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  a {
+    scroll-snap-align: center;
+    flex-shrink: 0;
+    padding: 0.35em 0.75em;
+    border-radius: 1em;
+    font-size: 0.8em;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-bottom: none;
+    transition: color 0.15s, background-color 0.15s;
+
+    &:hover,
+    &:focus {
+      color: rgba(255, 255, 255, 0.85);
+      background-color: rgba(255, 255, 255, 0.05);
+      border-bottom: none;
+    }
+
+    &.active {
+      color: var(--jiten-accent, #D8B9FA);
+      background-color: color-mix(in srgb, var(--jiten-accent, #D8B9FA) 12%, transparent);
+    }
+  }
+}
+
+// #endregion
+
+// #region Section Collapsible
+
+details.section-collapsible {
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  padding: 0;
+  margin-bottom: 0;
+
+  > summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 1em 1.5em;
+    cursor: pointer;
+    user-select: none;
+    font-size: 135%;
+    font-weight: bold;
+    text-align: center;
+    justify-content: center;
+    opacity: 1;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 0.5em;
+      height: 0.5em;
+      border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+      transform: rotate(-45deg);
+      transition: transform 0.2s ease;
+      flex-shrink: 0;
+    }
+  }
+
+  &[open] > summary::before {
+    transform: rotate(45deg);
+  }
+
+  > :not(summary) {
+    padding: 0 1.5em 1.5em;
+  }
+}
+
+// #endregion
 
 .pitch-accent div {
   margin-top: 1.5em;
@@ -51,8 +191,6 @@ form {
   }
 }
 
-// Our text fields are not outlined by default, otherwise they would be blue
-// This is a workaround to make them look like they are outlined in error cases
 input.v1 {
   border: 1px solid map.get(colors.$outlines, v1);
 }
@@ -94,7 +232,6 @@ select {
   }
 }
 
-// special for working on stuff
 .not-implemented {
   display: none !important;
 }
@@ -304,3 +441,92 @@ profile-selector {
     }
   }
 }
+
+// #region Responsive Breakpoints
+
+@media (max-width: 35em) {
+  .form-box-parent {
+    flex-wrap: wrap;
+  }
+
+  .table-box .row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5em;
+    padding: 0.75em 1em;
+  }
+
+  .container {
+    padding: 0 0.5em;
+  }
+
+  .colour-picker-group {
+    flex-wrap: wrap;
+  }
+}
+
+@media (min-width: 35em) and (max-width: 59em) {
+  .form-box-parent {
+    flex-wrap: wrap;
+  }
+}
+
+@media (min-width: 72em) {
+  body {
+    max-width: 72em;
+  }
+
+  .settings-layout {
+    flex-direction: row;
+    gap: 2em;
+  }
+
+  #settings-toc {
+    position: sticky;
+    top: 4em;
+    flex-direction: column;
+    width: 13em;
+    flex-shrink: 0;
+    align-self: flex-start;
+    overflow-x: visible;
+    white-space: normal;
+    border-bottom: none;
+    border-right: 1px solid #3a3a3a;
+    padding: 0.5em 0;
+    margin-bottom: 0;
+    gap: 0.15em;
+    background-color: transparent;
+    scroll-snap-type: none;
+
+    a {
+      border-radius: 0;
+      padding: 0.4em 0.75em;
+      font-size: 0.85em;
+      border-left: 2px solid transparent;
+      border-right: none;
+
+      &:hover,
+      &:focus {
+        background-color: transparent;
+        border-left-color: rgba(255, 255, 255, 0.2);
+      }
+
+      &.active {
+        background-color: transparent;
+        border-left-color: var(--jiten-accent, #D8B9FA);
+      }
+    }
+  }
+
+  form {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .section,
+  .section-collapsible {
+    scroll-margin-top: 4.5em;
+  }
+}
+
+// #endregion
