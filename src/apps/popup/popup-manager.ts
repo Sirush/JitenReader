@@ -29,6 +29,9 @@ export class PopupManager {
 
   private _showPopupOnHover: boolean;
   private _touchscreenSupport: boolean;
+  private _touchscreenDoubleTap: boolean;
+  private _lastTapTime = 0;
+  private _lastTapTarget: HTMLElement | null = null;
   private _currentHover?: HTMLElement;
   private _currentSentence?: string;
 
@@ -46,6 +49,7 @@ export class PopupManager {
       async () => {
         this._showPopupOnHover = await getConfiguration('showPopupOnHover');
         this._touchscreenSupport = await getConfiguration('touchscreenSupport');
+        this._touchscreenDoubleTap = await getConfiguration('touchscreenDoubleTap');
       },
       true,
     );
@@ -83,6 +87,18 @@ export class PopupManager {
     event.preventDefault();
     event.stopPropagation();
     event.stopImmediatePropagation();
+
+    if (this._touchscreenDoubleTap) {
+      const now = Date.now();
+      const isDoubleTap = this._lastTapTarget === element && now - this._lastTapTime < 300;
+
+      this._lastTapTime = now;
+      this._lastTapTarget = element;
+
+      if (!isDoubleTap) {
+        return;
+      }
+    }
 
     this._currentHover = element;
     this._currentSentence = sentence;

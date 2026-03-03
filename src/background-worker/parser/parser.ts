@@ -189,18 +189,22 @@ export class Parser {
 
       let offset = 0;
 
-      for (const sentence of sentences) {
-        const compareSentence = sentence.replace(/(^[「『])|([。！？」』]$)/g, ''); // Trim quotation marks and sentence-ending punctuation from start and end
+      for (let s = 0; s < sentences.length; s++) {
+        const sentence = sentences[s];
+        const compareSentence = sentence.replace(/(^[「『])|([。！？」』]$)/g, '');
         const positionInParagraphs = paragraph.substring(offset).indexOf(compareSentence);
 
         if (positionInParagraphs === -1) {
-          offset += sentence.length;
-
-          return;
+          continue;
         }
 
         const sentenceStart = offset + positionInParagraphs;
-        const sentenceEnd = sentenceStart + sentence.length;
+
+        const nextCompareSentence = sentences[s + 1]?.replace(/(^[「『])|([。！？」』]$)/g, '');
+        const nextPosition = nextCompareSentence
+          ? paragraph.indexOf(nextCompareSentence, sentenceStart + compareSentence.length)
+          : -1;
+        const sentenceEnd = nextPosition !== -1 ? nextPosition : paragraph.length;
 
         for (const token of tokenData) {
           if (token.start >= sentenceStart && token.end <= sentenceEnd) {
@@ -208,7 +212,7 @@ export class Parser {
           }
         }
 
-        offset += sentence.length;
+        offset = sentenceStart + compareSentence.length;
       }
     });
   }
