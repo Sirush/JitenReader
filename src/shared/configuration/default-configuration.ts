@@ -161,6 +161,6 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
 
   //#endregion
 
-  skipReleaseNotes: false,
+  skipReleaseNotes: true,
   enableDebugMode: false,
 });
