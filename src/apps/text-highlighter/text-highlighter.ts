@@ -703,6 +703,46 @@ export class TextHighlighter extends BaseTextHighlighter {
     // return originalRubyText !== cardsRubyText;
   }
 
+  /**
+   * Split ruby elements that contain fragments belonging to multiple tokens.
+   * Without this, only the first token's attributes get applied to the shared ruby element
+   * and subsequent tokens are silently dropped.
+   */
+  protected splitSharedRubyElements(): void {
+    const rubyToTokens = new Map<Element, Set<JitenToken>>();
+
+    for (const [token, fragments] of this._tokenToFragmentsMap) {
+      for (const fragment of fragments) {
+        if (!fragment.hasRuby) {
+          continue;
+        }
+
+        const rubyEl = (fragment.rubyElement ?? this.findParent(fragment.node, 'RUBY'))!;
+
+        if (!rubyEl) {
+          continue;
+        }
+
+        let tokenSet = rubyToTokens.get(rubyEl);
+
+        if (!tokenSet) {
+          tokenSet = new Set();
+          rubyToTokens.set(rubyEl, tokenSet);
+        }
+
+        tokenSet.add(token);
+      }
+    }
+
+    for (const [rubyEl, tokens] of rubyToTokens) {
+      if (tokens.size <= 1) {
+        continue;
+      }
+
+      this.splitRubyForTokens(rubyEl, tokens);
+    }
+  }
+
   protected markElementAsMisparsed(element: HTMLElement): void {
     if (element.hasAttribute('ajb')) {
       return;
@@ -716,6 +756,8 @@ export class TextHighlighter extends BaseTextHighlighter {
 
   private async applyAsync(): Promise<void> {
     await this.preprocess();
+
+    this.splitSharedRubyElements();
 
     this.patchUnparsedFragments();
 
@@ -888,5 +930,73 @@ export class TextHighlighter extends BaseTextHighlighter {
         this.patchOrWrap(fragment, token);
       });
     });
+  }
+
+  private splitRubyForTokens(rubyEl: Element, tokens: Set<JitenToken>): void {
+    const parent = rubyEl.parentNode;
+
+    if (!parent) {
+      return;
+    }
+
+    const nodeToToken = new Map<Node, JitenToken>();
+
+    for (const token of tokens) {
+      const fragments = this._tokenToFragmentsMap.get(token) ?? [];
+
+      for (const fragment of fragments) {
+        const fragRuby = fragment.rubyElement ?? this.findParent(fragment.node, 'RUBY');
+
+        if (fragRuby === rubyEl) {
+          nodeToToken.set(fragment.node, token);
+        }
+      }
+    }
+
+    type NodeGroup = { token: JitenToken | null; nodes: Node[] };
+
+    const groups: NodeGroup[] = [];
+    let current: NodeGroup | null = null;
+
+    for (const child of Array.from(rubyEl.childNodes)) {
+      if (child instanceof Text || child instanceof CDATASection) {
+        const token = nodeToToken.get(child) ?? null;
+
+        if (current?.token !== token) {
+          current = { token, nodes: [] };
+          groups.push(current);
+        }
+
+        current.nodes.push(child);
+      } else if (child instanceof Element && (child.tagName === 'RT' || child.tagName === 'RP')) {
+        current?.nodes.push(child);
+      } else {
+        current?.nodes.push(child);
+      }
+    }
+
+    if (groups.length <= 1) {
+      return;
+    }
+
+    for (const group of groups) {
+      const newRuby = document.createElement('ruby');
+
+      for (const node of group.nodes) {
+        newRuby.appendChild(node);
+      }
+
+      parent.insertBefore(newRuby, rubyEl);
+    }
+
+    rubyEl.remove();
+
+    for (const fragment of this._fragments) {
+      if (fragment.rubyElement !== rubyEl) {
+        continue;
+      }
+
+      fragment.rubyElement = this.findParent(fragment.node, 'RUBY') ?? undefined;
+    }
   }
 }
