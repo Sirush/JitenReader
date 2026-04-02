@@ -43,7 +43,7 @@ export type JitenRawVocabulary = {
   meaningsChunks: string[][];
   meaningsPartOfSpeech: string[][];
   knownState: number[];
-  pitchAccent: number[] | null;
+  pitchAccents: number[] | null;
 };
 
 export type JitenCard = {
@@ -55,7 +55,7 @@ export type JitenCard = {
   partsOfSpeech: string[];
   meanings: JitenMeaning[];
   cardState: JitenCardState[];
-  pitchAccent: number[];
+  pitchAccents: number[];
   wordWithReading: string | null;
 };
 

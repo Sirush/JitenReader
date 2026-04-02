@@ -79,7 +79,7 @@ export class Parser {
         meaningsChunks,
         meaningsPartOfSpeech,
         knownState,
-        pitchAccent,
+        pitchAccents,
       } = vocab;
 
       const cardState = knownState
@@ -102,7 +102,7 @@ export class Parser {
           partsOfSpeech: meaningsPartOfSpeech[i],
         })),
         cardState,
-        pitchAccent: pitchAccent ?? [],
+        pitchAccents: pitchAccents ?? [],
         wordWithReading: null,
       };
     });
@@ -126,7 +126,7 @@ export class Parser {
         )!;
 
         const isParticle = card.partsOfSpeech.includes('prt');
-        const pitchClass = isParticle ? '' : getPitchClass(card.pitchAccent, card.reading);
+        const pitchClass = isParticle ? '' : getPitchClass(card.pitchAccents, card.reading);
 
         lastPitchClass = pitchClass || lastPitchClass;
 

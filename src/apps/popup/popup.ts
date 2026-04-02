@@ -7,6 +7,7 @@ import { JitenCard, JitenCardState } from '@shared/jiten/types';
 import { ForgetCardCommand } from '@shared/messages/background/forget-card.command';
 import { UpdateCardStateCommand } from '@shared/messages/background/update-card-state.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
+import { cleanReading, getPitchDiagramData } from '@shared/pitch-accent-utils';
 import { getThemeCssVars } from '@shared/theme/get-theme-css-vars';
 import { KeybindManager } from '../integration/keybind-manager';
 import { Registry } from '../integration/registry';
@@ -735,12 +736,87 @@ export class Popup {
   }
 
   private getPitchAccentBlock(card: JitenCard): HTMLDivElement {
-    const { reading, pitchAccent } = card;
+    const kana = cleanReading(card.reading);
+    const container = createElement('div', { id: 'pitch-accent' });
 
-    return createElement('div', {
-      id: 'pitch-accent',
-      children: pitchAccent.map((pitch) => this.renderPitch(reading, pitch)),
-    });
+    for (const pitch of card.pitchAccents) {
+      const svg = this.renderPitchDiagram(kana, pitch);
+
+      if (svg) {
+        container.appendChild(svg);
+      }
+    }
+
+    return container;
+  }
+
+  private renderPitchDiagram(reading: string, pitchNum: number): SVGSVGElement | null {
+    const data = getPitchDiagramData(reading, pitchNum);
+
+    if (!data) {
+      return null;
+    }
+
+    const { morae, pattern, color } = data;
+    const ns = 'http://www.w3.org/2000/svg';
+    const pointCount = pattern.length;
+    const stepX = 18;
+    const padX = 9;
+    const width = pointCount * stepX;
+    const height = 38;
+    const highY = 5;
+    const lowY = 17;
+    const radius = 3;
+    const textOffset = 8;
+
+    const svg = document.createElementNS(ns, 'svg');
+
+    svg.setAttribute('width', String(width));
+    svg.setAttribute('height', String(height));
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+    const points = pattern.map((v, i) => ({
+      x: padX + i * stepX,
+      y: v === 1 ? highY : lowY,
+    }));
+
+    const polyline = document.createElementNS(ns, 'polyline');
+
+    polyline.setAttribute('points', points.map((p) => `${p.x},${p.y}`).join(' '));
+    polyline.setAttribute('fill', 'none');
+    polyline.setAttribute('stroke', color);
+    polyline.setAttribute('stroke-width', '1.5');
+    svg.appendChild(polyline);
+
+    for (let i = 0; i < pointCount; i++) {
+      const isParticle = i === pointCount - 1;
+      const circle = document.createElementNS(ns, 'circle');
+
+      circle.setAttribute('cx', String(points[i].x));
+      circle.setAttribute('cy', String(points[i].y));
+      circle.setAttribute('r', String(radius));
+      circle.setAttribute('fill', isParticle ? '#fff' : color);
+      circle.setAttribute('stroke', color);
+      circle.setAttribute('stroke-width', '1.5');
+      svg.appendChild(circle);
+
+      if (!isParticle && morae[i]) {
+        const text = document.createElementNS(ns, 'text');
+
+        text.setAttribute('x', String(points[i].x));
+        text.setAttribute('y', String(points[i].y + textOffset));
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('dominant-baseline', 'hanging');
+        text.setAttribute('fill', color);
+        text.setAttribute('font-size', '9');
+        text.setAttribute('font-weight', 'bold');
+        text.setAttribute('font-family', "'Noto Sans JP', sans-serif");
+        text.textContent = morae[i];
+        svg.appendChild(text);
+      }
+    }
+
+    return svg;
   }
 
   private getFrequencyBlock(card: JitenCard): HTMLDivElement {
@@ -769,45 +845,6 @@ export class Popup {
         }),
       ],
     });
-  }
-
-  private renderPitch(reading: string, pitch: string): HTMLSpanElement {
-    if (reading.length != pitch.length - 1) {
-      return createElement('span', { innerText: 'Error: invalid pitch' });
-    }
-
-    try {
-      const parts = [];
-      const borders = Array.from(pitch.matchAll(/L(?=H)|H(?=L)/g), (x) => x.index + 1);
-
-      let lastBorder = 0;
-      let low = pitch.startsWith('L');
-
-      for (const border of borders) {
-        parts.push(
-          createElement('span', {
-            class: [low ? 'low' : 'high'],
-            innerText: reading.slice(lastBorder, border),
-          }),
-        );
-
-        lastBorder = border;
-        low = !low;
-      }
-
-      if (lastBorder != reading.length) {
-        parts.push(
-          createElement('span', {
-            class: [low ? 'low-final' : 'high-final'],
-            innerText: reading.slice(lastBorder),
-          }),
-        );
-      }
-
-      return createElement('span', { class: 'pitch', children: parts });
-    } catch (_e: unknown) {
-      return createElement('span', { innerText: 'Error: invalid pitch' });
-    }
   }
 
   private adjustDetails(card: JitenCard): void {
