@@ -29,6 +29,7 @@ function generateEffectCSS(effects: Effect[]): { normal: string[]; hover: string
     switch (effect.type) {
       case 'text-colour':
         normal.push(`color: ${effect.colour} !important;`);
+        normal.push(`-webkit-text-fill-color: ${effect.colour} !important;`);
 
         break;
 
