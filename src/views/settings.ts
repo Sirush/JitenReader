@@ -174,6 +174,16 @@ withElements(
   },
 );
 
+withElement('#apiKeyRevealButton', (button: HTMLInputElement) => {
+  button.onclick = (): void => {
+    withElement('#jitenApiKey', (input: HTMLInputElement) => {
+      const revealed = input.type === 'text';
+      input.type = revealed ? 'password' : 'text';
+      button.style.textDecoration = revealed ? '' : 'line-through';
+    });
+  };
+});
+
 withElement('#apiTokenButton', (button) => {
   button.onclick = (): void => {
     withElement('#jitenApiKey', (i: HTMLInputElement) => {
