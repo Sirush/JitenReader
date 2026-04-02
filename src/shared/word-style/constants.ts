@@ -11,6 +11,11 @@ export const STYLEABLE_STATES: Record<string, string> = {
   frequent: 'Frequent',
   'i-plus-one': 'I+1',
   unparsed: 'Unparsed',
+  heiban: 'Heiban',
+  atamadaka: 'Atamadaka',
+  nakadaka: 'Nakadaka',
+  odaka: 'Odaka',
+  kifuku: 'Kifuku',
 };
 
 export const STYLEABLE_STATE_KEYS = Object.keys(STYLEABLE_STATES);

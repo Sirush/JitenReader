@@ -55,7 +55,7 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   iPlusOneMaxFrequency: false,
   iPlusOneMaxFrequencyCount: 15_000,
   skipFurigana: false,
-  generatePitch: false,
+  generatePitch: true,
 
   wordStyleConfig: structuredClone(DEFAULT_WORD_STYLE_CONFIG),
   customWordCSS: '',
@@ -85,6 +85,7 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   moveRotateActions: false,
 
   showConjugations: true,
+  showPitchDiagrams: true,
 
   customPopupCSS: '',
 

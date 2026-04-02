@@ -101,6 +101,7 @@ export class Popup {
   private _moveRotationActions: boolean;
   private _moveGradingActions: boolean;
   private _showConjugations: boolean;
+  private _showPitchDiagrams: boolean;
 
   private _hideTimer?: NodeJS.Timeout;
   private _isHover?: boolean;
@@ -203,6 +204,7 @@ export class Popup {
     this._moveRotationActions = await getConfiguration('moveRotateActions');
     this._moveGradingActions = await getConfiguration('moveGradingActions');
     this._showConjugations = await getConfiguration('showConjugations');
+    this._showPitchDiagrams = await getConfiguration('showPitchDiagrams');
 
     this._themeStyles.textContent = await getThemeCssVars();
     this._customStyles.textContent = await getConfiguration('customPopupCSS');
@@ -736,8 +738,13 @@ export class Popup {
   }
 
   private getPitchAccentBlock(card: JitenCard): HTMLDivElement {
-    const kana = cleanReading(card.reading);
     const container = createElement('div', { id: 'pitch-accent' });
+
+    if (!this._showPitchDiagrams) {
+      return container;
+    }
+
+    const kana = cleanReading(card.reading);
 
     for (const pitch of card.pitchAccents) {
       const svg = this.renderPitchDiagram(kana, pitch);

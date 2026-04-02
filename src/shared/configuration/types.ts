@@ -87,6 +87,7 @@ export type ConfigurationSchema = {
   moveRotateActions: boolean;
 
   showConjugations: boolean;
+  showPitchDiagrams: boolean;
 
   customPopupCSS: string;
 

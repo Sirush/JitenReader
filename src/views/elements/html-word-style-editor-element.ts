@@ -581,7 +581,7 @@ export class HTMLWordStyleEditorElement extends HTMLElement {
 
       const newEffect = defaultEffectForType(addSelect.value as EffectType);
 
-      this._config.states[stateKey].effects.push(newEffect);
+      (this._config.states[stateKey] ??= { effects: [] }).effects.push(newEffect);
       this._handleUserEdit();
       this._refreshStateSection(details, stateKey, true);
       this._updatePreviews();
