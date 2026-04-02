@@ -1,5 +1,6 @@
 import { JitenToken } from '@shared/jiten/types';
-import { Fragment } from '../../batches/types';
+import { Fragment, Paragraph } from '../../batches/types';
+import { TtsuParagraphReader } from '../../paragraph-reader/ttsu.paragraph-reader';
 import { Registry } from '../../integration/registry';
 import { AutomaticParser } from '../automatic.parser';
 import { TtsuTextHighlighter } from './ttsu-text-highlighter';
@@ -16,6 +17,14 @@ const ttsuApplyTokens = (fragments: Fragment[], tokens: JitenToken[]): void => {
     Registry.statusBar?.recalculateStats();
     statsUpdateTimeout = undefined;
   }, 100);
+};
+
+const getTtsuParagraphs = (
+  node: Element | Node,
+  filter?: (node: Element | Node) => boolean,
+  collapseWhitespace?: boolean,
+): Paragraph[] => {
+  return new TtsuParagraphReader(node, filter, collapseWhitespace).read();
 };
 
 export class TtsuParser extends AutomaticParser {
@@ -77,6 +86,7 @@ export class TtsuParser extends AutomaticParser {
     batchController.registerNodes(nodes, {
       filter,
       collapseWhitespace: this._meta.collapseWhitespace,
+      getParagraphsFn: getTtsuParagraphs,
       applyFn: ttsuApplyTokens,
       onComplete: () => window.dispatchEvent(new Event('resize')),
     });
