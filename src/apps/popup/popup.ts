@@ -102,6 +102,7 @@ export class Popup {
   private _moveGradingActions: boolean;
   private _showConjugations: boolean;
   private _showPitchDiagrams: boolean;
+  private _disableHeadWordLink: boolean;
 
   private _hideTimer?: NodeJS.Timeout;
   private _isHover?: boolean;
@@ -205,6 +206,7 @@ export class Popup {
     this._moveGradingActions = await getConfiguration('moveGradingActions');
     this._showConjugations = await getConfiguration('showConjugations');
     this._showPitchDiagrams = await getConfiguration('showPitchDiagrams');
+    this._disableHeadWordLink = await getConfiguration('disableHeadWordLink');
 
     this._themeStyles.textContent = await getThemeCssVars();
     this._customStyles.textContent = await getConfiguration('customPopupCSS');
@@ -673,8 +675,21 @@ export class Popup {
     );
   }
 
-  private getReadingBlock(card: JitenCard): HTMLAnchorElement {
+  private getReadingBlock(card: JitenCard): HTMLElement {
     const { wordId, spelling, readingIndex, wordWithReading } = card;
+    const nodes = this.convertToRubyNodes(wordWithReading ?? spelling);
+
+    if (this._disableHeadWordLink) {
+      const span = createElement('span', {
+        id: 'link',
+        attributes: { lang: 'ja' },
+      });
+
+      span.append(...nodes);
+
+      return span;
+    }
+
     const url = `https://jiten.moe/vocabulary/${wordId}/${readingIndex}`;
 
     const a = createElement('a', {
@@ -682,7 +697,7 @@ export class Popup {
       attributes: { href: url, target: '_blank', lang: 'ja' },
     });
 
-    a.append(...this.convertToRubyNodes(wordWithReading ?? spelling));
+    a.append(...nodes);
 
     return a;
   }

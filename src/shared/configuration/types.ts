@@ -88,6 +88,7 @@ export type ConfigurationSchema = {
 
   showConjugations: boolean;
   showPitchDiagrams: boolean;
+  disableHeadWordLink: boolean;
 
   customPopupCSS: string;
 

@@ -86,6 +86,7 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
 
   showConjugations: true,
   showPitchDiagrams: true,
+  disableHeadWordLink: false,
 
   customPopupCSS: '',
 
