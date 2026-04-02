@@ -69,6 +69,8 @@ export type ConfigurationSchema = {
   renderCloseButton: boolean;
   touchscreenSupport: boolean;
   touchscreenDoubleTap: boolean;
+  touchscreenLongPress: boolean;
+  touchscreenLongPressDuration: number;
   disableFadeAnimation: boolean;
   leftAlignPopupToWord: boolean;
 

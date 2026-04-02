@@ -339,6 +339,26 @@
               </div>
             </div>
 
+            <div data-show="touchscreenSupport" indent>
+              <div class="checkbox">
+                <input type="checkbox" id="touchscreenLongPress" name="touchscreenLongPress" />
+                <label for="touchscreenLongPress">Require long press to open popup</label>
+              </div>
+            </div>
+
+            <div data-show="touchscreenLongPress && touchscreenSupport" indent>
+              <label for="touchscreenLongPressDuration">Long press duration in milliseconds</label>
+              <input
+                style="width: 100%"
+                type="number"
+                id="touchscreenLongPressDuration"
+                name="touchscreenLongPressDuration"
+                min="50"
+                max="3000"
+                step="50"
+              />
+            </div>
+
             <div data-show="!touchscreenSupport">
               <div class="checkbox">
                 <input type="checkbox" id="showPopupOnHover" name="showPopupOnHover" />

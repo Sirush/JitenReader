@@ -100,15 +100,15 @@ export class PopupManager {
       }
     }
 
-    this._currentHover = element;
-    this._currentSentence = sentence;
+    this.activateAndShow(element, sentence);
+  }
 
-    this._keyManager.activate();
-    this._miningActions.activate(this._currentHover, sentence);
-    this._rotationActions.activate(this._currentHover);
-    this._gradingActions.activate(this._currentHover);
+  public longPress(element: HTMLElement, sentence?: string): void {
+    if (!this._touchscreenSupport || !element || Registry.skipTouchEvents) {
+      return;
+    }
 
-    this.handlePopup();
+    this.activateAndShow(element, sentence);
   }
 
   /**
@@ -126,6 +126,18 @@ export class PopupManager {
     this._gradingActions.deactivate();
 
     this._popup.initHide();
+  }
+
+  private activateAndShow(element: HTMLElement, sentence?: string): void {
+    this._currentHover = element;
+    this._currentSentence = sentence;
+
+    this._keyManager.activate();
+    this._miningActions.activate(this._currentHover, sentence);
+    this._rotationActions.activate(this._currentHover);
+    this._gradingActions.activate(this._currentHover);
+
+    this.handlePopup();
   }
 
   /**
