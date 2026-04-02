@@ -21,7 +21,7 @@ export class GradingActions {
   constructor(private _controller: GradingController) {
     const { events } = Registry;
 
-    events.on('jitenReviewNothing', () => this.reviewCard('unknown'));
+    events.on('jitenReviewNothing', () => this.reviewCard('again'));
     events.on('jitenReviewSomething', () => this.reviewCard('again'));
     events.on('jitenReviewHard', () => this.reviewCard('hard'));
     events.on('jitenReviewOkay', () => this.reviewCard('good'));
