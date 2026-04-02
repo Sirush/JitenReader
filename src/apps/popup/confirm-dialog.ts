@@ -10,6 +10,7 @@ export interface ConfirmDialogOptions {
 export class ConfirmDialog {
   private _overlay: HTMLDivElement | null = null;
   private _resolvePromise?: (confirmed: boolean) => void;
+  private _openedAt = 0;
 
   constructor(
     private _shadowRoot: ShadowRoot,
@@ -28,6 +29,7 @@ export class ConfirmDialog {
       confirmClass = 'forget',
     } = options;
 
+    this._openedAt = Date.now();
     this._overlay = this.createOverlay();
     const dialog = this.createDialog(message, confirmText, cancelText, confirmClass);
 
@@ -41,12 +43,28 @@ export class ConfirmDialog {
 
   private createOverlay(): HTMLDivElement {
     const { x, y } = this._getPopupPosition();
+    const dismissIfReady = (): void => {
+      if (Date.now() - this._openedAt > 300) {
+        this.close(false);
+      }
+    };
+
     const overlay = createElement('div', {
       id: 'confirm-overlay',
-      handler: () => this.close(false),
+      events: {
+        onclick: dismissIfReady,
+        ontouchstart: (e: Event) => {
+          e.stopPropagation();
+          e.preventDefault();
+          dismissIfReady();
+        },
+      },
     });
 
-    overlay.style.transform = `translate(${-x}px, ${-y}px)`;
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+
+    overlay.style.transform = `translate(${scrollX - x}px, ${scrollY - y}px)`;
 
     return overlay;
   }
@@ -61,6 +79,7 @@ export class ConfirmDialog {
       id: 'confirm-dialog',
       events: {
         onclick: (e: Event) => e.stopPropagation(),
+        ontouchstart: (e: Event) => e.stopPropagation(),
       },
       children: [
         createElement('p', {
