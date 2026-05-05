@@ -121,6 +121,22 @@ export const DEFAULT_HOSTS: PredefinedHostMeta[] = [
       notifyFor: 'div.book-content',
     },
   },
+  {
+    id: 'yatsu-parser',
+    name: 'Yatsu Parser',
+    description: 'Parses Yatsu books',
+    host: '*://app.yatsu.moe/b*',
+    auto: true,
+    optOut: true,
+    allFrames: false,
+    custom: 'YatsuParser',
+    parseVisibleObserver: true,
+    filter:
+      '.book-content-page-measure, [aria-hidden="true"], [data-yatsu-current-position-marker], [data-yatsu-bookmark-marker]',
+    addedObserver: {
+      notifyFor: 'div.book-content:not(.book-content-page-measure)',
+    },
+  },
   // {
   //   id: 'youtube-comments-parser',
   //   name: 'YouTube Comments Parser',
