@@ -108,22 +108,33 @@ export class Parser {
     });
   }
 
+  private buildLookupKey(wordId: number, readingIndex: number): string {
+    return `${wordId}:${readingIndex}`;
+  }
+
   private parseTokens(
     tokens: JitenToken[][],
     cards: JitenCard[],
     vocabulary: JitenRawVocabulary[],
   ): JitenToken[][] {
+    const vocabMap = new Map<string, JitenRawVocabulary>();
+    const cardMap = new Map<string, JitenCard>();
+
+    for (const v of vocabulary) {
+      vocabMap.set(this.buildLookupKey(v.wordId, v.readingIndex), v);
+    }
+
+    for (const c of cards) {
+      cardMap.set(this.buildLookupKey(c.wordId, c.readingIndex), c);
+    }
+
     return tokens.map((group) => {
       let lastPitchClass = '';
 
       return group.map((token) => {
-        const vocabEntry = vocabulary.find((v) => {
-          return v.wordId === token.wordId && v.readingIndex === token.readingIndex;
-        });
-
-        const card = cards.find(
-          (c) => c.wordId === token.wordId && c.readingIndex === token.readingIndex,
-        )!;
+        const key = this.buildLookupKey(token.wordId, token.readingIndex);
+        const vocabEntry = vocabMap.get(key);
+        const card = cardMap.get(key)!;
 
         const isParticle = card.partsOfSpeech.includes('prt');
         const pitchClass = isParticle ? '' : getPitchClass(card.pitchAccents, card.reading);

@@ -8,6 +8,7 @@ export abstract class BaseParser {
   protected _destroyed = false;
   protected _hasInjectedClass = false;
   protected getParagraphsFn?: typeof getParagraphs;
+  protected _nodeRemovalObservers: MutationObserver[] = [];
 
   /** The root element to parse */
   protected get root(): HTMLElement | null {
@@ -35,6 +36,8 @@ export abstract class BaseParser {
 
   public destroy(): void {
     this._destroyed = true;
+    this._nodeRemovalObservers.forEach((observer) => observer.disconnect());
+    this._nodeRemovalObservers = [];
   }
 
   /**
@@ -226,7 +229,6 @@ export abstract class BaseParser {
     return observer;
   }
 
-  // Nodes that are already present when opening the page - they do match any filters and are always affected
   protected watchForNodeRemove(
     nodes: HTMLElement[],
     onRemoved: (nodes: HTMLElement[]) => void,
@@ -238,14 +240,15 @@ export abstract class BaseParser {
             if (removed === node) {
               onRemoved([node]);
               observer.disconnect();
+              this._nodeRemovalObservers = this._nodeRemovalObservers.filter((o) => o !== observer);
             }
           });
         });
       });
 
-      // Observe the parent for childList changes
       if (node.parentNode) {
         observer.observe(node.parentNode, { childList: true });
+        this._nodeRemovalObservers.push(observer);
       }
     });
   }

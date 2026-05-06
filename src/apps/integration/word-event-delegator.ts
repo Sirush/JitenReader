@@ -47,6 +47,22 @@ export class WordEventDelegator {
     document.addEventListener('touchmove', this.handleTouchMove, true);
   }
 
+  public destroy(): void {
+    if (!this._initialised) {
+      return;
+    }
+
+    document.removeEventListener('mouseenter', this.handleMouseEnter, true);
+    document.removeEventListener('mouseleave', this.handleMouseLeave, true);
+    document.removeEventListener('click', this.handleClick, true);
+    document.removeEventListener('touchstart', this.handleTouchStart, true);
+    document.removeEventListener('touchend', this.handleTouchEnd, true);
+    document.removeEventListener('touchcancel', this.handleTouchEnd, true);
+    document.removeEventListener('touchmove', this.handleTouchMove, true);
+
+    this._initialised = false;
+  }
+
   public setSentence(element: Element, sentence: string | undefined): void {
     this._sentenceMap.set(element, sentence);
   }

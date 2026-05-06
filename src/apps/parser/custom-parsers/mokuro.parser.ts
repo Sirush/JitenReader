@@ -12,7 +12,7 @@ class MokuroMangaPanel {
 
   private _debounceTimeout: NodeJS.Timeout | undefined;
   private _debounceTime = 500;
-  private _currentId = 0;
+  private _parseAbortController: AbortController | null = null;
 
   private _pages = new Set<HTMLElement>();
 
@@ -37,8 +37,6 @@ class MokuroMangaPanel {
 
     this._imageContainer = imageContainer;
     this._imageObserver = new MutationObserver(() => {
-      this._currentId++;
-
       this.triggerParse();
     });
 
@@ -124,21 +122,20 @@ class MokuroMangaPanel {
   }
 
   private parse(): void {
+    this._parseAbortController?.abort();
+    this._parseAbortController = new AbortController();
+    const signal = this._parseAbortController.signal;
+
     this._panel.querySelectorAll<HTMLElement>(':scope > div > div.relative').forEach((page) => {
       if (this._pages.has(page)) {
         return;
       }
 
-      const currentId = this._currentId;
-
       this._pages.add(page);
       Registry.batchController.registerNode(page, {
-        // We create fragments manually, since mokuro puts every line in a separate <p>aragraph and hides them
         getParagraphsFn: getMokuroParagraphs,
-        // Because mokuro reuses nodes, a token may already be altered when the data from jiten return.
-        // Thus we track on which page change cycle we are and don't apply tokens to the wrong page
         applyFn: (paragraph: Paragraph, tokens: JitenToken[]) => {
-          if (currentId === this._currentId) {
+          if (!signal.aborted) {
             void applyTokens(paragraph, tokens);
           }
         },

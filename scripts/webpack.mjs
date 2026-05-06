@@ -1,6 +1,7 @@
 import { resolve } from 'path';
 import { globSync } from 'glob';
 import CopyPlugin from 'copy-webpack-plugin';
+import ForkTsCheckerPlugin from 'fork-ts-checker-webpack-plugin';
 import { transformManifest } from './transform-manifest.mjs';
 
 const __dirname = import.meta.dirname;
@@ -47,6 +48,11 @@ export default (env = {}) => ({
     },
   },
   plugins: [
+    env.typeCheck && new ForkTsCheckerPlugin({
+      typescript: {
+        configFile: resolve(__dirname, '../tsconfig.json'),
+      },
+    }),
     new CopyPlugin({
       patterns: [
         { from: 'assets', to: 'assets' },

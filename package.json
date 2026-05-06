@@ -12,6 +12,7 @@
     "postversion": "npm run release",
     "changelog": "tsc changelog/changelog.ts && node scripts/changelog.mjs && git add CHANGELOG.md src/views/changelog.html",
     "release": "node scripts/build.mjs --pack --ff-submission",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "lint:ff": "node scripts/build.mjs firefox && web-ext lint --source-dir jiten.reader"
@@ -53,6 +54,7 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsdoc": "^56.1.2",
     "eslint-plugin-prettier": "^5.5.4",
+    "fork-ts-checker-webpack-plugin": "^9.1.0",
     "glob": "^11.0.3",
     "globals": "^16.5.0",
     "prettier": "^3.6.2",

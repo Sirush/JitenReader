@@ -2,9 +2,11 @@ import { DisplayCategory, Fragment, Paragraph } from '../batches/types';
 import { BaseParagraphReader } from './base.paragraph-reader';
 
 export class ParagraphReader extends BaseParagraphReader {
-  private _styleCache = new WeakMap<Element, CSSStyleDeclaration>();
+  private _styleCache = new Map<Element, CSSStyleDeclaration>();
 
   public read(): Paragraph[] {
+    this._styleCache = new Map();
+
     if (this.collapseWhitespace) {
       this.splitTextNodesAtWhitespace(this.node);
     }

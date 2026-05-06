@@ -224,6 +224,7 @@ export default [
         },
       ],
 
+      '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/prefer-nullish-coalescing': 'off',
       '@typescript-eslint/consistent-type-definitions': 'off',
       '@typescript-eslint/unbound-method': 'error',
