@@ -6,8 +6,8 @@
 @use 'theme/_outline';
 
 .popup {
-  width: 350px;
-  max-height: 250px;
+  width: var(--popup-width, 350px);
+  height: var(--popup-height, 250px);
 
   display: flex;
   flex-direction: column;
@@ -16,6 +16,7 @@
   margin: 0;
   padding: 0.5em;
   border-radius: 0.5em;
+  position: relative;
 
   color: map.get(colors.$colors, text-color);
   background-color: map.get(colors.$colors, background-color);
@@ -25,20 +26,23 @@
     &.controls {
       display: flex;
       flex-direction: row;
-      gap: 0.5em;
+      gap: 0.4em;
 
       a {
-        line-height: 0.7em;
-        height: 1.2em;
         font-size: 0.7em;
-        padding: 0.5em 0.5em 0 0.5em;
+        line-height: 1;
+        padding: 0.35em 0.6em;
+        border-radius: 4px;
+        font-weight: 500;
+        transition: background-color 0.15s ease, border-color 0.15s ease;
 
         &:hover {
-          filter: brightness(1.2);
+          filter: none;
         }
 
         &:active {
-          filter: brightness(0.8);
+          filter: none;
+          transform: scale(0.97);
         }
       }
 
@@ -47,8 +51,14 @@
         @each $id, $color in colors.$decks {
           .#{$id} {
             color: $color;
-            border-color: $color;
-            box-shadow: inset 0 0 3px $color;
+            border-color: color-mix(in srgb, $color 35%, #171717);
+            background-color: color-mix(in srgb, $color 12%, #171717);
+            box-shadow: none;
+
+            &:hover {
+              background-color: color-mix(in srgb, $color 22%, #171717);
+              border-color: color-mix(in srgb, $color 55%, #171717);
+            }
           }
         }
       }
@@ -57,8 +67,14 @@
         @each $id, $color in colors.$grades {
           .#{$id} {
             color: $color;
-            border-color: $color;
-            box-shadow: inset 0 0 3px $color;
+            border-color: color-mix(in srgb, $color 35%, #171717);
+            background-color: color-mix(in srgb, $color 12%, #171717);
+            box-shadow: none;
+
+            &:hover {
+              background-color: color-mix(in srgb, $color 22%, #171717);
+              border-color: color-mix(in srgb, $color 55%, #171717);
+            }
           }
         }
       }
@@ -160,6 +176,8 @@
     }
 
     &#details {
+      flex: 1 1 0;
+      min-height: 0;
       overflow: auto;
       margin-top: 0.5em;
 
@@ -198,6 +216,35 @@
   }
 }
 
+.resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 18px;
+  height: 18px;
+  cursor: nwse-resize;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 0 14px 14px;
+    border-color: transparent transparent rgba(255, 255, 255, 0.35) transparent;
+  }
+
+  .popup:hover & {
+    opacity: 1;
+  }
+}
+
 #confirm-overlay {
   position: absolute;
   top: 0;
@@ -232,22 +279,32 @@
       a.outline {
         font-size: 0.8em;
         padding: 0.4em 1em;
+        border-radius: 4px;
+        font-weight: 500;
         cursor: pointer;
+        transition: background-color 0.15s ease, border-color 0.15s ease;
 
         @each $id, $color in colors.$decks {
           &.#{$id} {
             color: $color;
-            border-color: $color;
-            box-shadow: inset 0 0 3px $color;
+            border-color: color-mix(in srgb, $color 35%, #171717);
+            background-color: color-mix(in srgb, $color 12%, #171717);
+            box-shadow: none;
+
+            &:hover {
+              background-color: color-mix(in srgb, $color 22%, #171717);
+              border-color: color-mix(in srgb, $color 55%, #171717);
+            }
           }
         }
 
         &:hover {
-          filter: brightness(1.2);
+          filter: none;
         }
 
         &:active {
-          filter: brightness(0.8);
+          filter: none;
+          transform: scale(0.97);
         }
       }
     }

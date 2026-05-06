@@ -1,4 +1,5 @@
 import { getConfiguration } from '@shared/configuration/get-configuration';
+import { setConfiguration } from '@shared/configuration/set-configuration';
 import { createElement } from '@shared/dom/create-element';
 import { findElements } from '@shared/dom/find-elements';
 import { withElement } from '@shared/dom/with-element';
@@ -75,6 +76,7 @@ export class Popup {
   private _context = createElement('section', { id: 'context' });
   /** Contains the various meanings of a word */
   private _details = createElement('section', { id: 'details' });
+  private _resizeHandle = createElement('div', { class: ['resize-handle'] });
 
   //#endregion
 
@@ -104,8 +106,15 @@ export class Popup {
   private _showPitchDiagrams: boolean;
   private _disableHeadWordLink: boolean;
 
+  private _popupWidth = 350;
+  private _popupHeight = 250;
+
+  private static readonly MIN_WIDTH = 250;
+  private static readonly MIN_HEIGHT = 200;
+
   private _hideTimer?: NodeJS.Timeout;
   private _isHover?: boolean;
+  private _isResizing = false;
   private _confirmDialog?: ConfirmDialog;
   private _popupLeft = 0;
   private _popupTop = 0;
@@ -208,6 +217,10 @@ export class Popup {
     this._showPitchDiagrams = await getConfiguration('showPitchDiagrams');
     this._disableHeadWordLink = await getConfiguration('disableHeadWordLink');
 
+    this._popupWidth = await getConfiguration('popupWidth');
+    this._popupHeight = await getConfiguration('popupHeight');
+    this.applyDimensions();
+
     this._themeStyles.textContent = await getThemeCssVars();
     this._customStyles.textContent = await getConfiguration('customPopupCSS');
 
@@ -235,6 +248,9 @@ export class Popup {
       this._customStyles,
       this._popup,
     );
+
+    this._popup.appendChild(this._resizeHandle);
+    this.initResize();
 
     this._confirmDialog = new ConfirmDialog(shadowRoot, () => ({
       x: this._popupLeft,
@@ -367,9 +383,11 @@ export class Popup {
     if (innerWidth < 450) {
       popupLeft = 8;
 
-      // we subtract 32px to account for the left and right padding
       this._root.style.width = `${innerWidth - 32}px`;
       this._popup.style.width = `${innerWidth - 32}px`;
+    } else {
+      this._root.style.width = '';
+      this._popup.style.width = '';
     }
 
     this._popupLeft = popupLeft;
@@ -568,7 +586,53 @@ export class Popup {
     sections.unshift(...before);
     sections.push(...after);
 
-    this._popup.replaceChildren(...sections);
+    this._popup.replaceChildren(...sections, this._resizeHandle);
+  }
+
+  //#endregion
+  //#region Resize
+
+  private applyDimensions(): void {
+    this._popup.style.setProperty('--popup-width', `${this._popupWidth}px`);
+    this._popup.style.setProperty('--popup-height', `${this._popupHeight}px`);
+  }
+
+  private initResize(): void {
+    let startX: number;
+    let startY: number;
+    let startWidth: number;
+    let startHeight: number;
+
+    const onMouseMove = (e: MouseEvent): void => {
+      const newWidth = Math.max(Popup.MIN_WIDTH, startWidth + (e.clientX - startX));
+      const newHeight = Math.max(Popup.MIN_HEIGHT, startHeight + (e.clientY - startY));
+
+      this._popupWidth = newWidth;
+      this._popupHeight = newHeight;
+      this.applyDimensions();
+    };
+
+    const onMouseUp = (): void => {
+      this._isResizing = false;
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      void setConfiguration('popupWidth', this._popupWidth);
+      void setConfiguration('popupHeight', this._popupHeight);
+    };
+
+    this._resizeHandle.addEventListener('mousedown', (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      this._isResizing = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      startWidth = this._popupWidth;
+      startHeight = this._popupHeight;
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
   }
 
   //#endregion
@@ -969,7 +1033,7 @@ export class Popup {
       return;
     }
 
-    if (this._confirmDialog?.isOpen) {
+    if (this._isResizing || this._confirmDialog?.isOpen) {
       return;
     }
 
@@ -997,7 +1061,13 @@ export class Popup {
       this.hide();
     }
 
-    if ('button' in e && e.button === 0 && this.isVisibile() && !this._isHover) {
+    if (
+      'button' in e &&
+      e.button === 0 &&
+      this.isVisibile() &&
+      !this._isHover &&
+      !this._isResizing
+    ) {
       e.stopPropagation();
 
       this.hide();
