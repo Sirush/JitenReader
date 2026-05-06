@@ -35,6 +35,7 @@
   },
   "permissions": [
     "contextMenus",
+    "offscreen",
     "scripting",
     "storage"
   ],

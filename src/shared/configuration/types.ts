@@ -92,6 +92,9 @@ export type ConfigurationSchema = {
   showPitchDiagrams: boolean;
   disableHeadWordLink: boolean;
 
+  ttsVoice: string;
+  ttsAutoPlay: boolean;
+
   popupWidth: number;
   popupHeight: number;
 

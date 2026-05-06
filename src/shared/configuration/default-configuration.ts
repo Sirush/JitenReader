@@ -90,6 +90,9 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   showPitchDiagrams: true,
   disableHeadWordLink: false,
 
+  ttsVoice: 'female',
+  ttsAutoPlay: false,
+
   popupWidth: 350,
   popupHeight: 250,
 

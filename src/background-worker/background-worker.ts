@@ -5,6 +5,7 @@ import {
   setConfiguration,
 } from '@shared/configuration/set-configuration';
 import { addContextMenu } from '@shared/extension/add-context-menu';
+import { runtime } from '@shared/extension/runtime';
 import { addInstallListener } from '@shared/extension/add-install-listener';
 import { getStyledTabIds } from '@shared/extension/inject-style';
 import { openOptionsPage } from '@shared/extension/open-options-page';
@@ -67,6 +68,65 @@ const handlerCollection = new BackgroundCommandHandlerCollection(
 );
 
 handlerCollection.listen();
+
+async function ensureOffscreenDocument(): Promise<void> {
+  const contexts = await chrome.runtime.getContexts({
+    contextTypes: [chrome.runtime.ContextType.OFFSCREEN_DOCUMENT],
+  });
+
+  if (contexts.length > 0) {
+    return;
+  }
+
+  await chrome.offscreen.createDocument({
+    url: 'views/offscreen.html',
+    reasons: [chrome.offscreen.Reason.AUDIO_PLAYBACK],
+    justification: 'TTS audio playback',
+  });
+}
+
+runtime.onMessage.addListener(
+  (
+    message: { type?: string; wordId?: number; readingIndex?: number; voice?: string },
+    _sender: chrome.runtime.MessageSender,
+    sendResponse: (response: unknown) => void,
+  ) => {
+    if (message.type === 'stopTts') {
+      void runtime.sendMessage({ type: 'stopTtsAudio' });
+
+      return false;
+    }
+
+    if (message.type !== 'playTts') {
+      return false;
+    }
+
+    (async (): Promise<{ ok: boolean; error?: string }> => {
+      const apiEndpoint = await getConfiguration('jitenApiEndpoint');
+      const baseUrl = apiEndpoint.replace(/\/api\/?$/, '');
+      const url =
+        `${baseUrl}/api/tts/word/${message.wordId}/${message.readingIndex}` +
+        `?voice=${encodeURIComponent(message.voice ?? 'female')}`;
+
+      const response = await fetch(url, { signal: AbortSignal.timeout(15_000) });
+
+      if (!response.ok) {
+        throw new Error(`TTS request failed: ${response.status}`);
+      }
+
+      const buffer = await response.arrayBuffer();
+      const data = Array.from(new Uint8Array(buffer));
+
+      await ensureOffscreenDocument();
+
+      return runtime.sendMessage({ type: 'playTtsAudio', data });
+    })()
+      .then((result) => sendResponse(result))
+      .catch((err: Error) => sendResponse({ ok: false, error: err.message }));
+
+    return true;
+  },
+);
 
 onBroadcastMessage('profileSwitched', () => {
   invalidateProfileCache();

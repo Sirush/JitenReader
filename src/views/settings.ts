@@ -12,6 +12,7 @@ import { ConfigurationUpdatedCommand } from '@shared/messages/broadcast/configur
 import { ProfileSwitchedCommand } from '@shared/messages/broadcast/profile-switched.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { getThemeCssVars } from '@shared/theme/get-theme-css-vars';
+import { playTts } from '@shared/tts/play-tts';
 import { HTMLFeaturesInputElement } from './elements/html-features-input-element';
 import { HTMLKeybindInputElement } from './elements/html-keybind-input-element';
 import { HTMLMiningInputElement } from './elements/html-mining-input-element';
@@ -268,6 +269,18 @@ withElement('#import-settings', (button) => {
     };
 
     fileInput.click();
+  };
+});
+
+withElement('#ttsTestButton', (button: HTMLInputElement) => {
+  button.onclick = (): void => {
+    const voiceSelect = document.getElementById('ttsVoice') as HTMLSelectElement;
+
+    button.disabled = true;
+
+    void playTts(1002340, 3, voiceSelect.value).finally(() => {
+      button.disabled = false;
+    });
   };
 });
 

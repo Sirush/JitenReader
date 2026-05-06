@@ -476,6 +476,36 @@
             </div>
 
             <div>
+              <label for="ttsVoice">Text-to-Speech Voice (TTS)</label>
+              <div class="inline-group">
+                <select id="ttsVoice" name="ttsVoice">
+                  <option value="female">Female 1</option>
+                  <option value="female2">Female 2</option>
+                  <option value="male">Male 1</option>
+                  <option value="male2">Male 2</option>
+                  <option value="asmr">ASMR</option>
+                </select>
+                <div>
+                  <input
+                    type="button"
+                    id="ttsTestButton"
+                    class="button outline small"
+                    value="🔊"
+                    style="padding: 0.3em 0.5em; font-size: 0.85em; min-width: auto"
+                    internal
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="checkbox">
+                <input type="checkbox" id="ttsAutoPlay" name="ttsAutoPlay" />
+                <label for="ttsAutoPlay">Auto-play voice when popup opens</label>
+              </div>
+            </div>
+
+            <div>
               <div class="checkbox">
                 <input type="checkbox" id="hideAfterAction" name="hideAfterAction" />
                 <label for="hideAfterAction">Hide popup after interacting with the API</label>

@@ -10,6 +10,7 @@ import { UpdateCardStateCommand } from '@shared/messages/background/update-card-
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { cleanReading, getPitchDiagramData } from '@shared/pitch-accent-utils';
 import { getThemeCssVars } from '@shared/theme/get-theme-css-vars';
+import { playTts, stopTts } from '@shared/tts/play-tts';
 import { KeybindManager } from '../integration/keybind-manager';
 import { Registry } from '../integration/registry';
 import { GradingController } from './actions/grading-controller';
@@ -105,6 +106,9 @@ export class Popup {
   private _showConjugations: boolean;
   private _showPitchDiagrams: boolean;
   private _disableHeadWordLink: boolean;
+  private _ttsVoice: string;
+  private _ttsAutoPlay: boolean;
+  private _lastAutoPlayKey: string;
 
   private _popupWidth = 350;
   private _popupHeight = 250;
@@ -163,9 +167,20 @@ export class Popup {
     });
 
     this._keyManager.activate();
+
+    if (this._ttsAutoPlay && this._card) {
+      const key = `${this._card.wordId}/${this._card.readingIndex}`;
+
+      if (this._lastAutoPlayKey !== key) {
+        this._lastAutoPlayKey = key;
+        void this.playCardTts(this._card);
+      }
+    }
   }
 
   public hide(): void {
+    stopTts();
+
     Object.assign<CSSStyleDeclaration, Partial<CSSStyleDeclaration>>(this._root.style, {
       transition: this._disableFadeAnimation ? 'none' : 'opacity 200ms ease-in, visibility 20ms',
       opacity: '0',
@@ -216,6 +231,8 @@ export class Popup {
     this._showConjugations = await getConfiguration('showConjugations');
     this._showPitchDiagrams = await getConfiguration('showPitchDiagrams');
     this._disableHeadWordLink = await getConfiguration('disableHeadWordLink');
+    this._ttsVoice = await getConfiguration('ttsVoice');
+    this._ttsAutoPlay = await getConfiguration('ttsAutoPlay');
 
     this._popupWidth = await getConfiguration('popupWidth');
     this._popupHeight = await getConfiguration('popupHeight');
@@ -729,7 +746,13 @@ export class Popup {
       createElement('div', {
         id: 'header',
         class: 'subsection',
-        children: [this.getReadingBlock(card), this.getCardStateBlock(card)],
+        children: [
+          createElement('div', {
+            id: 'headword',
+            children: [this.getReadingBlock(card), this.getTtsButton(card)],
+          }),
+          this.getCardStateBlock(card),
+        ],
       }),
       createElement('div', {
         id: 'meta',
@@ -764,6 +787,43 @@ export class Popup {
     a.append(...nodes);
 
     return a;
+  }
+
+  private getTtsButton(card: JitenCard): HTMLElement {
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+
+    svg.setAttribute('viewBox', '0 0 24 24');
+
+    const path = document.createElementNS(ns, 'path');
+
+    path.setAttribute(
+      'd',
+      'M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 8.5v7a4.47 4.47 0 002.5-3.5zM14 3.23v2.06a7.007 7.007 0 010 13.42v2.06A9.005 9.005 0 0014 3.23z',
+    );
+
+    svg.appendChild(path);
+
+    const btn = createElement('a', {
+      id: 'tts-btn',
+      handler: (): void => void this.playCardTts(card, btn),
+    });
+
+    btn.appendChild(svg);
+
+    return btn;
+  }
+
+  private async playCardTts(card: JitenCard, btn?: HTMLElement): Promise<void> {
+    btn?.classList.add('playing');
+
+    try {
+      await playTts(card.wordId, card.readingIndex, this._ttsVoice);
+    } catch {
+      /* TTS errors are non-critical */
+    } finally {
+      btn?.classList.remove('playing');
+    }
   }
 
   private convertToRubyNodes(wordWithReading: string): Node[] {
