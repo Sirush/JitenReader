@@ -6,7 +6,7 @@ import { BackgroundCommandHandler } from '../lib/background-command-handler';
 export class FetchStudyDecksCommandHandler extends BackgroundCommandHandler<FetchStudyDecksCommand> {
   public readonly command = FetchStudyDecksCommand;
 
-  public async handle(): Promise<StudyDeckListItem[]> {
+  public handle(): Promise<StudyDeckListItem[]> {
     return fetchStudyDecks();
   }
 }

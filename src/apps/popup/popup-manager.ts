@@ -35,11 +35,16 @@ export class PopupManager {
   private _currentHover?: HTMLElement;
   private _currentSentence?: string;
 
-  private _observer = new MutationObserver((m) => {
-    // the parent of the currently hovered object is monitored.
-    // We want to hide the popup if the currently hovered object is removed from the DOM
-    if (m[0].removedNodes.length > 0 && m[0].removedNodes[0] === this._currentHover) {
-      this._popup.hide();
+  private _observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of mutation.removedNodes) {
+        if (node === this._currentHover || node.contains(this._currentHover!)) {
+          this._observer.disconnect();
+          this._popup.hide();
+
+          return;
+        }
+      }
     }
   });
 
@@ -120,6 +125,7 @@ export class PopupManager {
     this._currentHover = undefined;
     this._currentSentence = undefined;
 
+    this._observer.disconnect();
     this._keyManager.deactivate();
     this._miningActions.deactivate();
     this._rotationActions.deactivate();
@@ -152,6 +158,8 @@ export class PopupManager {
     }
 
     this._popup.show(this._currentHover, this._currentSentence);
+
+    this._observer.disconnect();
 
     if (this._currentHover.parentElement) {
       this._observer.observe(this._currentHover.parentElement, { childList: true });

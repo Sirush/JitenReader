@@ -14,6 +14,13 @@ export class EventCollection {
     this._map.set(event, listeners);
   }
 
+  public off<TEvent extends keyof LocalEvents>(
+    event: TEvent,
+    listener: LocalEventFunction<TEvent>,
+  ): void {
+    this._map.get(event)?.delete(listener);
+  }
+
   public emit<TEvent extends keyof LocalEvents>(
     event: TEvent,
     ...args: LocalEventArgs<TEvent>

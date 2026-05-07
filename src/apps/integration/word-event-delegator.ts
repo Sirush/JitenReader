@@ -7,6 +7,7 @@ export class WordEventDelegator {
   private _initialised = false;
   private _sentenceMap = new WeakMap<Element, string | undefined>();
 
+  private _broadcastDisposer?: () => void;
   private _touchscreenLongPress = false;
   private _touchscreenLongPressDuration = 250;
   private _longPressTimer: ReturnType<typeof setTimeout> | null = null;
@@ -29,7 +30,7 @@ export class WordEventDelegator {
 
     this._initialised = true;
 
-    onBroadcastMessage(
+    this._broadcastDisposer = onBroadcastMessage(
       'configurationUpdated',
       async () => {
         this._touchscreenLongPress = await getConfiguration('touchscreenLongPress');
@@ -51,6 +52,9 @@ export class WordEventDelegator {
     if (!this._initialised) {
       return;
     }
+
+    this._broadcastDisposer?.();
+    this._broadcastDisposer = undefined;
 
     document.removeEventListener('mouseenter', this.handleMouseEnter, true);
     document.removeEventListener('mouseleave', this.handleMouseLeave, true);

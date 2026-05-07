@@ -17,15 +17,17 @@ export class SatoriReaderParser extends AutomaticParser {
     this.desktop.setMode(true);
     this.mobile.setMode(true);
 
-    onBroadcastMessage(
-      'configurationUpdated',
-      async () => {
-        const touchActive = await getConfiguration('touchscreenSupport');
+    this._disposers.push(
+      onBroadcastMessage(
+        'configurationUpdated',
+        async () => {
+          const touchActive = await getConfiguration('touchscreenSupport');
 
-        this.desktop.setDisplay(touchActive);
-        this.mobile.setDisplay(touchActive);
-      },
-      true,
+          this.desktop.setDisplay(touchActive);
+          this.mobile.setDisplay(touchActive);
+        },
+        true,
+      ),
     );
   }
 

@@ -18,7 +18,7 @@ export class TriggerParser extends BaseParser {
   });
 
   public override destroy(): void {
-    this._parseKeyManager.deactivate();
+    this._parseKeyManager.destroy();
     this._buttonRoot.remove();
     super.destroy();
   }
@@ -28,35 +28,40 @@ export class TriggerParser extends BaseParser {
 
     this._parseKeyManager.activate();
 
-    Registry.events.on('parseKey', () => {
-      this.initParse();
-    });
+    const parseKeyHandler = (): void => this.initParse();
 
-    receiveBackgroundMessage('parsePage', () => this.parsePage());
-    receiveBackgroundMessage('parseSelection', () => this.parseSelection());
+    Registry.events.on('parseKey', parseKeyHandler);
+    this._disposers.push(() => Registry.events.off('parseKey', parseKeyHandler));
 
-    onBroadcastMessage(
-      'configurationUpdated',
-      async () => {
-        const show = await getConfiguration('showParseButton');
-        const paused = await getParsingPaused();
+    this._disposers.push(receiveBackgroundMessage('parsePage', () => this.parsePage()));
+    this._disposers.push(receiveBackgroundMessage('parseSelection', () => this.parseSelection()));
 
-        this._buttonRoot.style.display = show && !paused ? 'block' : 'none';
-      },
-      true,
+    this._disposers.push(
+      onBroadcastMessage(
+        'configurationUpdated',
+        async () => {
+          const show = await getConfiguration('showParseButton');
+          const paused = await getParsingPaused();
+
+          this._buttonRoot.style.display = show && !paused ? 'block' : 'none';
+        },
+        true,
+      ),
     );
 
-    onBroadcastMessage('parsingPaused', async (paused: boolean) => {
-      if (paused) {
-        this._buttonRoot.style.display = 'none';
-        this._parseKeyManager.deactivate();
-      } else {
-        const show = await getConfiguration('showParseButton');
+    this._disposers.push(
+      onBroadcastMessage('parsingPaused', async (paused: boolean) => {
+        if (paused) {
+          this._buttonRoot.style.display = 'none';
+          this._parseKeyManager.deactivate();
+        } else {
+          const show = await getConfiguration('showParseButton');
 
-        this._buttonRoot.style.display = show ? 'block' : 'none';
-        this._parseKeyManager.activate();
-      }
-    });
+          this._buttonRoot.style.display = show ? 'block' : 'none';
+          this._parseKeyManager.activate();
+        }
+      }),
+    );
 
     void Promise.all([isDisabled(window.location.href), getParsingPaused()]).then(
       ([disabled, paused]) => {

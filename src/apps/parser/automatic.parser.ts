@@ -8,17 +8,20 @@ import { BaseParser } from './base.parser';
 export class AutomaticParser extends BaseParser {
   protected _visibleObserver: IntersectionObserver | undefined;
   protected _addedObserver: MutationObserver | undefined;
+  private _lazyDetectTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(meta: HostMeta) {
     super(meta);
 
-    onBroadcastMessage('parsingPaused', (paused: boolean) => {
-      if (paused) {
-        this.disconnectObservers();
-      } else {
-        this.reconnectObservers();
-      }
-    });
+    this._disposers.push(
+      onBroadcastMessage('parsingPaused', (paused: boolean) => {
+        if (paused) {
+          this.disconnectObservers();
+        } else {
+          this.reconnectObservers();
+        }
+      }),
+    );
 
     setTimeout(() => {
       void getParsingPaused().then((paused) => {
@@ -69,6 +72,11 @@ export class AutomaticParser extends BaseParser {
 
     this._visibleObserver?.disconnect();
     this._addedObserver?.disconnect();
+
+    if (this._lazyDetectTimer !== undefined) {
+      clearTimeout(this._lazyDetectTimer);
+      this._lazyDetectTimer = undefined;
+    }
   }
 
   protected reconnectObservers(): void {
@@ -123,14 +131,13 @@ export class AutomaticParser extends BaseParser {
    * If not, the elements will be parsed immediately.
    */
   protected setupAddedObserver(): void {
-    this._addedObserver = this.getAddedObserver(
-      this._meta.addedObserver!.observeFrom ?? 'body',
-      this._meta.addedObserver!.notifyFor,
-      this._meta.addedObserver!.checkNested,
-      this._meta.addedObserver!.config ?? { childList: true, subtree: true },
-      (nodes) => this.addedObserverCallback(nodes),
-      (nodes) => this.removedObserverCallback(nodes),
-    );
+    if (this._meta.addedObserver!.lazy) {
+      this.pollForLazyTarget();
+
+      return;
+    }
+
+    this.installFullAddedObserver();
   }
 
   /**
@@ -157,5 +164,40 @@ export class AutomaticParser extends BaseParser {
     }
 
     nodes.forEach((node) => this._visibleObserver?.unobserve(node));
+  }
+
+  private installFullAddedObserver(): void {
+    this._addedObserver = this.getAddedObserver(
+      this._meta.addedObserver!.observeFrom ?? 'body',
+      this._meta.addedObserver!.notifyFor,
+      this._meta.addedObserver!.checkNested,
+      this._meta.addedObserver!.config ?? { childList: true, subtree: true },
+      (nodes) => this.addedObserverCallback(nodes),
+      (nodes) => this.removedObserverCallback(nodes),
+    );
+  }
+
+  private pollForLazyTarget(): void {
+    const selector = this._meta.addedObserver!.notifyFor;
+
+    const check = (): void => {
+      if (this._destroyed) {
+        return;
+      }
+
+      const found = document.querySelector(selector);
+
+      if (found) {
+        debug('AutomaticParser: Lazy target detected, installing full observer');
+        this._lazyDetectTimer = undefined;
+        this.installFullAddedObserver();
+
+        return;
+      }
+
+      this._lazyDetectTimer = setTimeout(check, 2000);
+    };
+
+    check();
   }
 }

@@ -1,4 +1,4 @@
-import { getHostMeta } from '@shared/host-meta/get-host-meta';
+import { filterHostMeta, resolveMatchingHosts } from '@shared/host-meta/get-host-meta';
 import { HostMeta } from '@shared/host-meta/types';
 
 export class HostEvaluator {
@@ -80,29 +80,27 @@ export class HostEvaluator {
   }
 
   public async load(): Promise<HostEvaluator> {
-    this._targetedTriggerMeta = await getHostMeta(
-      this._host,
-      'targetedTrigger',
+    const enabledHosts = await resolveMatchingHosts(this._host);
+
+    this._targetedTriggerMeta = filterHostMeta(
+      enabledHosts,
       ({ auto, host, allFrames }) =>
         !auto && host !== '<all_urls>' && (allFrames || this._isMainFrame),
     );
-    this._targetedAutomaticMeta = await getHostMeta(
-      this._host,
-      'targetedAutomatic',
+    this._targetedAutomaticMeta = filterHostMeta(
+      enabledHosts,
       ({ auto, host, allFrames }) =>
         auto && host !== '<all_urls>' && (allFrames || this._isMainFrame),
       true,
     );
 
-    this._defaultTriggerMeta = await getHostMeta(
-      this._host,
-      'defaultTrigger',
+    this._defaultTriggerMeta = filterHostMeta(
+      enabledHosts,
       ({ auto, host, allFrames }) =>
         auto === false && host === '<all_urls>' && (allFrames || this._isMainFrame),
     );
-    this._defaultAutomaticMeta = await getHostMeta(
-      this._host,
-      'defaultAutomatic',
+    this._defaultAutomaticMeta = filterHostMeta(
+      enabledHosts,
       ({ auto, host, allFrames }) =>
         auto && host === '<all_urls>' && (allFrames || this._isMainFrame),
       true,

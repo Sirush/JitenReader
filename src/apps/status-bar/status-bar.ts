@@ -365,18 +365,18 @@ export class StatusBar {
     this._newEl.innerText = this._stats.new.toString();
     this._dueEl.innerText = this._stats.due.toString();
 
-    this.updateBadge();
+    this.updateBadge(coverageStats);
   }
 
-  private updateBadge(): void {
+  private updateBadge(coverage?: CoverageStats): void {
     if (!this._showBadge || !this._hasContent) {
       new UpdateBadgeCommand(null).send();
 
       return;
     }
 
-    const coverage = calculateCoverageFromDOM();
-    const comprehension = calculateComprehension(coverage);
+    const coverageStats = coverage ?? calculateCoverageFromDOM();
+    const comprehension = calculateComprehension(coverageStats);
 
     new UpdateBadgeCommand(comprehension).send();
   }

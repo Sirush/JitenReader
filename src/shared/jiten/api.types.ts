@@ -55,7 +55,7 @@ export type JitenErrorResponse = {
   error_message: string;
 };
 
-export type JPDBEndpoints = {
+export type JitenEndpoints = {
   'reader/ping': [Empty, void];
   'reader/parse': [JitenParseRequest, JitenParseResult];
   'srs/review': [JitenReviewRequest, void];

@@ -1,7 +1,7 @@
 import { JitenToken } from '@shared/jiten/types';
 import { Fragment, Paragraph } from '../../batches/types';
-import { TtsuParagraphReader } from '../../paragraph-reader/ttsu.paragraph-reader';
 import { Registry } from '../../integration/registry';
+import { TtsuParagraphReader } from '../../paragraph-reader/ttsu.paragraph-reader';
 import { AutomaticParser } from '../automatic.parser';
 import { TtsuTextHighlighter } from './ttsu-text-highlighter';
 

@@ -1,12 +1,12 @@
 import { getConfiguration } from '../configuration/get-configuration';
-import { JPDBEndpoints, JitenRequestOptions } from './api.types';
+import { JitenEndpoints, JitenRequestOptions } from './api.types';
 import { requestByUrl } from './request-by-url';
 
-export const request = async <Key extends keyof JPDBEndpoints>(
+export const request = async <Key extends keyof JitenEndpoints>(
   action: Key,
-  params: JPDBEndpoints[Key][0] | undefined,
+  params: JitenEndpoints[Key][0] | undefined,
   options?: JitenRequestOptions,
-): Promise<JPDBEndpoints[Key][1]> => {
+): Promise<JitenEndpoints[Key][1]> => {
   const baseUrl = await getConfiguration('jitenApiEndpoint');
 
   return await requestByUrl(baseUrl, action, params, options);

@@ -1,54 +1,26 @@
 import { getConfiguration } from '../configuration/get-configuration';
-import { debug } from '../debug';
 import { displayToast } from '../dom/display-toast';
 import { matchUrl } from '../match-url';
 import { DEFAULT_HOSTS } from './default-hosts';
 import { AdditionalHostMeta, HostMeta, PredefinedHostMeta } from './types';
 
-export function getHostMeta(
-  host: string,
-  role: string,
-  filter?: (meta: HostMeta) => boolean,
-  multiple?: false,
-): Promise<HostMeta | undefined>;
-export function getHostMeta(
-  host: string,
-  role: string,
-  filter: (meta: HostMeta) => boolean,
-  multiple: true,
-): Promise<HostMeta[]>;
+const isPredefined = (meta: HostMeta): meta is PredefinedHostMeta => 'id' in meta;
 
-export async function getHostMeta(
-  host: string,
-  role: string,
-  filter: (meta: HostMeta) => boolean = (): boolean => true,
-  multiple?: boolean,
-): Promise<HostMeta[] | HostMeta | undefined> {
-  const disabledHosts = await getConfiguration('disabledParsers');
-  const additionalHosts = await getConfiguration('additionalHosts');
-  const additionalMeta = await getConfiguration('additionalMeta');
-  const hostsMeta: HostMeta[] = DEFAULT_HOSTS;
-
-  const isPredefined = (meta: HostMeta): meta is PredefinedHostMeta => 'id' in meta;
-
-  debug(
-    `[${role}] getHostMeta called with host: ${host}`,
-    'filter:',
-    filter,
-    'multiple:',
-    multiple,
-  );
-
+export async function resolveMatchingHosts(host: string): Promise<HostMeta[]> {
   if (!host?.length) {
-    debug(`[${role}] getHostMeta called with empty host string`);
-
-    return multiple ? [] : undefined;
+    return [];
   }
+
+  const [disabledHosts, additionalHosts, additionalMeta] = await Promise.all([
+    getConfiguration('disabledParsers'),
+    getConfiguration('additionalHosts'),
+    getConfiguration('additionalMeta'),
+  ]);
+
+  const hostsMeta: HostMeta[] = [...DEFAULT_HOSTS];
 
   try {
     const meta = JSON.parse(additionalMeta?.length ? additionalMeta : '[]') as HostMeta[];
-
-    debug(`[${role}] Loaded additional meta:`, meta);
 
     hostsMeta.push(
       ...meta.map(
@@ -81,7 +53,7 @@ export async function getHostMeta(
     );
   } catch (e) {
     // eslint-disable-next-line no-console
-    console.error(`[${role}] Failed to parse additional meta:`, e);
+    console.error('Failed to parse additional meta:', e);
 
     displayToast(
       'error',
@@ -95,17 +67,14 @@ export async function getHostMeta(
     .replace(/\r\n?/g, ' ')
     .split(/[\s;,]/)
     .filter(Boolean)
-    .forEach((host) => {
-      const additionalHostObject: AdditionalHostMeta = {
-        host,
+    .forEach((h) => {
+      hostsMeta.push({
+        host: h,
         auto: true,
         allFrames: true,
         parse: 'body',
         parserClass: 'custom-parser',
-      };
-
-      debug(`[${role}] Adding additional host:`, additionalHostObject);
-      hostsMeta.push(additionalHostObject);
+      } satisfies AdditionalHostMeta);
     });
 
   const hostFilter = (meta: HostMeta): boolean => {
@@ -120,10 +89,23 @@ export async function getHostMeta(
     return Array.isArray(meta.host) ? meta.host.some(isMatch) : isMatch(meta.host);
   };
 
-  const enabledHosts = hostsMeta.filter(hostFilter);
-  const result = multiple ? enabledHosts.filter(filter) : enabledHosts.find(filter);
+  return hostsMeta.filter(hostFilter);
+}
 
-  debug(`[${role}] getHostMeta result:`, { host, result });
-
-  return result;
+export function filterHostMeta(
+  enabledHosts: HostMeta[],
+  filter: (meta: HostMeta) => boolean,
+  multiple?: false,
+): HostMeta | undefined;
+export function filterHostMeta(
+  enabledHosts: HostMeta[],
+  filter: (meta: HostMeta) => boolean,
+  multiple: true,
+): HostMeta[];
+export function filterHostMeta(
+  enabledHosts: HostMeta[],
+  filter: (meta: HostMeta) => boolean,
+  multiple?: boolean,
+): HostMeta[] | HostMeta | undefined {
+  return multiple ? enabledHosts.filter(filter) : enabledHosts.find(filter);
 }

@@ -235,6 +235,7 @@ export const DEFAULT_HOSTS: PredefinedHostMeta[] = [
     parserClass: 'asb-player-parser',
     addedObserver: {
       notifyFor: '.asbplayer-offscreen',
+      lazy: true,
     },
   },
   {

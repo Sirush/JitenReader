@@ -1,7 +1,8 @@
-import { getHostMeta } from './get-host-meta';
+import { filterHostMeta, resolveMatchingHosts } from './get-host-meta';
 
 export const isDisabled = async (host: string): Promise<boolean> => {
-  const meta = await getHostMeta(host, 'isDisabled', ({ host }) => host !== '<all_urls>');
+  const enabledHosts = await resolveMatchingHosts(host);
+  const meta = filterHostMeta(enabledHosts, ({ host }) => host !== '<all_urls>');
 
   if (!meta) {
     return false;

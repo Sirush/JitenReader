@@ -44,6 +44,6 @@ export class ParseCommandHandler extends BackgroundCommandHandler<ParseCommand> 
     const generatedCSS = generateWordStyleCSS(wordStyleConfig);
     const customWordCSS = await getConfiguration('customWordCSS');
 
-    await injectStyle(tabId, 'word', `${themeVars}\n${generatedCSS}\n${customWordCSS}`);
+    await injectStyle(tabId, undefined, `${themeVars}\n${generatedCSS}\n${customWordCSS}`);
   }
 }

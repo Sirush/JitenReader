@@ -2,6 +2,27 @@ import { DisplayCategory, Fragment, Paragraph } from '../batches/types';
 import { BaseParagraphReader } from './base.paragraph-reader';
 
 export class ParagraphReader extends BaseParagraphReader {
+  private static readonly _skipTags = new Set([
+    'SCRIPT',
+    'STYLE',
+    'NOSCRIPT',
+    'TEMPLATE',
+    'SVG',
+    'CANVAS',
+    'VIDEO',
+    'AUDIO',
+    'IMG',
+    'IFRAME',
+    'OBJECT',
+    'EMBED',
+    'BR',
+    'HR',
+    'INPUT',
+    'TEXTAREA',
+    'SELECT',
+    'BUTTON',
+  ]);
+
   private _styleCache = new Map<Element, CSSStyleDeclaration>();
 
   public read(): Paragraph[] {
@@ -132,6 +153,28 @@ export class ParagraphReader extends BaseParagraphReader {
     }
 
     if (node instanceof Element) {
+      const { tagName } = node;
+
+      if (tagName === 'RUBY') {
+        return 'ruby';
+      }
+
+      if (tagName === 'RP') {
+        return 'none';
+      }
+
+      if (tagName === 'RT') {
+        return 'ruby-text';
+      }
+
+      if (tagName === 'RB') {
+        return 'inline';
+      }
+
+      if (ParagraphReader._skipTags.has(tagName)) {
+        return 'none';
+      }
+
       let style = this._styleCache.get(node);
 
       if (!style) {
@@ -143,22 +186,6 @@ export class ParagraphReader extends BaseParagraphReader {
 
       if (first === 'none') {
         return 'none';
-      }
-
-      if (node.tagName === 'RUBY') {
-        return 'ruby';
-      }
-
-      if (node.tagName === 'RP') {
-        return 'none';
-      }
-
-      if (node.tagName === 'RT') {
-        return 'ruby-text';
-      }
-
-      if (node.tagName === 'RB') {
-        return 'inline';
       }
 
       if (display.some((x) => x.startsWith('block'))) {

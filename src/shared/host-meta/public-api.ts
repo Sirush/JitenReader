@@ -31,6 +31,12 @@ export type AddedObserverOptions = {
    * @default { childList: true, subtree: true }
    */
   config?: MutationObserverInit;
+
+  /**
+   * When true, delays installing the MutationObserver until the target element is detected via idle polling.
+   * Avoids a permanent subtree observer on body for parsers that rarely activate.
+   */
+  lazy?: boolean;
 };
 
 /**

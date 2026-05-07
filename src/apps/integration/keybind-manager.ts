@@ -19,11 +19,17 @@ export class KeybindManager {
   private _keydown?: (e: MouseEvent | KeyboardEvent) => void;
   private _keyup?: (e: MouseEvent | KeyboardEvent) => void;
 
+  private _broadcastDisposer: () => void;
+
   constructor(
     private _events: KeybindKey[],
     extraListeners?: Partial<Record<'keydown' | 'keyup', (e: MouseEvent | KeyboardEvent) => void>>,
   ) {
-    onBroadcastMessage('configurationUpdated', () => this.buildKeyMap(), true);
+    this._broadcastDisposer = onBroadcastMessage(
+      'configurationUpdated',
+      () => this.buildKeyMap(),
+      true,
+    );
 
     this._keydown = extraListeners?.keydown;
     this._keyup = extraListeners?.keyup;
@@ -69,6 +75,11 @@ export class KeybindManager {
 
     window.removeEventListener('keyup', this._upListener);
     window.removeEventListener('mouseup', this._upListener);
+  }
+
+  public destroy(): void {
+    this.deactivate();
+    this._broadcastDisposer();
   }
 
   private async buildKeyMap(): Promise<void> {

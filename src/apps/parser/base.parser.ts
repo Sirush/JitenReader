@@ -9,6 +9,7 @@ export abstract class BaseParser {
   protected _hasInjectedClass = false;
   protected getParagraphsFn?: typeof getParagraphs;
   protected _nodeRemovalObservers: MutationObserver[] = [];
+  protected _disposers: (() => void)[] = [];
 
   /** The root element to parse */
   protected get root(): HTMLElement | null {
@@ -38,6 +39,8 @@ export abstract class BaseParser {
     this._destroyed = true;
     this._nodeRemovalObservers.forEach((observer) => observer.disconnect());
     this._nodeRemovalObservers = [];
+    this._disposers.forEach((dispose) => dispose());
+    this._disposers = [];
   }
 
   /**

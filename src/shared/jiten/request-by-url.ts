@@ -1,6 +1,6 @@
 import { getConfiguration } from '../configuration/get-configuration';
 import { displayToast } from '../dom/display-toast';
-import { JPDBEndpoints, JitenErrorResponse, JitenRequestOptions } from './api.types';
+import { JitenEndpoints, JitenErrorResponse, JitenRequestOptions } from './api.types';
 
 const REQUEST_TIMEOUT_MS = 30_000;
 const MAX_RETRIES = 3;
@@ -18,12 +18,12 @@ const isRetryable = (error: unknown, response?: Response): boolean => {
   return status === 429 || status >= 500;
 };
 
-export const requestByUrl = async <Key extends keyof JPDBEndpoints>(
+export const requestByUrl = async <Key extends keyof JitenEndpoints>(
   baseUrl = 'https://api.jiten.moe',
   action: Key,
-  params: JPDBEndpoints[Key][0] | undefined,
+  params: JitenEndpoints[Key][0] | undefined,
   options?: JitenRequestOptions,
-): Promise<JPDBEndpoints[Key][1]> => {
+): Promise<JitenEndpoints[Key][1]> => {
   const apiToken = options?.apiToken || (await getConfiguration('jitenApiKey'));
 
   if (!apiToken?.length) {
@@ -73,13 +73,13 @@ export const requestByUrl = async <Key extends keyof JPDBEndpoints>(
       continue;
     }
 
-    const responseObject = (await response.json()) as JitenErrorResponse | JPDBEndpoints[Key][1];
+    const responseObject = (await response.json()) as JitenErrorResponse | JitenEndpoints[Key][1];
 
     if ('error_message' in (responseObject as JitenErrorResponse)) {
       throw new Error((responseObject as JitenErrorResponse).error_message);
     }
 
-    return responseObject as JPDBEndpoints[Key][1];
+    return responseObject as JitenEndpoints[Key][1];
   }
 
   throw lastError;
