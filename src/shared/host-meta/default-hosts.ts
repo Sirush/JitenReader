@@ -144,10 +144,6 @@ export const DEFAULT_HOSTS: PredefinedHostMeta[] = [
     optOut: true,
     allFrames: true,
     custom: 'MokuroParser',
-    parseVisibleObserver: true,
-    addedObserver: {
-      notifyFor: '#manga-panel',
-    },
   },
   {
     id: 'mokuro-legacy-parser',
