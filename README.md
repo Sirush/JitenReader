@@ -8,17 +8,22 @@ This extension is a fork of [Kagu-chan's Anki JPDB Reader](https://github.com/Ka
 
 ## Contents
 
-1. [Downloads](#downloads)
-2. [Features](#features)
-3. [Automatic parsing](#automatic-parsing)
-4. [Installation](#installation)
-5. [Setup](#setup)
-6. [Usage](#usage)
-7. [Customize parsing](#customize-parsing)
-8. [Customize text colors and furigana](#customize-text-colors-and-furigana)
-9. [Building](#building)
-10. [Contributing](#contributing)
-11. [License](#license)
+- [Jiten Reader](#jiten-reader)
+  - [Contents](#contents)
+  - [Downloads](#downloads)
+  - [Features](#features)
+    - [Please note:](#please-note)
+  - [Custom parsers](#custom-parsers)
+  - [Installation](#installation)
+    - [Chrome](#chrome)
+    - [Firefox](#firefox)
+  - [Setup](#setup)
+  - [Usage](#usage)
+  - [Customize parsing](#customize-parsing)
+  - [Customize text colors and furigana](#customize-text-colors-and-furigana)
+  - [Building](#building)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## Downloads
 
@@ -50,9 +55,10 @@ Some web apps and sites require special attention to work properly; therefore, t
 | App                                                  | URLs                                                                                                                                                                                                                                                                                       |
 |------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [ッツ Reader](https://github.com/ttu-ttu/ebook-reader) | [reader.ttsu.app](https://reader.ttsu.app), [ttu-ebook.web.app](https://ttu-ebook.web.app)                                                                                                                                                                                                 |
-| Yatsu Reader                                         | [app.yatsu.moe](https://app.yatsu.moe)                                                                                                                                                                                                                                                     |
-| Texthooker pages                                     | [anacreondjt texthooker](https://anacreondjt.gitlab.io/texthooker.html), [learnjapanese.moe texthooker](https://learnjapanese.moe/texthooker.html), [exSTATic tracker](https://kamwithk.github.io/exSTATic/tracker.html), [renji-xd texthooker](https://renji-xd.github.io/texthooker-ui/) |
 | Mokuro                                               | [reader.mokuro.app](https://reader.mokuro.app)                                                                                                                                                                                                                                             |
+| Manatan                                         | [manatan.com](https://manatan.com/)                                                                                                                                                                                                                                                     |
+| Yatsu Reader                                         | [app.yatsu.moe](https://app.yatsu.moe)                                                                                                                                                                                                                                                     |
+| Texthooker pages                                     | [anacreondjt texthooker](https://anacreondjt.gitlab.io/texthooker.html), [learnjapanese.moe texthooker](https://learnjapanese.moe/texthooker.html), [exSTATic tracker](https://kamwithk.github.io/exSTATic/tracker.html), [renji-xd texthooker](https://renji-xd.github.io/texthooker-ui/), [Kizuna Texthooker](https://kizuna-texthooker-ui.app) |
 | Mokuro (Legacy)                                      | [Mokuro](https://github.com/kha-white/mokuro): **IMPORTANT**: File path must contain `mokuro`, and file name must end in `.html`                                                                                                                                                           |
 | Readwok                                              | [app.readwok.com](https://app.readwok.com/)                                                                                                                                                                                                                                                |
 | Satori Reader                                        | [satorireader.com](https://www.satorireader.com/)                                                                                                                                                                                                                                          |
