@@ -7,6 +7,7 @@ import { displayToast } from '@shared/dom/display-toast';
 import { findElement } from '@shared/dom/find-element';
 import { withElement } from '@shared/dom/with-element';
 import { withElements } from '@shared/dom/with-elements';
+import { fetchStudyDecks } from '@shared/jiten/fetch-study-decks';
 import { ping } from '@shared/jiten/ping';
 import { ConfigurationUpdatedCommand } from '@shared/messages/broadcast/configuration-updated.command';
 import { ProfileSwitchedCommand } from '@shared/messages/broadcast/profile-switched.command';
@@ -174,6 +175,34 @@ withElements(
       });
   },
 );
+
+withElement('#jitenStudyDeckId', (select: HTMLSelectElement) => {
+  void (async (): Promise<void> => {
+    const apiKey = await getConfiguration('jitenApiKey');
+
+    if (!apiKey?.length) {
+      return;
+    }
+
+    try {
+      const decks = await fetchStudyDecks({ apiToken: apiKey });
+
+      for (const deck of decks) {
+        const option = document.createElement('option');
+
+        option.value = String(deck.userStudyDeckId);
+        option.textContent = deck.name;
+        select.appendChild(option);
+      }
+
+      const currentValue = await getConfiguration('jitenStudyDeckId');
+
+      select.value = String(currentValue);
+    } catch {
+      // API unreachable
+    }
+  })();
+});
 
 withElement('#apiKeyRevealButton', (button: HTMLInputElement) => {
   button.onclick = (): void => {

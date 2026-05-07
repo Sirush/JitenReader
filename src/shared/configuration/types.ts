@@ -25,6 +25,9 @@ export type ConfigurationSchema = {
   jitenDisableReviews: boolean;
   jitenUseTwoGrades: boolean;
 
+  jitenMineToStudyDeck: boolean;
+  jitenStudyDeckId: string;
+
   // Jiten Flag settings
   jitenRotateFlags: boolean;
   jitenRotateCycle: boolean;
@@ -110,6 +113,7 @@ export type ConfigurationSchema = {
   lookupSelectionKey: Keybinds;
 
   // Mining keybinds
+  addToStudyDeckKey: Keybinds;
   addToMiningKey: Keybinds;
   addToBlacklistKey: Keybinds;
   addToNeverForgetKey: Keybinds;

@@ -1,3 +1,4 @@
+import { formatSentenceWithMarkers } from '@shared/format-sentence';
 import { JitenCard, JitenCardState } from '@shared/jiten/types';
 import { RunDeckActionCommand } from '@shared/messages/background/run-deck-action.command';
 import { KeybindManager } from '../../integration/keybind-manager';
@@ -12,6 +13,7 @@ export class MiningActions {
   };
 
   private _keyManager = new KeybindManager([
+    'addToStudyDeckKey',
     'addToMiningKey',
     'addToBlacklistKey',
     'addToNeverForgetKey',
@@ -21,6 +23,7 @@ export class MiningActions {
 
   private _card?: JitenCard;
   private _sentence?: string;
+  private _surfaceForm?: string;
 
   private _pendingCard?: JitenCard;
   private _originalCardState?: JitenCardState[];
@@ -29,6 +32,7 @@ export class MiningActions {
   constructor(private _controller: MiningController) {
     const { events } = Registry;
 
+    events.on('addToStudyDeckKey', () => this.mineToStudyDeck());
     events.on('addToMiningKey', () => this.addToDeck('mining'));
     events.on('addToBlacklistKey', () => this.addToDeck('blacklist'));
     events.on('addToNeverForgetKey', () => this.addToDeck('neverForget'));
@@ -39,14 +43,35 @@ export class MiningActions {
   public activate(context: HTMLElement, sentence?: string): void {
     this._card = Registry.getCardFromElement(context);
     this._sentence = sentence;
+    this._surfaceForm = MiningActions.getTextWithoutFurigana(context) || undefined;
     this._keyManager.activate();
   }
 
   public deactivate(): void {
     this._card = undefined;
     this._sentence = undefined;
+    this._surfaceForm = undefined;
 
     this._keyManager.deactivate();
+  }
+
+  private mineToStudyDeck(): void {
+    if (!this._card) {
+      return;
+    }
+
+    const deckId = Number(this._controller.studyDeckId);
+
+    if (!deckId || !this._controller.autoMineToStudyDeck) {
+      return;
+    }
+
+    const sentence =
+      this._sentence && this._surfaceForm
+        ? formatSentenceWithMarkers(this._sentence, this._surfaceForm)
+        : undefined;
+
+    this._controller.addToStudyDeck(deckId, this._card, sentence, document.title);
   }
 
   private addToDeck(key: 'mining' | 'blacklist' | 'neverForget' | 'suspend'): void {
@@ -155,5 +180,19 @@ export class MiningActions {
     };
 
     executeInstructions(0);
+  }
+
+  private static getTextWithoutFurigana(element: HTMLElement): string {
+    let text = '';
+
+    for (const node of element.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        text += node.textContent;
+      } else if (node instanceof HTMLElement && node.tagName !== 'RT') {
+        text += MiningActions.getTextWithoutFurigana(node);
+      }
+    }
+
+    return text;
   }
 }

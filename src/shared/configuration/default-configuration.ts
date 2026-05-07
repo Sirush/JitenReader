@@ -19,9 +19,12 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   //#region Mining configuration
 
   jitenAddToForq: false,
-  setSentences: false,
+  setSentences: true,
   jitenDisableReviews: false,
   jitenUseTwoGrades: false,
+
+  jitenMineToStudyDeck: false,
+  jitenStudyDeckId: '',
 
   // JPDB Flag settings
   jitenRotateFlags: false,
@@ -108,6 +111,7 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   lookupSelectionKey: [{ key: 'L', code: 'KeyL', modifiers: ['Alt'] }],
 
   // Mining keybinds
+  addToStudyDeckKey: [],
   addToMiningKey: [],
   addToBlacklistKey: [],
   addToNeverForgetKey: [],

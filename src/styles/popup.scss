@@ -61,6 +61,7 @@
             }
           }
         }
+
       }
 
       &#grading {
@@ -332,6 +333,68 @@
         }
 
         &:hover {
+          filter: none;
+        }
+
+        &:active {
+          filter: none;
+          transform: scale(0.97);
+        }
+      }
+    }
+  }
+}
+
+#deck-picker-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2147483647;
+
+  #deck-picker-dialog {
+    background-color: map.get(colors.$colors, background-color);
+    border-radius: 0.5em;
+    padding: 1em;
+    min-width: 200px;
+    max-width: 300px;
+    box-shadow: 5px 5px 15px 0px rgba(0, 0, 0, 0.5);
+
+    #deck-picker-title {
+      color: map.get(colors.$colors, text-color);
+      margin: 0 0 0.75em 0;
+      font-size: 0.9em;
+      font-weight: 500;
+    }
+
+    #deck-picker-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4em;
+
+      $deck-color: var(--jiten-accent, #D8B9FA);
+
+      a.outline {
+        font-size: 0.8em;
+        padding: 0.5em 0.8em;
+        border-radius: 4px;
+        font-weight: 500;
+        cursor: pointer;
+        text-align: left;
+        transition: background-color 0.15s ease, border-color 0.15s ease;
+        color: $deck-color;
+        border-color: color-mix(in srgb, $deck-color 35%, #171717);
+        background-color: color-mix(in srgb, $deck-color 12%, #171717);
+        box-shadow: none;
+
+        &:hover {
+          background-color: color-mix(in srgb, $deck-color 22%, #171717);
+          border-color: color-mix(in srgb, $deck-color 55%, #171717);
           filter: none;
         }
 

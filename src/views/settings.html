@@ -30,6 +30,7 @@
       <a href="#theme">Appearance</a>
       <a href="#text-highlighting" data-show="jitenApiKey">Text Highlighting</a>
       <a href="#popup" data-show="jitenApiKey">Popup</a>
+      <a href="#mining" data-show="jitenApiKey">Mining</a>
       <a href="#keybinds" data-show="jitenApiKey">Keybinds</a>
       <a href="#status-bar" data-show="jitenApiKey">Status Bar</a>
       <a href="#parsing" data-show="jitenApiKey">Parsing</a>
@@ -410,22 +411,6 @@
 
             <div>
               <div class="checkbox">
-                <input type="checkbox" id="showMiningActions" name="showMiningActions" />
-                <label for="showMiningActions">Show mining controls in the popup</label>
-              </div>
-            </div>
-
-            <div data-show="showMiningActions" id="moveMiningDown" indent>
-              <div class="checkbox">
-                <input type="checkbox" id="moveMiningActions" name="moveMiningActions" />
-                <label for="moveMiningActions"
-                >Move Mining actions to the bottom of the popup</label
-                >
-              </div>
-            </div>
-
-            <div>
-              <div class="checkbox">
                 <input type="checkbox" id="jitenDisableReviews" name="jitenDisableReviews" />
                 <label for="jitenDisableReviews">Disable review actions</label>
               </div>
@@ -547,6 +532,52 @@
         </div>
       </div>
 
+      <div id="mining" class="section" data-show="jitenApiKey">
+        <h6>Mining</h6>
+        <div class="form-box-parent">
+          <div class="form-box">
+            <div>
+              <div class="checkbox">
+                <input type="checkbox" id="showMiningActions" name="showMiningActions" />
+                <label for="showMiningActions">Show mining controls in the popup</label>
+              </div>
+            </div>
+
+            <div data-show="showMiningActions" indent>
+              <div class="checkbox">
+                <input type="checkbox" id="moveMiningActions" name="moveMiningActions" />
+                <label for="moveMiningActions"
+                >Move mining actions to the bottom of the popup</label
+                >
+              </div>
+            </div>
+
+            <div>
+              <label for="jitenStudyDeckId">Target word list</label>
+              <select id="jitenStudyDeckId" name="jitenStudyDeckId">
+                <option value="">None</option>
+              </select>
+              <p style="opacity: 0.8" indent up>
+                Select a word list deck to mine words into. Word list decks can be
+                created on jiten.moe.
+              </p>
+            </div>
+
+            <div data-show="jitenStudyDeckId" indent>
+              <div class="checkbox">
+                <input type="checkbox" id="jitenMineToStudyDeck" name="jitenMineToStudyDeck" />
+                <label for="jitenMineToStudyDeck">Auto-mine to selected word list</label>
+              </div>
+              <p style="opacity: 0.8" indent up>
+                When enabled, the + button mines directly to your selected deck.
+                When disabled, it shows a deck picker each time.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
       <div id="keybinds" class="section" data-show="jitenApiKey">
         <h6>Keybinds</h6>
         <details class="accordion">
@@ -598,6 +629,11 @@
               id="showAdvancedDialogKey"
               name="showAdvancedDialogKey"
             ></keybind-input>
+          </div>
+
+          <div>
+            <label for="addToStudyDeckKey">Add to word list</label>
+            <keybind-input id="addToStudyDeckKey" name="addToStudyDeckKey"></keybind-input>
           </div>
 
           <div>

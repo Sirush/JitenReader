@@ -1,10 +1,14 @@
 import { getConfiguration } from '@shared/configuration/get-configuration';
 import { setConfiguration } from '@shared/configuration/set-configuration';
 import { createElement } from '@shared/dom/create-element';
+import { displayToast } from '@shared/dom/display-toast';
 import { findElements } from '@shared/dom/find-elements';
 import { withElement } from '@shared/dom/with-element';
 import { getStyleUrl } from '@shared/extension/get-style-url';
+import { formatSentenceWithMarkers } from '@shared/format-sentence';
+import { StudyDeckListItem } from '@shared/jiten/api.types';
 import { JitenCard, JitenCardState } from '@shared/jiten/types';
+import { FetchStudyDecksCommand } from '@shared/messages/background/fetch-study-decks.command';
 import { ForgetCardCommand } from '@shared/messages/background/forget-card.command';
 import { UpdateCardStateCommand } from '@shared/messages/background/update-card-state.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
@@ -119,6 +123,7 @@ export class Popup {
   private _hideTimer?: NodeJS.Timeout;
   private _isHover?: boolean;
   private _isResizing = false;
+  private _shadowRoot?: ShadowRoot;
   private _confirmDialog?: ConfirmDialog;
   private _popupLeft = 0;
   private _popupTop = 0;
@@ -257,9 +262,9 @@ export class Popup {
    * Installs all components and initializes the shadow root
    */
   private renderNodes(): void {
-    const shadowRoot = this._root.attachShadow({ mode: 'closed' });
+    this._shadowRoot = this._root.attachShadow({ mode: 'closed' });
 
-    shadowRoot.append(
+    this._shadowRoot.append(
       createElement('link', { attributes: { rel: 'stylesheet', href: getStyleUrl('popup') } }),
       this._themeStyles,
       this._customStyles,
@@ -269,7 +274,7 @@ export class Popup {
     this._popup.appendChild(this._resizeHandle);
     this.initResize();
 
-    this._confirmDialog = new ConfirmDialog(shadowRoot, () => ({
+    this._confirmDialog = new ConfirmDialog(this._shadowRoot, () => ({
       x: this._popupLeft,
       y: this._popupTop,
     }));
@@ -510,6 +515,19 @@ export class Popup {
         handler: () => void this.handleForgetClick(),
       }),
     );
+
+    const deckId = Number(this._mining.studyDeckId);
+
+    if (deckId || !this._mining.autoMineToStudyDeck) {
+      this._mineButtons.appendChild(
+        createElement('a', {
+          id: 'add-to-deck',
+          class: ['outline', 'mining'],
+          innerText: 'Deck +',
+          handler: () => void this.handleAddToDeck(),
+        }),
+      );
+    }
   }
 
   private async handleForgetClick(): Promise<void> {
@@ -533,6 +551,151 @@ export class Popup {
     new ForgetCardCommand(wordId, readingIndex).send(() => {
       new UpdateCardStateCommand(wordId, readingIndex).send();
     });
+  }
+
+  private getFormattedSentence(): string | undefined {
+    if (!this._cardContext || !this._sentence) {
+      return undefined;
+    }
+
+    const surfaceForm = this.getTextWithoutFurigana(this._cardContext);
+
+    if (!surfaceForm) {
+      return undefined;
+    }
+
+    return formatSentenceWithMarkers(this._sentence, surfaceForm);
+  }
+
+  private getTextWithoutFurigana(element: HTMLElement): string {
+    let text = '';
+
+    for (const node of element.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        text += node.textContent;
+      } else if (node instanceof HTMLElement) {
+        if (node.tagName !== 'RT') {
+          text += this.getTextWithoutFurigana(node);
+        }
+      }
+    }
+
+    return text;
+  }
+
+  private async handleAddToDeck(): Promise<void> {
+    if (!this._card) {
+      return;
+    }
+
+    const deckId = Number(this._mining.studyDeckId);
+
+    if (this._mining.autoMineToStudyDeck && deckId) {
+      this._mining.addToStudyDeck(deckId, this._card, this.getFormattedSentence(), document.title);
+      this.toastDeckAction(undefined);
+
+      if (this._hideAfterAction) {
+        this.hide();
+      }
+
+      return;
+    }
+
+    try {
+      const decks = await new FetchStudyDecksCommand().call();
+
+      if (!decks?.length) {
+        return;
+      }
+
+      this.showDeckPicker(decks);
+    } catch {
+      // API unreachable
+    }
+  }
+
+  private showDeckPicker(decks: StudyDeckListItem[]): void {
+    if (!this._shadowRoot) {
+      return;
+    }
+
+    const existing = this._shadowRoot.getElementById('deck-picker-overlay');
+
+    if (existing) {
+      existing.remove();
+
+      return;
+    }
+
+    const formattedSentence = this.getFormattedSentence();
+    const source = document.title;
+    const openedAt = Date.now();
+
+    const close = (): void => overlay.remove();
+    const dismissIfReady = (): void => {
+      if (Date.now() - openedAt > 300) {
+        close();
+      }
+    };
+
+    const overlay = createElement('div', {
+      id: 'deck-picker-overlay',
+      events: {
+        onclick: dismissIfReady,
+        ontouchstart: (e: Event) => {
+          e.stopPropagation();
+          e.preventDefault();
+          dismissIfReady();
+        },
+      },
+    });
+
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+
+    const tx = scrollX - this._popupLeft;
+    const ty = scrollY - this._popupTop;
+
+    overlay.style.transform = `translate(${tx}px, ${ty}px)`;
+
+    const buttons = decks.map((deck) =>
+      createElement('a', {
+        class: ['outline', 'mining'],
+        innerText: deck.name,
+        handler: () => {
+          if (this._card) {
+            this._mining.addToStudyDeck(
+              deck.userStudyDeckId,
+              this._card,
+              formattedSentence,
+              source,
+            );
+            this.toastDeckAction(deck.name);
+
+            if (this._hideAfterAction) {
+              this.hide();
+            }
+          }
+
+          close();
+        },
+      }),
+    );
+
+    const dialog = createElement('div', {
+      id: 'deck-picker-dialog',
+      events: {
+        onclick: (e: Event) => e.stopPropagation(),
+        ontouchstart: (e: Event) => e.stopPropagation(),
+      },
+      children: [
+        createElement('p', { id: 'deck-picker-title', innerText: 'Add to deck' }),
+        createElement('div', { id: 'deck-picker-list', children: buttons }),
+      ],
+    });
+
+    overlay.appendChild(dialog);
+    this._shadowRoot.appendChild(overlay);
   }
 
   private addMiningButton(
@@ -1077,6 +1240,17 @@ export class Popup {
     return this._root.style.visibility === 'visible';
   }
 
+  private isDeckPickerOpen(): boolean {
+    return this._shadowRoot?.getElementById('deck-picker-overlay') !== null;
+  }
+
+  private toastDeckAction(deckName?: string): void {
+    const word = this._cardContext ? this.getTextWithoutFurigana(this._cardContext) : '';
+    const target = deckName ?? 'deck';
+
+    displayToast('success', `${word} added to ${target}`);
+  }
+
   private startHover(): void {
     if (!this.isVisibile()) {
       return;
@@ -1093,7 +1267,7 @@ export class Popup {
       return;
     }
 
-    if (this._isResizing || this._confirmDialog?.isOpen) {
+    if (this._isResizing || this._confirmDialog?.isOpen || this.isDeckPickerOpen()) {
       return;
     }
 

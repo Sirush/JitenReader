@@ -42,6 +42,11 @@ type JitenSetVocabularyStateRequest = {
 // };
 // export type JPDBRemoveVocabularyRequest = Pick<JPDBAddVocabularyRequest, 'id' | 'vocabulary'>;
 
+export type StudyDeckListItem = {
+  userStudyDeckId: number;
+  name: string;
+};
+
 export type JitenRequestOptions = {
   apiToken?: string;
 };
@@ -55,6 +60,7 @@ export type JPDBEndpoints = {
   'reader/parse': [JitenParseRequest, JitenParseResult];
   'srs/review': [JitenReviewRequest, void];
   'srs/set-vocabulary-state': [JitenSetVocabularyStateRequest, void];
+  'srs/reader-study-decks': [Empty, StudyDeckListItem[]];
   'reader/lookup-vocabulary': [JitenLookupVocabularyRequest, JitenLookupVocabularyResult];
   // 'deck/add-vocabulary': [JPDBAddVocabularyRequest, void];
   // 'deck/remove-vocabulary': [JPDBRemoveVocabularyRequest, void];
