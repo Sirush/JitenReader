@@ -10,6 +10,7 @@ import { MokuroParser } from './custom-parsers/mokuro.parser';
 import { ReadwokParser } from './custom-parsers/readwok.parser';
 import { SatoriReaderParser } from './custom-parsers/satori-reader.parser';
 import { TtsuParser } from './custom-parsers/ttsu.parser';
+import { YatsuParser } from './custom-parsers/yatsu.parser';
 
 export const getCustomParser = (
   name: Exclude<PredefinedHostMeta['custom'], undefined>,
@@ -26,6 +27,7 @@ export const getCustomParser = (
     MokuroLegacyParser,
     ReadwokParser,
     TtsuParser,
+    YatsuParser,
     ExStaticParser,
     SatoriReaderParser,
   };
