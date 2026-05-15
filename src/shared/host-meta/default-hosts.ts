@@ -202,6 +202,7 @@ export const DEFAULT_HOSTS: PredefinedHostMeta[] = [
       '.book-content-page-measure, [aria-hidden="true"], [data-yatsu-current-position-marker], [data-yatsu-bookmark-marker]',
     addedObserver: {
       notifyFor: 'div.book-content:not(.book-content-page-measure)',
+      checkNested: 'div',
     },
   },
   {

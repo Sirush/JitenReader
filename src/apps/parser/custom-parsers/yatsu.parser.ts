@@ -24,6 +24,19 @@ export class YatsuParser extends TtsuParser {
       return;
     }
 
-    this.setupChapterObservers(chapters);
+    if (chapters.length) {
+      this.setupChapterObservers(chapters);
+
+      return;
+    }
+
+    this._pageObserver = new MutationObserver(() => {
+      if (element.querySelector('.book-content-container')) {
+        this._pageObserver?.disconnect();
+        this.visibleObserverOnEnter(elements);
+      }
+    });
+
+    this._pageObserver.observe(element, { childList: true, subtree: true });
   }
 }
