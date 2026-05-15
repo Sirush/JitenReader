@@ -71,7 +71,7 @@ export class Popup {
       }),
     ],
   });
-  /** Contains the buttons to manage the card and its decks */
+  /** Contains the card action and mining buttons */
   private _mineButtons = createElement('section', { id: 'mining', class: ['controls'] });
   /** Contains the buttons to manage the card rotation */
   private _rotateButtons = createElement('section', { id: 'rotation', class: ['controls'] });
@@ -104,6 +104,7 @@ export class Popup {
   private _hideAfterAction: boolean;
   private _disableFadeAnimation: boolean;
   private _leftAlignPopupToWord: boolean;
+  private _showMiningActions: boolean;
   private _moveMiningActions: boolean;
   private _moveRotationActions: boolean;
   private _moveGradingActions: boolean;
@@ -230,6 +231,7 @@ export class Popup {
 
     this._renderCloseButton = await getConfiguration('renderCloseButton');
     this._touchscreenSupport = await getConfiguration('touchscreenSupport');
+    this._showMiningActions = await getConfiguration('showMiningActions');
     this._moveMiningActions = await getConfiguration('moveMiningActions');
     this._moveRotationActions = await getConfiguration('moveRotateActions');
     this._moveGradingActions = await getConfiguration('moveGradingActions');
@@ -482,8 +484,7 @@ export class Popup {
     const performDeckAction = (
       action: 'add' | 'remove',
       key: 'mining' | 'neverForget' | 'blacklist' | 'suspend',
-      sentence?: string,
-    ): void => this._mining.addOrRemove(action, key, this._card!, sentence);
+    ): void => this._mining.addOrRemove(action, key, this._card!, this._sentence);
     const performFlaggedDeckAction = (key: 'neverForget' | 'blacklist' | 'suspend'): void => {
       const action = this.cardHasState(key, this._card!) ? 'remove' : 'add';
 
@@ -491,11 +492,6 @@ export class Popup {
     };
 
     this._mineButtons.replaceChildren();
-    this._mineButtons.style.display = this._mining.showActions ? '' : 'none';
-
-    // this.addMiningButton("mining", 'mining', 'Add', () =>
-    //   performDeckAction('add', 'mining', this._sentence),
-    // );
 
     this.addMiningButton('neverForget', 'never-forget', undefined, () =>
       performFlaggedDeckAction('neverForget'),
@@ -503,9 +499,6 @@ export class Popup {
     this.addMiningButton('blacklist', 'blacklist', undefined, () =>
       performFlaggedDeckAction('blacklist'),
     );
-    // this.addMiningButton(this._mining.suspendDeck, 'suspend', undefined, () =>
-    //   performFlaggedDeckAction('suspend'),
-    // );
 
     this._mineButtons.appendChild(
       createElement('a', {
@@ -518,7 +511,7 @@ export class Popup {
 
     const deckId = Number(this._mining.studyDeckId);
 
-    if (deckId || !this._mining.autoMineToStudyDeck) {
+    if ((deckId || !this._mining.autoMineToStudyDeck) && this._mining.showActions) {
       this._mineButtons.appendChild(
         createElement('a', {
           id: 'add-to-deck',
@@ -528,6 +521,8 @@ export class Popup {
         }),
       );
     }
+
+    this._mineButtons.style.display = this._showMiningActions ? '' : 'none';
   }
 
   private async handleForgetClick(): Promise<void> {

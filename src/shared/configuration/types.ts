@@ -84,6 +84,7 @@ export type ConfigurationSchema = {
 
   showMiningActions: boolean;
   moveMiningActions: boolean;
+  showDeckButton: boolean;
 
   showGradingActions: boolean;
   moveGradingActions: boolean;

@@ -39,7 +39,7 @@ export class MiningController extends BaseController {
   }
 
   protected async applyConfiguration(): Promise<void> {
-    this._showActions = await getConfiguration('showMiningActions');
+    this._showActions = await getConfiguration('showDeckButton');
     this._autoMineToStudyDeck = await getConfiguration('jitenMineToStudyDeck');
     this._studyDeckId = await getConfiguration('jitenStudyDeckId');
   }

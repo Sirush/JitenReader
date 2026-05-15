@@ -82,6 +82,7 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
 
   showMiningActions: true,
   moveMiningActions: false,
+  showDeckButton: true,
 
   showGradingActions: true,
   moveGradingActions: false,
