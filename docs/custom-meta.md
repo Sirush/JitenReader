@@ -8,12 +8,17 @@ These apps can be viewed and disabled in the settings.
 ## Custom hosts
 If you often parse a specific web app, you can enable automatic parsing for that app.
 
-Just fill in the hosts (one per line, or separated by `,`, `;`, or `[space]`) in the settings. These hosts are recognized by the extension and parsed as soon as you navigate to them or inside the app. URL matching implements [roughly the functionality described here](https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns).
+Just fill in the hosts (one per line, or separated by `,`, `;`, or `[space]`) in the settings. These hosts are recognized by the extension and parsed as soon as you navigate to them or inside the app.
+
+In most cases you can simply enter a domain — e.g. `satorireader.com` — and it will be expanded to match the whole site (`*://satorireader.com/*`). Note that this matches the domain exactly and won't match subdomains: to also match e.g. `web.satorireader.com`, add a wildcard (`*.satorireader.com`). If you need finer control, advanced match patterns are also supported; URL matching implements [roughly the functionality described here](https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns).
 
 Please note that this works properly only for static content - apps loading their content asynchronously may not work as expected. For anything advanced, see [Custom meta](#custom-meta).
 
 ```
-# Parsing an app, e.g. satorireader
+# Parsing an app by domain
+satorireader.com
+
+# Parsing an app with an advanced match pattern
 *://*.satorireader.com/*
 
 # Parsing a local file (e.g. a script pushing to the file)

@@ -4,6 +4,11 @@ export const matchUrl = (matchPattern: string, host: string): boolean => {
   }
 
   const parts = matchPattern.split('://', 2);
+
+  if (parts.length < 2) {
+    return false;
+  }
+
   let patternSchema = parts[0];
   const patternUrl = parts[1];
 

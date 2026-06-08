@@ -6,6 +6,17 @@ import { AdditionalHostMeta, HostMeta, PredefinedHostMeta } from './types';
 
 const isPredefined = (meta: HostMeta): meta is PredefinedHostMeta => 'id' in meta;
 
+const normaliseHostPattern = (entry: string): string => {
+  if (entry === '<all_urls>' || entry.includes('://')) {
+    return entry;
+  }
+
+  const pattern = `*://${entry}`;
+  const afterScheme = pattern.split('://', 2)[1] ?? '';
+
+  return afterScheme.includes('/') ? pattern : `${pattern}/*`;
+};
+
 export async function resolveMatchingHosts(host: string): Promise<HostMeta[]> {
   if (!host?.length) {
     return [];
@@ -37,7 +48,7 @@ export async function resolveMatchingHosts(host: string): Promise<HostMeta[]> {
           parserClass,
           collapseWhitespace,
         }) => ({
-          host,
+          host: Array.isArray(host) ? host.map(normaliseHostPattern) : normaliseHostPattern(host),
           auto,
           allFrames,
           disabled,
@@ -69,7 +80,7 @@ export async function resolveMatchingHosts(host: string): Promise<HostMeta[]> {
     .filter(Boolean)
     .forEach((h) => {
       hostsMeta.push({
-        host: h,
+        host: normaliseHostPattern(h),
         auto: true,
         allFrames: true,
         parse: 'body',
