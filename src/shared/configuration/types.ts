@@ -70,6 +70,7 @@ export type ConfigurationSchema = {
 
   showPopupOnHover: boolean;
   renderCloseButton: boolean;
+  closeButtonBottomLeft: boolean;
   touchscreenSupport: boolean;
   touchscreenDoubleTap: boolean;
   touchscreenLongPress: boolean;

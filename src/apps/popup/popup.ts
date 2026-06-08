@@ -104,6 +104,7 @@ export class Popup {
 
   private _touchscreenSupport: boolean;
   private _renderCloseButton: boolean;
+  private _closeButtonBottomLeft: boolean;
   private _hidePopupAutomatically: boolean;
   private _hidePopupDelay: number;
   private _hideAfterAction: boolean;
@@ -236,6 +237,7 @@ export class Popup {
     this._leftAlignPopupToWord = await getConfiguration('leftAlignPopupToWord');
 
     this._renderCloseButton = await getConfiguration('renderCloseButton');
+    this._closeButtonBottomLeft = await getConfiguration('closeButtonBottomLeft');
     this._touchscreenSupport = await getConfiguration('touchscreenSupport');
     this._showMiningActions = await getConfiguration('showMiningActions');
     this._moveMiningActions = await getConfiguration('moveMiningActions');
@@ -256,6 +258,7 @@ export class Popup {
 
     this._closeButton.style.display =
       this._touchscreenSupport && this._renderCloseButton ? 'flex' : 'none';
+    this._closeButton.classList.toggle('bottom-left', this._closeButtonBottomLeft);
 
     this.updateMiningButtons();
     this.updateRotationButtons();
