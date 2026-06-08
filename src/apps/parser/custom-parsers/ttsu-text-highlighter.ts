@@ -21,9 +21,15 @@ export class TtsuTextHighlighter extends TextHighlighter {
       }
 
       const rubyElem = document.createElement('ruby');
+      const rt = document.createElement('rt');
 
       rubyElem.append(document.createTextNode(nodeText.slice(rubyStart, rubyEnd)));
       rubyElem.setAttribute('data-furi', ruby.text);
+
+      rt.className = 'jiten-furi';
+      rt.textContent = ruby.text;
+      rubyElem.append(rt);
+
       docFrag.append(rubyElem);
 
       lastIndex = rubyEnd;
