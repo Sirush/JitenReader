@@ -56,6 +56,7 @@ export class Registry {
   public static updateCard(wordId: number, readingIndex: number, state: JitenCardState[]): void {
     const card = this.getCard(wordId, readingIndex);
     const managedStates = Object.values(JitenCardState);
+    const { markFrequency, markAll, newStates } = this.textHighlighterOptions;
 
     if (!card) {
       return;
@@ -63,14 +64,23 @@ export class Registry {
 
     card.cardState = state;
 
+    const isNew = state.some((s) => newStates.includes(s));
+    const isFrequent =
+      markFrequency !== false && card.frequencyRank <= markFrequency && (markAll || isNew);
+
     document
       .querySelectorAll(`[wordId="${wordId}"][readingIndex="${readingIndex}"]`)
       .forEach((element) => {
         const classes = Array.from(element.classList).filter(
-          (x) => !managedStates.includes(x as JitenCardState),
+          (x) => x !== 'frequent' && !managedStates.includes(x as JitenCardState),
         );
 
         classes.push(...state);
+
+        if (isFrequent) {
+          classes.push('frequent');
+        }
+
         element.classList.value = classes.join(' ');
       });
 
