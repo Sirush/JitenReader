@@ -71,30 +71,37 @@ export function displayToast(
 
   const container = getOrCreateToastContainer();
   const toast: HTMLLIElement = createElement('li', {
-    class: ['toast', 'outline', type],
+    class: ['toast', type],
     handler: () => toast.classList.add('hide'),
     children: [
       {
+        tag: 'span',
+        class: ['icon'],
+      },
+      {
         tag: 'div',
-        class: ['column'],
+        class: ['content'],
         children: [
           {
             tag: 'span',
+            class: ['message'],
             innerText: message,
           },
-          type === 'error'
-            ? {
-                tag: 'span',
-                innerText: '⎘',
-                handler(ev?: MouseEvent | TouchEvent): void {
-                  ev?.stopPropagation();
-
-                  void navigator.clipboard.writeText(error ?? message);
-                },
-              }
-            : false,
         ],
       },
+      type === 'error'
+        ? {
+            tag: 'button',
+            class: ['action'],
+            attributes: { 'aria-label': 'Copy error details' },
+            innerText: '⎘',
+            handler(ev?: MouseEvent | TouchEvent): void {
+              ev?.stopPropagation();
+
+              void navigator.clipboard.writeText(error ?? message);
+            },
+          }
+        : false,
     ],
   });
 
