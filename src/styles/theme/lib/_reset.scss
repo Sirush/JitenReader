@@ -63,3 +63,10 @@ html {
 *:after {
   box-sizing: inherit;
 }
+
+// Chrome's ::details-content pseudo-element sits between <details> and its
+// children and is not matched by the universal selector above, breaking the
+// box-sizing inheritance chain for accordion contents (e.g. textareas overflow).
+::details-content {
+  box-sizing: inherit;
+}
