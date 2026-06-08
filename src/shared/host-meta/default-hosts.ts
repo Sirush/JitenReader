@@ -197,6 +197,7 @@ export const DEFAULT_HOSTS: PredefinedHostMeta[] = [
     optOut: true,
     allFrames: false,
     custom: 'YatsuParser',
+    parserClass: 'ttsu-parser',
     parseVisibleObserver: true,
     filter:
       '.book-content-page-measure, [aria-hidden="true"], [data-yatsu-current-position-marker], [data-yatsu-bookmark-marker]',
