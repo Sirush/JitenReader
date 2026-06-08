@@ -600,6 +600,8 @@ export class Popup {
       const decks = await new FetchStudyDecksCommand().call();
 
       if (!decks?.length) {
+        displayToast('error', 'No word lists available. Create one in Jiten first.');
+
         return;
       }
 
