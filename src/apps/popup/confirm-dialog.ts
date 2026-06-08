@@ -22,6 +22,12 @@ export class ConfirmDialog {
   }
 
   public show(options: ConfirmDialogOptions): Promise<boolean> {
+    // A single touch fires both the touchstart and the synthesised click handler on the trigger
+    // button; ignore the second call so we don't open (and leak) a duplicate dialog.
+    if (this._overlay) {
+      return Promise.resolve(false);
+    }
+
     const {
       message,
       confirmText = 'Confirm',

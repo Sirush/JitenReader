@@ -28,6 +28,11 @@ export class Popup {
     keydown: (e: MouseEvent | KeyboardEvent): void => this.handleKeydown(e),
   });
 
+  /** Closes the popup when a pointer (mouse or touch) is pressed outside of it */
+  private _outsidePointerListener = this.handleOutsidePointer.bind(this) as (
+    e: PointerEvent,
+  ) => void;
+
   /**
    * This is the root element of the popup, which is attached to the host page or iframe.
    * It manages the shadow root isolating the actual popup content.
@@ -122,7 +127,6 @@ export class Popup {
   private static readonly MIN_HEIGHT = 200;
 
   private _hideTimer?: NodeJS.Timeout;
-  private _isHover?: boolean;
   private _isResizing = false;
   private _shadowRoot?: ShadowRoot;
   private _confirmDialog?: ConfirmDialog;
@@ -173,6 +177,7 @@ export class Popup {
     });
 
     this._keyManager.activate();
+    window.addEventListener('pointerdown', this._outsidePointerListener, true);
 
     if (this._ttsAutoPlay && this._card) {
       const key = `${this._card.wordId}/${this._card.readingIndex}`;
@@ -194,6 +199,7 @@ export class Popup {
     });
 
     this._keyManager.deactivate();
+    window.removeEventListener('pointerdown', this._outsidePointerListener, true);
   }
 
   public initHide(): void {
@@ -1253,13 +1259,10 @@ export class Popup {
       return;
     }
 
-    this._isHover = true;
     this.clearTimer();
   }
 
   private stopHover(): void {
-    this._isHover = false;
-
     if (!this.isVisibile()) {
       return;
     }
@@ -1291,18 +1294,30 @@ export class Popup {
 
       this.hide();
     }
+  }
 
-    if (
-      'button' in e &&
-      e.button === 0 &&
-      this.isVisibile() &&
-      !this._isHover &&
-      !this._isResizing
-    ) {
-      e.stopPropagation();
-
-      this.hide();
+  /**
+   * Dismisses the popup when a pointer is pressed outside of it. Uses the composed event path so it
+   * behaves identically for mouse and touch, instead of relying on emulated hover state which is
+   * unreliable on touchscreens.
+   */
+  private handleOutsidePointer(e: PointerEvent): void {
+    if (!this.isVisibile() || this._isResizing) {
+      return;
     }
+
+    // Never close from underneath an open modal (confirm dialog / deck picker).
+    if (this._confirmDialog?.isOpen || this.isDeckPickerOpen()) {
+      return;
+    }
+
+    // composedPath() includes the popup host element for any press inside the popup or its
+    // overlays, even across the closed shadow boundary.
+    if (e.composedPath().includes(this._root)) {
+      return;
+    }
+
+    this.hide();
   }
 
   private clearTimer(): void {

@@ -2,10 +2,14 @@ import { getConfiguration } from '@shared/configuration/get-configuration';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { Registry } from './registry';
 
+/** Window after a touch during which emulated ("ghost") mouse events are ignored */
+const GHOST_MOUSE_WINDOW = 700;
+
 export class WordEventDelegator {
   private static _instance: WordEventDelegator | null = null;
   private _initialised = false;
   private _sentenceMap = new WeakMap<Element, string | undefined>();
+  private _lastTouchTime = 0;
 
   private _broadcastDisposer?: () => void;
   private _touchscreenLongPress = false;
@@ -126,7 +130,15 @@ export class WordEventDelegator {
     return elements;
   }
 
+  private isGhostMouseEvent(): boolean {
+    return Date.now() - this._lastTouchTime < GHOST_MOUSE_WINDOW;
+  }
+
   private handleMouseEnter = (event: Event): void => {
+    if (this.isGhostMouseEvent()) {
+      return;
+    }
+
     const target = this.findWordElement(event);
 
     if (target) {
@@ -139,6 +151,10 @@ export class WordEventDelegator {
   };
 
   private handleMouseLeave = (event: Event): void => {
+    if (this.isGhostMouseEvent()) {
+      return;
+    }
+
     const target = this.findWordElement(event);
 
     if (target) {
@@ -168,6 +184,8 @@ export class WordEventDelegator {
   }
 
   private handleTouchStart = (event: TouchEvent): void => {
+    this._lastTouchTime = Date.now();
+
     if (!this._touchscreenLongPress) {
       return;
     }
@@ -199,10 +217,13 @@ export class WordEventDelegator {
   };
 
   private handleTouchEnd = (): void => {
+    this._lastTouchTime = Date.now();
     this.clearLongPress();
   };
 
   private handleTouchMove = (event: TouchEvent): void => {
+    this._lastTouchTime = Date.now();
+
     if (!this._longPressTimer) {
       return;
     }
