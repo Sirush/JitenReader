@@ -24,6 +24,7 @@ export class KeybindManager {
   constructor(
     private _events: KeybindKey[],
     extraListeners?: Partial<Record<'keydown' | 'keyup', (e: MouseEvent | KeyboardEvent) => void>>,
+    private _gate?: () => boolean,
   ) {
     this._broadcastDisposer = onBroadcastMessage(
       'configurationUpdated',
@@ -124,7 +125,7 @@ export class KeybindManager {
 
     const keybind = this.getActiveKeybind(e);
 
-    if (keybind) {
+    if (keybind && (!this._gate || this._gate())) {
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
@@ -146,7 +147,7 @@ export class KeybindManager {
 
     const keybind = this.getActiveKeybind(e);
 
-    if (keybind) {
+    if (keybind && (!this._gate || this._gate())) {
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();

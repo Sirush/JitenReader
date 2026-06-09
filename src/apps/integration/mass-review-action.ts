@@ -1,6 +1,7 @@
 import { getConfiguration } from '@shared/configuration/get-configuration';
 import { Keybinds } from '@shared/configuration/types';
 import { displayToast } from '@shared/dom/display-toast';
+import { getParsingPaused } from '@shared/extension/get-parsing-paused';
 import { BatchReviewItem, JitenCard, JitenCardState } from '@shared/jiten/types';
 import { BatchReviewCommand } from '@shared/messages/background/batch-review.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
@@ -22,7 +23,7 @@ const CONFIRM_MIN_DELAY_MS = 200;
  * Triggered by a keybind (with optional double-press confirmation) or the status-bar button.
  */
 export class MassReviewAction {
-  private _keyManager = new KeybindManager(['massReviewKey']);
+  private _keyManager = new KeybindManager(['massReviewKey'], undefined, () => this.canTrigger());
 
   private _disableReviews = false;
   private _includeNew = true;
@@ -32,12 +33,21 @@ export class MassReviewAction {
   private _cooldownHours = 20;
   private _requireConfirm = true;
   private _keyDisplay = '';
+  private _paused = false;
 
   private _pendingConfirmAt = 0;
   private _confirmTimer?: ReturnType<typeof setTimeout>;
 
   constructor() {
     onBroadcastMessage('configurationUpdated', () => void this.applyConfiguration(), true);
+
+    onBroadcastMessage('parsingPaused', (paused: boolean) => {
+      this._paused = paused;
+    });
+
+    void getParsingPaused().then((paused) => {
+      this._paused = paused;
+    });
 
     Registry.events.on('massReviewKey', () => void this.onKeybind());
 
@@ -46,7 +56,7 @@ export class MassReviewAction {
 
   /** Triggered by the status-bar button: always confirms through a modal. */
   public async confirmViaDialog(): Promise<void> {
-    if (this._disableReviews) {
+    if (!this.canTrigger()) {
       return;
     }
 
@@ -69,6 +79,21 @@ export class MassReviewAction {
     } else {
       clearPendingHighlight();
     }
+  }
+
+  /**
+   * The keybind is only captured (and the action runnable) when reviews are enabled, parsing
+   * isn't paused, and the page has actually been parsed (i.e. parsed word elements exist).
+   * Otherwise the key is left untouched so it passes through for normal use rather than being
+   * silently swallowed — a present-but-idle parser (e.g. a trigger parser before manual parsing,
+   * or a host not covered by metadata) must not hijack the key.
+   */
+  private canTrigger(): boolean {
+    if (this._disableReviews || this._paused) {
+      return false;
+    }
+
+    return document.querySelector('.jiten-word[wordId][readingIndex]') !== null;
   }
 
   private async onKeybind(): Promise<void> {
