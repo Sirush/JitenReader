@@ -2,6 +2,8 @@ import { getConfiguration } from '@shared/configuration/get-configuration';
 import { JitenCard, JitenRating } from '@shared/jiten/types';
 import { AddToStudyDeckCommand } from '@shared/messages/background/add-to-study-deck.command';
 import { GradeCardCommand } from '@shared/messages/background/grade-card.command';
+import { Registry } from '../../integration/registry';
+import { ReviewCooldown } from '../../integration/review-cooldown';
 import { BaseController } from './base-controller';
 
 export class GradingController extends BaseController {
@@ -10,6 +12,7 @@ export class GradingController extends BaseController {
   private _useTwoPointGrading: boolean;
   private _autoMineOnReview: boolean;
   private _studyDeckId: string;
+  private _massReviewCooldownHours = 20;
 
   public get gradingEnabled(): boolean {
     return !this._disableReviews;
@@ -29,6 +32,12 @@ export class GradingController extends BaseController {
     }
 
     const { wordId, readingIndex } = card;
+
+    // Any card the user grades directly (or that is auto-failed, which routes through here)
+    // is excluded from mass review — for the rest of the session and, across navigations,
+    // for the cooldown window — so a later mass review can't override the grade just given.
+    Registry.markSessionTouched(wordId, readingIndex);
+    void ReviewCooldown.mark([{ wordId, readingIndex }], this._massReviewCooldownHours);
 
     new GradeCardCommand(wordId, readingIndex, rating).send(() => {
       const deckId = this.getAutoMineDeckId(card);
@@ -51,6 +60,7 @@ export class GradingController extends BaseController {
     this._showActions = await getConfiguration('showGradingActions');
     this._autoMineOnReview = await getConfiguration('jitenAutoMineOnReview');
     this._studyDeckId = await getConfiguration('jitenStudyDeckId');
+    this._massReviewCooldownHours = await getConfiguration('massReviewCooldownHours');
   }
 
   /**

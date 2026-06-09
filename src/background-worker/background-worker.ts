@@ -15,6 +15,7 @@ import { ParseSelectionCommand } from '@shared/messages/foreground/parse-selecti
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { DEFAULT_WORD_STYLE_CONFIG } from '@shared/word-style/themes';
 import { AddToStudyDeckCommandHandler } from './jiten-card-actions/add-to-study-deck-command.handler';
+import { BatchReviewCommandHandler } from './jiten-card-actions/batch-review-command.handler';
 import { FetchStudyDecksCommandHandler } from './jiten-card-actions/fetch-study-decks-command.handler';
 import { ForgetCardCommandHandler } from './jiten-card-actions/forget-card-command.handler';
 import { GradeCardCommandHandler } from './jiten-card-actions/grade-card-command.handler';
@@ -52,6 +53,7 @@ const abortRequestCommandHandler = new AbortRequestCommandHandler(parseControlle
 
 const updateCardStateCommandHandler = new UpdateCardStateCommandHandler();
 const gradeCardCommandHandler = new GradeCardCommandHandler();
+const batchReviewCommandHandler = new BatchReviewCommandHandler();
 const runDeckActionCommandHandler = new RunDeckActionCommandHandler();
 const fetchStudyDecksCommandHandler = new FetchStudyDecksCommandHandler();
 const addToStudyDeckCommandHandler = new AddToStudyDeckCommandHandler();
@@ -65,6 +67,7 @@ const handlerCollection = new BackgroundCommandHandlerCollection(
   abortRequestCommandHandler,
   updateCardStateCommandHandler,
   gradeCardCommandHandler,
+  batchReviewCommandHandler,
   runDeckActionCommandHandler,
   fetchStudyDecksCommandHandler,
   addToStudyDeckCommandHandler,

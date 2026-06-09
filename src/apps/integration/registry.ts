@@ -46,6 +46,16 @@ export class Registry {
   private static readonly cards = new Map<string, JitenCard>();
   private static readonly conjugations = new WeakMap<HTMLElement, string[]>();
   private static readonly studyDecks = new Map<number, StudyDeckListItem>();
+  // Words the user manually graded or auto-failed this session — excluded from mass review.
+  private static readonly sessionTouchedCards = new Set<string>();
+
+  public static markSessionTouched(wordId: number, readingIndex: number): void {
+    this.sessionTouchedCards.add(`${wordId}/${readingIndex}`);
+  }
+
+  public static isSessionTouched(wordId: number, readingIndex: number): boolean {
+    return this.sessionTouchedCards.has(`${wordId}/${readingIndex}`);
+  }
 
   public static setStudyDecks(decks: StudyDeckListItem[]): void {
     this.studyDecks.clear();
@@ -165,5 +175,6 @@ export class Registry {
 
   public static clearCards(): void {
     this.cards.clear();
+    this.sessionTouchedCards.clear();
   }
 }

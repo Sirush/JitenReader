@@ -24,6 +24,12 @@ export const JitenRatingMap: Record<JitenRating, number> = {
   easy: 4,
 };
 
+export type BatchReviewItem = {
+  wordId: number;
+  readingIndex: number;
+  rating: JitenRating;
+};
+
 export enum JitenCardState {
   NEW = 'new',
   YOUNG = 'young',

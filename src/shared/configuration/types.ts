@@ -25,6 +25,16 @@ export type ConfigurationSchema = {
   jitenDisableReviews: boolean;
   jitenUseTwoGrades: boolean;
 
+  // Review on-screen words / auto-fail on dwell
+  massReviewNew: boolean;
+  massReviewDue: boolean;
+  massReviewYoung: boolean;
+  massReviewMature: boolean;
+  massReviewCooldownHours: number;
+  massReviewRequireConfirm: boolean;
+  autoFailOnDwell: boolean;
+  autoFailDwellDuration: number;
+
   jitenMineToStudyDeck: boolean;
   jitenStudyDeckId: string;
   jitenAutoMineOnReview: boolean;
@@ -133,6 +143,7 @@ export type ConfigurationSchema = {
   jitenReviewEasy: Keybinds;
   jitenReviewFail: Keybinds;
   jitenReviewPass: Keybinds;
+  massReviewKey: Keybinds;
 
   // Rotation keybinds
   jitenRotateForward: Keybinds;
@@ -156,6 +167,7 @@ export type ConfigurationSchema = {
   statusBarAutoHide: boolean;
   statusBarHideIcon: boolean;
   statusBarShowBadge: boolean;
+  statusBarShowReviewButton: boolean;
   statusBarPosition: 'top' | 'bottom';
   toggleStatusBarKey: Keybinds;
 

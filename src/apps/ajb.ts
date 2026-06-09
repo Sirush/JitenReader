@@ -10,6 +10,7 @@ import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-mess
 import { receiveBackgroundMessage } from '@shared/messages/receiving/receive-background-message';
 import { getFeatures } from './features/get-features';
 import { KeybindManager } from './integration/keybind-manager';
+import { MassReviewAction } from './integration/mass-review-action';
 import { NoFocusTrigger } from './integration/no-focus-trigger';
 import { Registry } from './integration/registry';
 import { AutomaticParser } from './parser/automatic.parser';
@@ -22,6 +23,7 @@ import { StatusBar } from './status-bar/status-bar';
 export class AJB {
   private _lookupKeyManager = new KeybindManager(['lookupSelectionKey']);
   private _statusBarKeyManager = new KeybindManager(['toggleStatusBarKey']);
+  private _massReviewAction = new MassReviewAction();
   private _lastUrl = location.href;
   private _lastMetaKey = '';
   private _navigationGeneration = 0;
@@ -54,6 +56,8 @@ export class AJB {
       Registry.events.on('toggleStatusBarKey', () => {
         Registry.statusBar?.toggle();
       });
+
+      void this.installReviewButton();
     }
 
     onBroadcastMessage(
@@ -179,6 +183,22 @@ export class AJB {
     for (const feature of features) {
       feature.apply();
     }
+  }
+
+  private async installReviewButton(): Promise<void> {
+    const showButton = await getConfiguration('statusBarShowReviewButton');
+    const disableReviews = await getConfiguration('jitenDisableReviews');
+
+    if (!showButton || disableReviews) {
+      return;
+    }
+
+    Registry.statusBar?.addButton({
+      id: 'ajb-review-btn',
+      icon: '✅',
+      tooltip: 'Review on-screen words as good',
+      handler: () => void this._massReviewAction.confirmViaDialog(),
+    });
   }
 
   private watchNavigation(): void {

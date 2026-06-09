@@ -16,28 +16,39 @@ export type CardStateResult = {
   deckIds: number[];
 };
 
+const toCardStateResult = (states: number[] | undefined, deckIds: number[]): CardStateResult => {
+  if (!Array.isArray(states) || states.length === 0) {
+    return { states: [JitenCardState.NEW], deckIds };
+  }
+
+  const mapped = states
+    .map((state: number) => CARD_STATE_MAP[state])
+    .filter((s): s is JitenCardState => s !== undefined);
+
+  return { states: mapped.length > 0 ? mapped : [JitenCardState.NEW], deckIds };
+};
+
 export const getCardState = async (
   wordId: number,
   readingIndex: number,
   options?: JitenRequestOptions,
 ): Promise<CardStateResult> => {
-  const result = await request(
-    'reader/lookup-vocabulary',
-    {
-      words: [[wordId, readingIndex]],
-    },
-    options,
-  );
-  const [firstWord] = result.result;
-  const deckIds = result.decks?.[0] ?? [];
+  const [state] = await getCardStates([[wordId, readingIndex]], options);
 
-  if (!Array.isArray(firstWord) || firstWord.length === 0) {
-    return { states: [JitenCardState.NEW], deckIds };
+  return state;
+};
+
+export const getCardStates = async (
+  words: [number, number][],
+  options?: JitenRequestOptions,
+): Promise<CardStateResult[]> => {
+  if (words.length === 0) {
+    return [];
   }
 
-  const states = firstWord
-    .map((state: number) => CARD_STATE_MAP[state])
-    .filter((s): s is JitenCardState => s !== undefined);
+  const result = await request('reader/lookup-vocabulary', { words }, options);
 
-  return { states: states.length > 0 ? states : [JitenCardState.NEW], deckIds };
+  return words.map((_, index) =>
+    toCardStateResult(result.result?.[index], result.decks?.[index] ?? []),
+  );
 };

@@ -30,6 +30,7 @@
       <a href="#theme">Appearance</a>
       <a href="#text-highlighting" data-show="jitenApiKey">Text Highlighting</a>
       <a href="#popup" data-show="jitenApiKey">Popup</a>
+      <a href="#mass-review" data-show="jitenApiKey && !jitenDisableReviews">Mass Review</a>
       <a href="#mining" data-show="jitenApiKey">Mining</a>
       <a href="#keybinds" data-show="jitenApiKey">Keybinds</a>
       <a href="#status-bar" data-show="jitenApiKey">Status Bar</a>
@@ -560,6 +561,112 @@
         </div>
       </div>
 
+      <div id="mass-review" class="section" data-show="jitenApiKey && !jitenDisableReviews">
+        <h6>Mass Review</h6>
+        <div class="form-box-parent">
+          <div class="form-box">
+            <div>
+              <p style="opacity: 0.8">
+                Review every word currently visible on screen as "good" in one go. Trigger it with a keybind (set one under Keybinds)
+                or the ✅ button in the status bar. Mastered and blacklisted words are always
+                skipped, as are words you graded or auto-failed earlier in this reading session.
+              </p>
+            </div>
+
+            <div>
+              <label>Word states to include:</label>
+              <div class="checkbox">
+                <input type="checkbox" id="massReviewNew" name="massReviewNew" />
+                <label for="massReviewNew">New</label>
+              </div>
+              <div class="checkbox">
+                <input type="checkbox" id="massReviewDue" name="massReviewDue" />
+                <label for="massReviewDue">Due</label>
+              </div>
+              <div class="checkbox">
+                <input type="checkbox" id="massReviewYoung" name="massReviewYoung" />
+                <label for="massReviewYoung">Young</label>
+              </div>
+              <div class="checkbox">
+                <input type="checkbox" id="massReviewMature" name="massReviewMature" />
+                <label for="massReviewMature">Mature</label>
+              </div>
+              <p style="opacity: 0.8" indent up>
+                It is not recommended to check "Young" and "Mature" unless you exclusively use Jiten Reader and want to push their next review further out.
+              </p>
+            </div>
+
+            <div>
+              <div class="checkbox">
+                <input
+                  type="checkbox"
+                  id="massReviewRequireConfirm"
+                  name="massReviewRequireConfirm"
+                />
+                <label for="massReviewRequireConfirm">Press the keybind twice to confirm</label>
+              </div>
+              <p style="opacity: 0.8" indent up>
+                When on, the first key press shows a brief "press again" message and the second
+                press starts the review, so you can't trigger it by accident. The status-bar
+                button always shows a confirmation dialog regardless of this setting.
+              </p>
+            </div>
+
+            <div>
+              <label for="massReviewCooldownHours"
+              >Don't auto-review the same word within (hours)</label
+              >
+              <input
+                style="width: 100%"
+                type="number"
+                id="massReviewCooldownHours"
+                name="massReviewCooldownHours"
+                min="0"
+                max="8760"
+                step="1"
+              />
+              <p style="opacity: 0.8" indent up>
+                Reviewing the same word again and again in a short span can throw off how the
+                SRS schedules it. To prevent that, the automatic features — mass review and
+                auto-fail — leave a word alone for this many hours after its last review,
+                counting any review (a mass review, an auto-fail, or a grade you gave it
+                yourself). So re-reading a page or flipping back and forth won't keep re-grading
+                the same words, and these features won't override a grade you just gave. Set to
+                0 to turn this off (not recommended).
+              </p>
+            </div>
+
+            <div>
+              <div class="checkbox">
+                <input type="checkbox" id="autoFailOnDwell" name="autoFailOnDwell" />
+                <label for="autoFailOnDwell"
+                >Auto-fail a word when you open and keep its popup open</label
+                >
+              </div>
+              <p style="opacity: 0.8" indent up>
+                If you deliberately open a word's dictionary popup and leave it open past the
+                time below, that word is reviewed as "again" — opening the dictionary usually
+                means you didn't know it. Quick, accidental opens are ignored, and popups that
+                appear automatically on hover never trigger this.
+              </p>
+            </div>
+
+            <div data-show="autoFailOnDwell" indent>
+              <label for="autoFailDwellDuration">Auto-fail after (milliseconds)</label>
+              <input
+                style="width: 100%"
+                type="number"
+                id="autoFailDwellDuration"
+                name="autoFailDwellDuration"
+                min="100"
+                max="10000"
+                step="50"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div id="mining" class="section" data-show="jitenApiKey">
         <h6>Mining</h6>
         <p style="opacity: 0.8; margin-bottom: 1rem">
@@ -736,6 +843,11 @@
               <keybind-input id="jitenReviewPass" name="jitenReviewPass"></keybind-input>
             </div>
           </div>
+
+          <div data-show="!jitenDisableReviews">
+            <label for="massReviewKey">Review on-screen words as good</label>
+            <keybind-input id="massReviewKey" name="massReviewKey"></keybind-input>
+          </div>
         </details>
       </div>
 
@@ -780,6 +892,23 @@
               </div>
               <p style="opacity: 0.8" indent up>
                 Displays the comprehension percentage on the extension icon.
+              </p>
+            </div>
+
+            <div data-show="statusBarEnabled && !jitenDisableReviews">
+              <div class="checkbox">
+                <input
+                  type="checkbox"
+                  id="statusBarShowReviewButton"
+                  name="statusBarShowReviewButton"
+                />
+                <label for="statusBarShowReviewButton"
+                >Show the "review on-screen words" button</label
+                >
+              </div>
+              <p style="opacity: 0.8" indent up>
+                Adds a button to the status bar that reviews all visible words as good after a
+                confirmation. Takes effect on the next page load.
               </p>
             </div>
 

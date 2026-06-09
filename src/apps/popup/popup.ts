@@ -15,8 +15,10 @@ import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-mess
 import { cleanReading, getPitchDiagramData } from '@shared/pitch-accent-utils';
 import { getThemeCssVars } from '@shared/theme/get-theme-css-vars';
 import { playTts, stopTts } from '@shared/tts/play-tts';
+import { flashWords } from '../integration/flash-words';
 import { KeybindManager } from '../integration/keybind-manager';
 import { Registry } from '../integration/registry';
+import { ReviewCooldown } from '../integration/review-cooldown';
 import { GradingController } from './actions/grading-controller';
 import { MiningController } from './actions/mining-controller';
 import { RotationController } from './actions/rotation-controller';
@@ -129,6 +131,11 @@ export class Popup {
   private static readonly MIN_HEIGHT = 200;
 
   private _hideTimer?: NodeJS.Timeout;
+  private _autoFailOnDwell = false;
+  private _autoFailDwellDuration = 500;
+  private _massReviewCooldownHours = 20;
+  private _dwellTimer?: NodeJS.Timeout;
+  private _skipHideForCard?: string;
   private _isResizing = false;
   private _shadowRoot?: ShadowRoot;
   private _confirmDialog?: ConfirmDialog;
@@ -151,6 +158,14 @@ export class Popup {
       setTimeout(() => {
         this._card = Registry.getCard(wordId, readingIndex);
 
+        // Auto-fail grades the card while the user is still reading it, so its own state
+        // update must not close the popup.
+        if (this._skipHideForCard === `${wordId}/${readingIndex}`) {
+          this._skipHideForCard = undefined;
+
+          return this.rerender();
+        }
+
         if (this._hideAfterAction) {
           return this.hide();
         }
@@ -161,13 +176,14 @@ export class Popup {
     onBroadcastMessage('configurationUpdated', () => this.applyConfiguration(), true);
   }
 
-  public show(context: HTMLElement, sentence?: string): void {
+  public show(context: HTMLElement, sentence?: string, explicit = false): void {
     this._cardContext = context;
     this._card = Registry.getCardFromElement(context);
     this._sentence = sentence;
     this._conjugations = Registry.getConjugations(context);
 
     this.clearTimer();
+    this.clearDwellTimer();
     this.updateParentElement();
     this.rerender();
     this.setPosition();
@@ -189,10 +205,13 @@ export class Popup {
         void this.playCardTts(this._card);
       }
     }
+
+    this.armDwellTimer(explicit);
   }
 
   public hide(): void {
     stopTts();
+    this.clearDwellTimer();
 
     Object.assign<CSSStyleDeclaration, Partial<CSSStyleDeclaration>>(this._root.style, {
       transition: this._disableFadeAnimation ? 'none' : 'opacity 200ms ease-in, visibility 20ms',
@@ -205,6 +224,9 @@ export class Popup {
   }
 
   public initHide(): void {
+    // Leaving the word cancels any pending auto-fail so a quick look-and-leave isn't penalised.
+    this.clearDwellTimer();
+
     if (!this._hidePopupAutomatically) {
       return;
     }
@@ -234,6 +256,9 @@ export class Popup {
     this._hidePopupAutomatically = await getConfiguration('hidePopupAutomatically');
     this._hidePopupDelay = await getConfiguration('hidePopupDelay');
     this._hideAfterAction = await getConfiguration('hideAfterAction');
+    this._autoFailOnDwell = await getConfiguration('autoFailOnDwell');
+    this._autoFailDwellDuration = await getConfiguration('autoFailDwellDuration');
+    this._massReviewCooldownHours = await getConfiguration('massReviewCooldownHours');
     this._disableFadeAnimation = await getConfiguration('disableFadeAnimation');
     this._leftAlignPopupToWord = await getConfiguration('leftAlignPopupToWord');
 
@@ -1452,6 +1477,50 @@ export class Popup {
     this.clearTimer();
 
     this._hideTimer = setTimeout(() => this.hide(), this._hidePopupDelay);
+  }
+
+  private clearDwellTimer(): void {
+    if (this._dwellTimer) {
+      clearTimeout(this._dwellTimer);
+      this._dwellTimer = undefined;
+    }
+  }
+
+  /**
+   * Arms the auto-fail timer for explicitly opened popups. If the popup stays open on the
+   * same card past the threshold, the word is reviewed "again" (the user clearly didn't know it).
+   */
+  private armDwellTimer(explicit: boolean): void {
+    if (!explicit || !this._autoFailOnDwell || !this._card) {
+      return;
+    }
+
+    const card = this._card;
+
+    this._dwellTimer = setTimeout(() => {
+      this._dwellTimer = undefined;
+      void this.autoFail(card);
+    }, this._autoFailDwellDuration);
+  }
+
+  private async autoFail(card: JitenCard): Promise<void> {
+    // Don't fail a word that was already reviewed (manually, by mass review, or by a previous
+    // auto-fail) this session or within the cooldown window.
+    if (
+      Registry.isSessionTouched(card.wordId, card.readingIndex) ||
+      (await ReviewCooldown.isCoolingDown(
+        card.wordId,
+        card.readingIndex,
+        this._massReviewCooldownHours,
+      ))
+    ) {
+      return;
+    }
+
+    // Keep the popup open: this grade's own state update must not auto-hide it.
+    this._skipHideForCard = `${card.wordId}/${card.readingIndex}`;
+    this._grading.gradeCard(card, 'again', undefined, document.title);
+    flashWords(card.wordId, card.readingIndex, 'fail');
   }
 
   //#endregion

@@ -59,7 +59,7 @@ export class PopupManager {
       true,
     );
 
-    Registry.events.on('showPopupKey', () => this.handlePopup());
+    Registry.events.on('showPopupKey', () => this.handlePopup(true));
     Registry.events.on('showAdvancedDialogKey', () => this.handleAdvancedDialog());
   }
 
@@ -80,7 +80,7 @@ export class PopupManager {
     this._gradingActions.activate(this._currentHover, sentence);
 
     if (this._showPopupOnHover) {
-      this.handlePopup();
+      this.handlePopup(false);
     }
   }
 
@@ -143,21 +143,23 @@ export class PopupManager {
     this._rotationActions.activate(this._currentHover);
     this._gradingActions.activate(this._currentHover, sentence);
 
-    this.handlePopup();
+    this.handlePopup(true);
   }
 
   /**
    * Event handler is reached if an element is hovered and the keybind for popup is pressed.
    * Also called if the popup is configured to show on hover and the mouse is moved over an element.
    *
+   * @param {boolean} explicit Whether the popup was opened deliberately (keybind/click/long-press)
+   *   rather than automatically on hover. Only explicit opens arm the auto-fail-on-dwell timer.
    * @returns
    */
-  private handlePopup(): void {
+  private handlePopup(explicit: boolean): void {
     if (!this._currentHover) {
       return;
     }
 
-    this._popup.show(this._currentHover, this._currentSentence);
+    this._popup.show(this._currentHover, this._currentSentence, explicit);
 
     this._observer.disconnect();
 

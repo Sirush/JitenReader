@@ -22,6 +22,17 @@ type JitenReviewRequest = {
   rating: number;
 };
 
+type JitenBatchReviewRequest = {
+  reviews: { wordId: number; readingIndex: number; rating: number }[];
+};
+
+export type JitenBatchReviewResult = {
+  success: boolean;
+  processed: number;
+  leechSuspended: number[];
+  results: { wordId: number; readingIndex: number; newState: number }[];
+};
+
 type JitenSetVocabularyStateRequest = {
   wordId: number;
   readingIndex: number;
@@ -61,6 +72,7 @@ export type JitenEndpoints = {
   'reader/ping': [Empty, void];
   'reader/parse': [JitenParseRequest, JitenParseResult];
   'srs/review': [JitenReviewRequest, void];
+  'srs/batch-review': [JitenBatchReviewRequest, JitenBatchReviewResult];
   'srs/set-vocabulary-state': [JitenSetVocabularyStateRequest, void];
   'srs/reader-study-decks': [Empty, StudyDeckListItem[]];
   'reader/lookup-vocabulary': [JitenLookupVocabularyRequest, JitenLookupVocabularyResult];

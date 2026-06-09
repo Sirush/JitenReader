@@ -10,6 +10,7 @@ type KeybindEvents = {
   jitenReviewEasy: KeybindEvent;
   jitenReviewFail: KeybindEvent;
   jitenReviewPass: KeybindEvent;
+  massReviewKey: KeybindEvent;
   jitenRotateForward: KeybindEvent;
   jitenRotateBackward: KeybindEvent;
   parseKey: KeybindEvent;

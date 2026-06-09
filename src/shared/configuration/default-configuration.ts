@@ -23,6 +23,16 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   jitenDisableReviews: false,
   jitenUseTwoGrades: false,
 
+  // Review on-screen words / auto-fail on dwell
+  massReviewNew: true,
+  massReviewDue: true,
+  massReviewYoung: false,
+  massReviewMature: false,
+  massReviewCooldownHours: 20,
+  massReviewRequireConfirm: true,
+  autoFailOnDwell: false,
+  autoFailDwellDuration: 500,
+
   jitenMineToStudyDeck: false,
   jitenStudyDeckId: '',
   jitenAutoMineOnReview: false,
@@ -131,6 +141,7 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   jitenReviewEasy: [],
   jitenReviewFail: [],
   jitenReviewPass: [],
+  massReviewKey: [],
 
   // Rotation keybinds
   jitenRotateForward: [],
@@ -175,6 +186,7 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   statusBarAutoHide: true,
   statusBarHideIcon: false,
   statusBarShowBadge: true,
+  statusBarShowReviewButton: true,
   statusBarPosition: 'bottom',
   toggleStatusBarKey: [{ key: 'S', code: 'KeyS', modifiers: ['Alt'] }],
 
