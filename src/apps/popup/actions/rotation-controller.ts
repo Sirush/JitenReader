@@ -1,5 +1,5 @@
 import { getConfiguration } from '@shared/configuration/get-configuration';
-import { JitenCard } from '@shared/jiten/types';
+import { JitenCard, JitenCardState } from '@shared/jiten/types';
 import { RunDeckActionCommand } from '@shared/messages/background/run-deck-action.command';
 import { BaseController } from './base-controller';
 
@@ -30,7 +30,7 @@ export class RotationController extends BaseController {
   }
 
   public rotate(card: JitenCard, direction: 1 | -1): void {
-    if (!this.rotateFlags) {
+    if (!this.rotateFlags || card.cardState.includes(JitenCardState.REDUNDANT)) {
       return;
     }
 

@@ -9,6 +9,7 @@ const CARD_STATE_MAP: Record<number, JitenCardState> = {
   3: JitenCardState.BLACKLISTED,
   4: JitenCardState.DUE,
   5: JitenCardState.MASTERED,
+  6: JitenCardState.REDUNDANT,
 };
 
 export type CardStateResult = {

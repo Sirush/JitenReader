@@ -20,6 +20,7 @@ const PRESETS: [string, PresetTheme][] = [
           due: { effects: [{ type: 'text-colour', colour: '#ff4500' }] },
           blacklisted: { effects: [{ type: 'opacity', value: 0.5, hoverOnly: false }] },
           suspended: { effects: [{ type: 'opacity', value: 0.5, hoverOnly: false }] },
+          redundant: { effects: [{ type: 'background', colour: '#4b9fff', opacity: 0.14 }] },
           frequent: {
             effects: [{ type: 'underline', colour: '#4b8d7f', style: 'dotted', thickness: 2 }],
           },
@@ -54,6 +55,7 @@ const PRESETS: [string, PresetTheme][] = [
           due: { effects: [{ type: 'text-colour', colour: '#e8a735' }] },
           blacklisted: { effects: [{ type: 'text-colour', colour: '#777777' }] },
           suspended: { effects: [{ type: 'text-colour', colour: '#777777' }] },
+          redundant: { effects: [{ type: 'background', colour: '#4b8dff', opacity: 0.16 }] },
           frequent: {
             effects: [{ type: 'underline', colour: '#4b8dff', style: 'solid', thickness: 2 }],
           },
@@ -90,6 +92,7 @@ const PRESETS: [string, PresetTheme][] = [
           },
           blacklisted: { effects: [{ type: 'opacity', value: 0.4, hoverOnly: false }] },
           suspended: { effects: [{ type: 'opacity', value: 0.4, hoverOnly: false }] },
+          redundant: { effects: [{ type: 'background', colour: '#aaaaaa', opacity: 0.18 }] },
           frequent: {
             effects: [{ type: 'underline', colour: '#999999', style: 'dotted', thickness: 1 }],
           },
@@ -134,6 +137,7 @@ const PRESETS: [string, PresetTheme][] = [
           },
           blacklisted: { effects: [{ type: 'text-colour', colour: '#555555' }] },
           suspended: { effects: [] },
+          redundant: { effects: [{ type: 'background', colour: '#00aaff', opacity: 0.45 }] },
           frequent: {
             effects: [{ type: 'underline', colour: '#00ffff', style: 'solid', thickness: 2 }],
           },
@@ -163,6 +167,7 @@ const PRESETS: [string, PresetTheme][] = [
           due: { effects: [{ type: 'background', colour: '#ff4500', opacity: 0.15 }] },
           blacklisted: { effects: [{ type: 'opacity', value: 0.5, hoverOnly: false }] },
           suspended: { effects: [] },
+          redundant: { effects: [{ type: 'background', colour: '#4b9fff', opacity: 0.12 }] },
           frequent: { effects: [{ type: 'background', colour: '#4b8d7f', opacity: 0.1 }] },
           'i-plus-one': { effects: [{ type: 'background', colour: '#359eff', opacity: 0.1 }] },
           unparsed: { effects: [] },
@@ -196,6 +201,9 @@ const PRESETS: [string, PresetTheme][] = [
           },
           blacklisted: { effects: [] },
           suspended: { effects: [] },
+          redundant: {
+            effects: [{ type: 'underline', colour: '#4b9fff', style: 'dotted', thickness: 3 }],
+          },
           frequent: {
             effects: [{ type: 'underline', colour: '#40a840', style: 'dashed', thickness: 3 }],
           },

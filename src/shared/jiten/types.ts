@@ -37,6 +37,9 @@ export enum JitenCardState {
   MASTERED = 'mastered',
   BLACKLISTED = 'blacklisted',
   DUE = 'due',
+  // A kana form whose kanji sibling the user already knows. Always accompanies a tier
+  // state (e.g. [YOUNG, REDUNDANT]); marks the word as known-via-kanji and not reviewable.
+  REDUNDANT = 'redundant',
 }
 
 // Mirrors the backend StudyDeckType enum.

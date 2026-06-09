@@ -77,7 +77,8 @@ export function calculateCoverageFromDOM(): CoverageStats {
     if (
       element.classList.contains('mature') ||
       element.classList.contains('mastered') ||
-      element.classList.contains('blacklisted')
+      element.classList.contains('blacklisted') ||
+      element.classList.contains('redundant')
     ) {
       stats.known++;
 

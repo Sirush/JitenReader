@@ -916,8 +916,21 @@ export class Popup {
     this.adjustRotateButtons(this._card);
     this.adjustContext(this._card);
     this.adjustDetails(this._card);
+    this.applyActionVisibility(this._card);
 
     this._popup.setAttribute('class', `popup ${this._card.cardState.join(' ')}`);
+  }
+
+  /**
+   * Redundant words (known via their kanji sibling) have no card of their own, so the popup is
+   * view-only for them: every actionable section is hidden regardless of configuration.
+   */
+  private applyActionVisibility(card: JitenCard): void {
+    const reviewable = !card.cardState.includes(JitenCardState.REDUNDANT);
+
+    this._mineButtons.style.display = reviewable && this._showMiningActions ? '' : 'none';
+    this._rotateButtons.style.display = reviewable && this._rotation.showActions ? '' : 'none';
+    this._gradeButtons.style.display = reviewable && this._grading.showActions ? '' : 'none';
   }
 
   private adjustMiningButtons(card: JitenCard): void {
@@ -1491,7 +1504,12 @@ export class Popup {
    * same card past the threshold, the word is reviewed "again" (the user clearly didn't know it).
    */
   private armDwellTimer(explicit: boolean): void {
-    if (!explicit || !this._autoFailOnDwell || !this._card) {
+    if (
+      !explicit ||
+      !this._autoFailOnDwell ||
+      !this._card ||
+      this._card.cardState.includes(JitenCardState.REDUNDANT)
+    ) {
       return;
     }
 

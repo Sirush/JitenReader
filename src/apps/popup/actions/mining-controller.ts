@@ -1,5 +1,5 @@
 import { getConfiguration } from '@shared/configuration/get-configuration';
-import { JitenCard } from '@shared/jiten/types';
+import { JitenCard, JitenCardState } from '@shared/jiten/types';
 import { AddToStudyDeckCommand } from '@shared/messages/background/add-to-study-deck.command';
 import { RunDeckActionCommand } from '@shared/messages/background/run-deck-action.command';
 import { BaseController } from './base-controller';
@@ -27,6 +27,10 @@ export class MiningController extends BaseController {
     card: JitenCard,
     sentence?: string,
   ): void {
+    if (card.cardState.includes(JitenCardState.REDUNDANT)) {
+      return;
+    }
+
     const { wordId, readingIndex } = card;
 
     new RunDeckActionCommand(wordId, readingIndex, key, action, sentence).send(() =>
@@ -35,6 +39,10 @@ export class MiningController extends BaseController {
   }
 
   public addToStudyDeck(deckId: number, card: JitenCard, sentence?: string, source?: string): void {
+    if (card.cardState.includes(JitenCardState.REDUNDANT)) {
+      return;
+    }
+
     new AddToStudyDeckCommand(deckId, card.wordId, card.readingIndex, sentence, source).send(() =>
       this.updateCardState(card),
     );

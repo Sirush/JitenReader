@@ -171,7 +171,11 @@ export class MassReviewAction {
   private shouldReview(card: JitenCard): boolean {
     const states = card.cardState;
 
-    if (states.includes(JitenCardState.MASTERED) || states.includes(JitenCardState.BLACKLISTED)) {
+    if (
+      states.includes(JitenCardState.REDUNDANT) ||
+      states.includes(JitenCardState.MASTERED) ||
+      states.includes(JitenCardState.BLACKLISTED)
+    ) {
       return false;
     }
 

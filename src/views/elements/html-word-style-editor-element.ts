@@ -33,6 +33,7 @@ const PREVIEW_WORDS: { text: string; state: string }[] = [
   { text: '新しい', state: 'i-plus-one' },
   { text: '言葉', state: 'due' },
   { text: 'が', state: 'mastered' },
+  { text: '物', state: 'redundant' },
   { text: '出て', state: 'frequent' },
   { text: 'くる', state: 'blacklisted' },
   { text: '。', state: 'unparsed' },

@@ -66,6 +66,7 @@ export class Parser {
       3: 'blacklisted',
       4: 'due',
       5: 'mastered',
+      6: 'redundant',
     };
 
     return vocabulary.map((vocab) => {

@@ -1,5 +1,5 @@
 import { getConfiguration } from '@shared/configuration/get-configuration';
-import { JitenCard, JitenRating } from '@shared/jiten/types';
+import { JitenCard, JitenCardState, JitenRating } from '@shared/jiten/types';
 import { AddToStudyDeckCommand } from '@shared/messages/background/add-to-study-deck.command';
 import { GradeCardCommand } from '@shared/messages/background/grade-card.command';
 import { Registry } from '../../integration/registry';
@@ -27,7 +27,11 @@ export class GradingController extends BaseController {
   }
 
   public gradeCard(card: JitenCard, rating: JitenRating, sentence?: string, source?: string): void {
-    if (!this.gradingEnabled || !this.getGradingActions().includes(rating)) {
+    if (
+      !this.gradingEnabled ||
+      card.cardState.includes(JitenCardState.REDUNDANT) ||
+      !this.getGradingActions().includes(rating)
+    ) {
       return;
     }
 
