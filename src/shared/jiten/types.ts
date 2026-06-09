@@ -52,11 +52,14 @@ export enum StudyDeckType {
 // CSS class applied to a word for each type of study deck it belongs to.
 export const STUDY_DECK_CLASS: Record<StudyDeckType, string> = {
   [StudyDeckType.MEDIA_DECK]: 'in-media-deck',
-  [StudyDeckType.GLOBAL_DYNAMIC]: 'in-dynamic-deck',
+  [StudyDeckType.GLOBAL_DYNAMIC]: 'in-frequency-deck',
   [StudyDeckType.STATIC_WORD_LIST]: 'in-word-list',
 };
 
-export const DECK_MEMBERSHIP_CLASSES = Object.values(STUDY_DECK_CLASS);
+// Generic class applied to any word in at least one study deck, regardless of type.
+export const IN_ANY_DECK_CLASS = 'in-any-deck';
+
+export const DECK_MEMBERSHIP_CLASSES = [...Object.values(STUDY_DECK_CLASS), IN_ANY_DECK_CLASS];
 
 export type JitenRawVocabulary = {
   wordId: number;

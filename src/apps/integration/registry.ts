@@ -1,6 +1,7 @@
 import { StudyDeckListItem } from '@shared/jiten/api.types';
 import {
   DECK_MEMBERSHIP_CLASSES,
+  IN_ANY_DECK_CLASS,
   JitenCard,
   JitenCardState,
   STUDY_DECK_CLASS,
@@ -73,7 +74,8 @@ export class Registry {
     return this.studyDecks.get(deckId);
   }
 
-  // Resolves the membership CSS classes (one per deck type) for the decks a word belongs to.
+  // Resolves the membership CSS classes for the decks a word belongs to: one per deck type
+  // present, plus a generic `in-any-deck` whenever the word is in at least one deck.
   public static getDeckMembershipClasses(deckIds: number[]): string[] {
     const classes = new Set<string>();
 
@@ -83,6 +85,10 @@ export class Registry {
       if (deck) {
         classes.add(STUDY_DECK_CLASS[deck.deckType]);
       }
+    }
+
+    if (classes.size > 0) {
+      classes.add(IN_ANY_DECK_CLASS);
     }
 
     return Array.from(classes);

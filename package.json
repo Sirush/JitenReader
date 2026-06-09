@@ -1,6 +1,6 @@
 {
   "name": "jiten.reader",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Learn Japanese by immersion by parsing texts, getting definitions for words and tracking your knowledge.",
   "private": true,
   "scripts": {
