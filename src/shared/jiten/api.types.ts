@@ -1,5 +1,5 @@
 import { Empty } from '../types';
-import { JitenParseResult, JitenCardState } from './types';
+import { JitenParseResult, StudyDeckType } from './types';
 
 // type JPDBVidSidTuple = [vid: number, sid: number][];
 
@@ -12,7 +12,8 @@ type JitenLookupVocabularyRequest = {
 };
 
 type JitenLookupVocabularyResult = {
-  result: [JitenCardState[]];
+  result: number[][];
+  decks: number[][];
 };
 
 type JitenReviewRequest = {
@@ -45,6 +46,7 @@ type JitenSetVocabularyStateRequest = {
 export type StudyDeckListItem = {
   userStudyDeckId: number;
   name: string;
+  deckType: StudyDeckType;
 };
 
 export type JitenRequestOptions = {

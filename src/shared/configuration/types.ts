@@ -61,6 +61,7 @@ export type ConfigurationSchema = {
   iPlusOneMaxFrequencyCount: number;
   skipFurigana: boolean;
   generatePitch: boolean;
+  markWordsInDeck: boolean;
 
   wordStyleConfig: WordStyleConfig;
   customWordCSS: string;
@@ -95,6 +96,7 @@ export type ConfigurationSchema = {
 
   showConjugations: boolean;
   showPitchDiagrams: boolean;
+  showDeckMembership: boolean;
   disableHeadWordLink: boolean;
 
   ttsVoice: string;

@@ -592,8 +592,15 @@ export class TextHighlighter extends BaseTextHighlighter {
   }
 
   protected patchElement(element: HTMLElement, token: JitenToken | undefined): void {
-    const { skipFurigana, markFrequency, markAll, generatePitch, markIPlus1, newStates } =
-      Registry.textHighlighterOptions;
+    const {
+      skipFurigana,
+      markFrequency,
+      markAll,
+      generatePitch,
+      markIPlus1,
+      newStates,
+      markWordsInDeck,
+    } = Registry.textHighlighterOptions;
     const { card, pitchClass, sentence, conjugations } = token ?? {};
 
     // do not apply the same card twice
@@ -615,6 +622,14 @@ export class TextHighlighter extends BaseTextHighlighter {
       Registry.addCard(card, element, conjugations);
 
       element.classList.add('jiten-word', ...card.cardState);
+
+      if (markWordsInDeck && card.deckIds.length > 0) {
+        const deckClasses = Registry.getDeckMembershipClasses(card.deckIds);
+
+        if (deckClasses.length > 0) {
+          element.classList.add(...deckClasses);
+        }
+      }
 
       if (markFrequency && card.frequencyRank <= markFrequency) {
         const states = card.cardState;

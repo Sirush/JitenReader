@@ -1,4 +1,10 @@
-import { JitenCard, JitenCardState } from '@shared/jiten/types';
+import { StudyDeckListItem } from '@shared/jiten/api.types';
+import {
+  DECK_MEMBERSHIP_CLASSES,
+  JitenCard,
+  JitenCardState,
+  STUDY_DECK_CLASS,
+} from '@shared/jiten/types';
 import { BatchController } from '../batches/batch-controller';
 import { BaseParser } from '../parser/base.parser';
 import { PopupManager } from '../popup/popup-manager';
@@ -30,6 +36,7 @@ export class Registry {
     minSentenceLength: 3,
     iPlusOneMaxFrequency: false,
     newStates: [],
+    markWordsInDeck: false,
   };
 
   public static skipTouchEvents = false;
@@ -38,6 +45,38 @@ export class Registry {
 
   private static readonly cards = new Map<string, JitenCard>();
   private static readonly conjugations = new WeakMap<HTMLElement, string[]>();
+  private static readonly studyDecks = new Map<number, StudyDeckListItem>();
+
+  public static setStudyDecks(decks: StudyDeckListItem[]): void {
+    this.studyDecks.clear();
+
+    for (const deck of decks) {
+      this.studyDecks.set(deck.userStudyDeckId, deck);
+    }
+  }
+
+  public static getStudyDecks(): StudyDeckListItem[] {
+    return Array.from(this.studyDecks.values());
+  }
+
+  public static getStudyDeck(deckId: number): StudyDeckListItem | undefined {
+    return this.studyDecks.get(deckId);
+  }
+
+  // Resolves the membership CSS classes (one per deck type) for the decks a word belongs to.
+  public static getDeckMembershipClasses(deckIds: number[]): string[] {
+    const classes = new Set<string>();
+
+    for (const id of deckIds) {
+      const deck = this.studyDecks.get(id);
+
+      if (deck) {
+        classes.add(STUDY_DECK_CLASS[deck.deckType]);
+      }
+    }
+
+    return Array.from(classes);
+  }
 
   public static addCard(card: JitenCard, element: HTMLElement, conjugations?: string[]): void {
     const key = `${card.wordId}/${card.readingIndex}`;
@@ -53,16 +92,27 @@ export class Registry {
     }
   }
 
-  public static updateCard(wordId: number, readingIndex: number, state: JitenCardState[]): void {
+  public static updateCard(
+    wordId: number,
+    readingIndex: number,
+    state: JitenCardState[],
+    deckIds?: number[],
+  ): void {
     const card = this.getCard(wordId, readingIndex);
     const managedStates = Object.values(JitenCardState);
-    const { markFrequency, markAll, newStates } = this.textHighlighterOptions;
+    const { markFrequency, markAll, newStates, markWordsInDeck } = this.textHighlighterOptions;
 
     if (!card) {
       return;
     }
 
     card.cardState = state;
+
+    if (deckIds) {
+      card.deckIds = deckIds;
+    }
+
+    const deckClasses = markWordsInDeck ? this.getDeckMembershipClasses(card.deckIds) : [];
 
     const isNew = state.some((s) => newStates.includes(s));
     const isFrequent =
@@ -72,10 +122,13 @@ export class Registry {
       .querySelectorAll(`[wordId="${wordId}"][readingIndex="${readingIndex}"]`)
       .forEach((element) => {
         const classes = Array.from(element.classList).filter(
-          (x) => x !== 'frequent' && !managedStates.includes(x as JitenCardState),
+          (x) =>
+            x !== 'frequent' &&
+            !managedStates.includes(x as JitenCardState) &&
+            !DECK_MEMBERSHIP_CLASSES.includes(x),
         );
 
-        classes.push(...state);
+        classes.push(...state, ...deckClasses);
 
         if (isFrequent) {
           classes.push('frequent');

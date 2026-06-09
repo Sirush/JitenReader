@@ -11,11 +11,16 @@ const CARD_STATE_MAP: Record<number, JitenCardState> = {
   5: JitenCardState.MASTERED,
 };
 
+export type CardStateResult = {
+  states: JitenCardState[];
+  deckIds: number[];
+};
+
 export const getCardState = async (
   wordId: number,
   readingIndex: number,
   options?: JitenRequestOptions,
-): Promise<JitenCardState[]> => {
+): Promise<CardStateResult> => {
   const result = await request(
     'reader/lookup-vocabulary',
     {
@@ -24,14 +29,15 @@ export const getCardState = async (
     options,
   );
   const [firstWord] = result.result;
+  const deckIds = result.decks?.[0] ?? [];
 
   if (!Array.isArray(firstWord) || firstWord.length === 0) {
-    return [JitenCardState.NEW];
+    return { states: [JitenCardState.NEW], deckIds };
   }
 
   const states = firstWord
     .map((state: number) => CARD_STATE_MAP[state])
     .filter((s): s is JitenCardState => s !== undefined);
 
-  return states.length > 0 ? states : [JitenCardState.NEW];
+  return { states: states.length > 0 ? states : [JitenCardState.NEW], deckIds };
 };

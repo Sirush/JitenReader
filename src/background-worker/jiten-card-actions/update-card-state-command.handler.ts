@@ -8,8 +8,8 @@ export class UpdateCardStateCommandHandler extends BackgroundCommandHandler<Upda
   public readonly command = UpdateCardStateCommand;
 
   public async handle(sender: MessageSender, wordId: number, readingIndex: number): Promise<void> {
-    const newCardState = await getCardState(wordId, readingIndex);
+    const { states, deckIds } = await getCardState(wordId, readingIndex);
 
-    new CardStateUpdatedCommand(wordId, readingIndex, newCardState).send();
+    new CardStateUpdatedCommand(wordId, readingIndex, states, deckIds).send();
   }
 }

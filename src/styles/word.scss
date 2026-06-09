@@ -1,3 +1,5 @@
+@use 'variables/_colors' as colors;
+
 .jiten-word {
   margin-inline: 0.5px;
 }
@@ -55,5 +57,13 @@ a.jiten-word:not(.unparsed)::after {
 .jiten-word:not(.unparsed).hovered {
   text-decoration: underline;
   text-underline-position: under left;
+}
+
+// Default, user-overridable styling for words already in a study deck (one per deck type).
+// Any styling configured through the word-style settings wins (it is emitted with !important).
+@each $cls, $color in colors.$deck-types {
+  .jiten-word.#{$cls} {
+    border-bottom: 2px dotted $color;
+  }
 }
 

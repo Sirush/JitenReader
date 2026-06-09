@@ -9,4 +9,5 @@ export type TextHighlighterOptions = {
   minSentenceLength: number;
   iPlusOneMaxFrequency: false | number;
   newStates: JitenCardState[];
+  markWordsInDeck: boolean;
 };

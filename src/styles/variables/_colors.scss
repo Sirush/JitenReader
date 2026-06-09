@@ -41,6 +41,14 @@ $decks: (
   forget: map.get($outlines, v1),
 );
 
+// Per deck-type accent, keyed by the CSS class applied for that membership.
+// Shared between the page word styling (word.scss) and the popup indicators (popup.scss).
+$deck-types: (
+  in-word-list: rgba(80, 200, 120, 0.9),
+  in-media-deck: rgba(90, 160, 255, 0.9),
+  in-dynamic-deck: rgba(190, 130, 255, 0.9),
+);
+
 $buttons: (
   button-background-color: #214177,
   button-text-color: #ddd,

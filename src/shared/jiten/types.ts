@@ -33,6 +33,22 @@ export enum JitenCardState {
   DUE = 'due',
 }
 
+// Mirrors the backend StudyDeckType enum.
+export enum StudyDeckType {
+  MEDIA_DECK = 0,
+  GLOBAL_DYNAMIC = 1,
+  STATIC_WORD_LIST = 2,
+}
+
+// CSS class applied to a word for each type of study deck it belongs to.
+export const STUDY_DECK_CLASS: Record<StudyDeckType, string> = {
+  [StudyDeckType.MEDIA_DECK]: 'in-media-deck',
+  [StudyDeckType.GLOBAL_DYNAMIC]: 'in-dynamic-deck',
+  [StudyDeckType.STATIC_WORD_LIST]: 'in-word-list',
+};
+
+export const DECK_MEMBERSHIP_CLASSES = Object.values(STUDY_DECK_CLASS);
+
 export type JitenRawVocabulary = {
   wordId: number;
   readingIndex: number;
@@ -44,6 +60,7 @@ export type JitenRawVocabulary = {
   meaningsPartOfSpeech: string[][];
   knownState: number[];
   pitchAccents: number[] | null;
+  studyDeckIds: number[];
 };
 
 export type JitenCard = {
@@ -57,6 +74,7 @@ export type JitenCard = {
   cardState: JitenCardState[];
   pitchAccents: number[];
   wordWithReading: string | null;
+  deckIds: number[];
 };
 
 export type JitenToken = {

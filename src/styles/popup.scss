@@ -44,6 +44,12 @@
           filter: none;
           transform: scale(0.97);
         }
+
+        &.disabled {
+          opacity: 0.45;
+          cursor: default;
+          pointer-events: none;
+        }
       }
 
       &#mining,
@@ -409,7 +415,76 @@
           filter: none;
           transform: scale(0.97);
         }
+
+        &.already-in {
+          opacity: 0.6;
+          cursor: default;
+
+          &:hover {
+            background-color: color-mix(in srgb, $deck-color 12%, #171717);
+            border-color: color-mix(in srgb, $deck-color 35%, #171717);
+          }
+
+          &:active {
+            transform: none;
+          }
+        }
       }
+    }
+  }
+}
+
+// Membership status strip: one colour-coded row per deck type, each capped to a single line.
+#deck-membership {
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  margin-top: 0.4em;
+  opacity: 0.85;
+
+  .deck-membership-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    min-width: 0;
+  }
+
+  .deck-membership-label {
+    flex: 0 0 auto;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0.8;
+  }
+
+  .deck-membership-names {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+// Word-list membership marker on the Deck+ button (stays clickable to add to other lists).
+#add-to-deck.in-list {
+  $list-color: map.get(colors.$deck-types, in-word-list);
+
+  color: $list-color;
+  border-color: color-mix(in srgb, $list-color 45%, #171717);
+  background-color: color-mix(in srgb, $list-color 14%, #171717);
+}
+
+// Small colour dot prefixing each membership row, tying the colour to readable text.
+.deck-dot {
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+  flex: 0 0 auto;
+
+  @each $cls, $color in colors.$deck-types {
+    &.#{$cls} {
+      background-color: $color;
     }
   }
 }

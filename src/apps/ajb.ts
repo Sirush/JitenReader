@@ -4,6 +4,7 @@ import { debug } from '@shared/debug';
 import { displayToast } from '@shared/dom/display-toast';
 import { HostMeta, PredefinedHostMeta } from '@shared/host-meta/types';
 import { JitenCardState } from '@shared/jiten/types';
+import { FetchStudyDecksCommand } from '@shared/messages/background/fetch-study-decks.command';
 import { LookupTextCommand } from '@shared/messages/background/lookup-text.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { receiveBackgroundMessage } from '@shared/messages/receiving/receive-background-message';
@@ -57,8 +58,8 @@ export class AJB {
 
     onBroadcastMessage(
       'cardStateUpdated',
-      (wordId: number, readingIndex: number, state: JitenCardState[]) => {
-        Registry.updateCard(wordId, readingIndex, state);
+      (wordId: number, readingIndex: number, state: JitenCardState[], deckIds: number[]) => {
+        Registry.updateCard(wordId, readingIndex, state, deckIds);
         Registry.statusBar?.recalculateStats();
       },
     );
@@ -76,6 +77,7 @@ export class AJB {
         const iPlusOneMaxFrequency = await getConfiguration('iPlusOneMaxFrequency');
         const iPlusOneMaxFrequencyCount = await getConfiguration('iPlusOneMaxFrequencyCount');
         const newStates = await getConfiguration('newStates');
+        const markWordsInDeck = await getConfiguration('markWordsInDeck');
 
         Registry.textHighlighterOptions.skipFurigana = skipFurigana;
         Registry.textHighlighterOptions.generatePitch = generatePitch;
@@ -87,6 +89,7 @@ export class AJB {
           ? iPlusOneMaxFrequencyCount
           : false;
         Registry.textHighlighterOptions.newStates = newStates;
+        Registry.textHighlighterOptions.markWordsInDeck = markWordsInDeck;
       },
       true,
     );
@@ -94,9 +97,21 @@ export class AJB {
     onBroadcastMessage('profileSwitched', (_profileId: string) => {
       invalidateProfileCache();
       invalidateSetConfigurationCache();
+      void this.loadStudyDecks();
     });
 
+    void this.loadStudyDecks();
     void this.installFeatures();
+  }
+
+  protected async loadStudyDecks(): Promise<void> {
+    try {
+      const decks = await new FetchStudyDecksCommand().call();
+
+      Registry.setStudyDecks(decks);
+    } catch {
+      // Not signed in / API unavailable — deck membership marking simply stays inert.
+    }
   }
 
   protected lookupText(text: string | undefined): void {

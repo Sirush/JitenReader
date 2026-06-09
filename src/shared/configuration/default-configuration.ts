@@ -59,6 +59,7 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   iPlusOneMaxFrequencyCount: 15_000,
   skipFurigana: false,
   generatePitch: true,
+  markWordsInDeck: false,
 
   wordStyleConfig: structuredClone(DEFAULT_WORD_STYLE_CONFIG),
   customWordCSS: '',
@@ -93,6 +94,7 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
 
   showConjugations: true,
   showPitchDiagrams: true,
+  showDeckMembership: true,
   disableHeadWordLink: false,
 
   ttsVoice: 'female',

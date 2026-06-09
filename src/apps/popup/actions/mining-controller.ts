@@ -35,7 +35,9 @@ export class MiningController extends BaseController {
   }
 
   public addToStudyDeck(deckId: number, card: JitenCard, sentence?: string, source?: string): void {
-    new AddToStudyDeckCommand(deckId, card.wordId, card.readingIndex, sentence, source).send();
+    new AddToStudyDeckCommand(deckId, card.wordId, card.readingIndex, sentence, source).send(() =>
+      this.updateCardState(card),
+    );
   }
 
   protected async applyConfiguration(): Promise<void> {

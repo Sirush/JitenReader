@@ -80,6 +80,7 @@ export class Parser {
         meaningsPartOfSpeech,
         knownState,
         pitchAccents,
+        studyDeckIds,
       } = vocab;
 
       const cardState = knownState
@@ -104,6 +105,7 @@ export class Parser {
         cardState,
         pitchAccents: pitchAccents ?? [],
         wordWithReading: null,
+        deckIds: studyDeckIds ?? [],
       };
     });
   }

@@ -7,7 +7,7 @@ import { withElement } from '@shared/dom/with-element';
 import { getStyleUrl } from '@shared/extension/get-style-url';
 import { formatSentenceWithMarkers } from '@shared/format-sentence';
 import { StudyDeckListItem } from '@shared/jiten/api.types';
-import { JitenCard, JitenCardState } from '@shared/jiten/types';
+import { JitenCard, JitenCardState, STUDY_DECK_CLASS, StudyDeckType } from '@shared/jiten/types';
 import { FetchStudyDecksCommand } from '@shared/messages/background/fetch-study-decks.command';
 import { ForgetCardCommand } from '@shared/messages/background/forget-card.command';
 import { UpdateCardStateCommand } from '@shared/messages/background/update-card-state.command';
@@ -116,6 +116,7 @@ export class Popup {
   private _moveGradingActions: boolean;
   private _showConjugations: boolean;
   private _showPitchDiagrams: boolean;
+  private _showDeckMembership: boolean;
   private _disableHeadWordLink: boolean;
   private _ttsVoice: string;
   private _ttsAutoPlay: boolean;
@@ -245,6 +246,7 @@ export class Popup {
     this._moveGradingActions = await getConfiguration('moveGradingActions');
     this._showConjugations = await getConfiguration('showConjugations');
     this._showPitchDiagrams = await getConfiguration('showPitchDiagrams');
+    this._showDeckMembership = await getConfiguration('showDeckMembership');
     this._disableHeadWordLink = await getConfiguration('disableHeadWordLink');
     this._ttsVoice = await getConfiguration('ttsVoice');
     this._ttsAutoPlay = await getConfiguration('ttsAutoPlay');
@@ -518,20 +520,49 @@ export class Popup {
       }),
     );
 
-    const deckId = Number(this._mining.studyDeckId);
-
-    if ((deckId || !this._mining.autoMineToStudyDeck) && this._mining.showActions) {
-      this._mineButtons.appendChild(
-        createElement('a', {
-          id: 'add-to-deck',
-          class: ['outline', 'mining'],
-          innerText: 'Deck +',
-          handler: () => void this.handleAddToDeck(),
-        }),
-      );
-    }
+    this.renderDeckButton(this._card);
 
     this._mineButtons.style.display = this._showMiningActions ? '' : 'none';
+  }
+
+  /**
+   * Builds (or rebuilds) the Deck+ button for the given card. Idempotent: removes any previous
+   * instance first, so it can run on first build and on each per-card rerender.
+   */
+  private renderDeckButton(card: JitenCard | undefined): void {
+    this._mineButtons.querySelector('#add-to-deck')?.remove();
+
+    const deckId = Number(this._mining.studyDeckId);
+
+    if (!((deckId || !this._mining.autoMineToStudyDeck) && this._mining.showActions)) {
+      return;
+    }
+
+    // When a single target deck is configured, disable the button once the word is already in it.
+    const alreadyInTargetDeck =
+      this._mining.autoMineToStudyDeck && deckId > 0 && !!card?.deckIds.includes(deckId);
+    const inWordList =
+      !alreadyInTargetDeck &&
+      !!card &&
+      (this.groupDecksByType(card).get(StudyDeckType.STATIC_WORD_LIST)?.length ?? 0) > 0;
+
+    const classes = ['outline', 'mining'];
+    let label = 'Deck +';
+    let handler: (() => void) | undefined = (): void => void this.handleAddToDeck();
+
+    if (alreadyInTargetDeck) {
+      classes.push('disabled');
+      label = 'In deck';
+      handler = undefined;
+    } else if (inWordList) {
+      // Already in a word list, but still clickable to add to others.
+      classes.push('in-list');
+      label = '✓ In list';
+    }
+
+    this._mineButtons.appendChild(
+      createElement('a', { id: 'add-to-deck', class: classes, innerText: label, handler }),
+    );
   }
 
   private async handleForgetClick(): Promise<void> {
@@ -608,13 +639,22 @@ export class Popup {
     try {
       const decks = await new FetchStudyDecksCommand().call();
 
-      if (!decks?.length) {
+      if (decks) {
+        Registry.setStudyDecks(decks);
+      }
+
+      // Only static word-list decks can be added to manually.
+      const staticDecks = (decks ?? []).filter(
+        (deck) => deck.deckType === StudyDeckType.STATIC_WORD_LIST,
+      );
+
+      if (!staticDecks.length) {
         displayToast('error', 'No word lists available. Create one in Jiten first.');
 
         return;
       }
 
-      this.showDeckPicker(decks);
+      this.showDeckPicker(staticDecks);
     } catch {
       // API unreachable
     }
@@ -664,29 +704,33 @@ export class Popup {
 
     overlay.style.transform = `translate(${tx}px, ${ty}px)`;
 
-    const buttons = decks.map((deck) =>
-      createElement('a', {
-        class: ['outline', 'mining'],
-        innerText: deck.name,
-        handler: () => {
-          if (this._card) {
-            this._mining.addToStudyDeck(
-              deck.userStudyDeckId,
-              this._card,
-              formattedSentence,
-              source,
-            );
-            this.toastDeckAction(deck.name);
+    const buttons = decks.map((deck) => {
+      const alreadyIn = !!this._card?.deckIds.includes(deck.userStudyDeckId);
 
-            if (this._hideAfterAction) {
-              this.hide();
-            }
-          }
+      return createElement('a', {
+        class: alreadyIn ? ['outline', 'mining', 'already-in'] : ['outline', 'mining'],
+        innerText: alreadyIn ? `✓ ${deck.name}` : deck.name,
+        handler: alreadyIn
+          ? (): void => close()
+          : (): void => {
+              if (this._card) {
+                this._mining.addToStudyDeck(
+                  deck.userStudyDeckId,
+                  this._card,
+                  formattedSentence,
+                  source,
+                );
+                this.toastDeckAction(deck.name);
 
-          close();
-        },
-      }),
-    );
+                if (this._hideAfterAction) {
+                  this.hide();
+                }
+              }
+
+              close();
+            },
+      });
+    });
 
     const dialog = createElement('div', {
       id: 'deck-picker-dialog',
@@ -864,6 +908,8 @@ export class Popup {
     withElement(this._mineButtons, '#suspend-deck', (el) => {
       el.innerText = isSP ? 'Unsuspend' : 'Suspend';
     });
+
+    this.renderDeckButton(card);
   }
 
   private adjustRotateButtons(card: JitenCard): void {
@@ -928,7 +974,79 @@ export class Popup {
         class: 'subsection',
         children: [this.getPitchAccentBlock(card), this.getFrequencyBlock(card)],
       }),
+      ...this.getDeckMembershipBlock(card),
     );
+  }
+
+  private groupDecksByType(card: JitenCard): Map<StudyDeckType, StudyDeckListItem[]> {
+    const groups = new Map<StudyDeckType, StudyDeckListItem[]>();
+
+    for (const id of card.deckIds) {
+      const deck = Registry.getStudyDeck(id);
+
+      if (!deck) {
+        continue;
+      }
+
+      const decks = groups.get(deck.deckType) ?? [];
+
+      decks.push(deck);
+      groups.set(deck.deckType, decks);
+    }
+
+    return groups;
+  }
+
+  private getDeckMembershipBlock(card: JitenCard): HTMLElement[] {
+    if (!this._showDeckMembership || !card.deckIds.length) {
+      return [];
+    }
+
+    const labels: Record<StudyDeckType, string> = {
+      [StudyDeckType.STATIC_WORD_LIST]: 'Word list',
+      [StudyDeckType.MEDIA_DECK]: 'Media deck',
+      [StudyDeckType.GLOBAL_DYNAMIC]: 'Freq deck',
+    };
+    const order = [
+      StudyDeckType.STATIC_WORD_LIST,
+      StudyDeckType.MEDIA_DECK,
+      StudyDeckType.GLOBAL_DYNAMIC,
+    ];
+
+    const groups = this.groupDecksByType(card);
+
+    if (groups.size === 0) {
+      return [];
+    }
+
+    const rows = order
+      .filter((type) => groups.has(type))
+      .map((type) => {
+        const decks = groups.get(type)!;
+        const names = decks.map((deck) => deck.name).filter((name) => name?.trim().length);
+        const label = decks.length > 1 ? `${labels[type]} ×${decks.length}` : labels[type];
+
+        return createElement('div', {
+          class: ['deck-membership-row'],
+          children: [
+            createElement('span', { class: ['deck-dot', STUDY_DECK_CLASS[type]] }),
+            createElement('span', { class: ['deck-membership-label'], innerText: label }),
+            names.length
+              ? createElement('span', {
+                  class: ['deck-membership-names'],
+                  innerText: names.join(', '),
+                })
+              : undefined,
+          ],
+        });
+      });
+
+    return [
+      createElement('div', {
+        id: 'deck-membership',
+        children: rows,
+      }),
+    ];
   }
 
   private getReadingBlock(card: JitenCard): HTMLElement {
