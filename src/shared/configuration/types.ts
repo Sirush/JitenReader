@@ -27,6 +27,7 @@ export type ConfigurationSchema = {
 
   jitenMineToStudyDeck: boolean;
   jitenStudyDeckId: string;
+  jitenAutoMineOnReview: boolean;
 
   // Jiten Flag settings
   jitenRotateFlags: boolean;

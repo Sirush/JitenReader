@@ -562,6 +562,12 @@
 
       <div id="mining" class="section" data-show="jitenApiKey">
         <h6>Mining</h6>
+        <p style="opacity: 0.8; margin-bottom: 1rem">
+          Mining adds a word to your selected word list as well as the surrounding sentence as a custom example sentence for that
+          word, provided it is no longer than 150 characters. You can store up to 3 example
+          sentences per word; once that quota is reached, mining still adds the word but keeps
+          your existing sentences.
+        </p>
         <div class="form-box-parent">
           <div class="form-box">
             <div>
@@ -606,6 +612,17 @@
               <p style="opacity: 0.8" indent up>
                 When enabled, the + button mines directly to your selected deck.
                 When disabled, it shows a deck picker each time.
+              </p>
+            </div>
+
+            <div data-show="jitenStudyDeckId" indent>
+              <div class="checkbox">
+                <input type="checkbox" id="jitenAutoMineOnReview" name="jitenAutoMineOnReview" />
+                <label for="jitenAutoMineOnReview">Auto-mine on review</label>
+              </div>
+              <p style="opacity: 0.8" indent up>
+                When enabled, reviewing a card also adds it to your selected word list,
+                unless the word is already in that list.
               </p>
             </div>
 

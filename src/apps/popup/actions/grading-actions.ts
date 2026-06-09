@@ -1,3 +1,4 @@
+import { formatSentenceWithMarkers } from '@shared/format-sentence';
 import { JitenCard, JitenRating } from '@shared/jiten/types';
 import { KeybindManager } from '../../integration/keybind-manager';
 import { Registry } from '../../integration/registry';
@@ -17,6 +18,8 @@ export class GradingActions {
     'jitenReviewPass',
   ]);
   private _card?: JitenCard;
+  private _sentence?: string;
+  private _surfaceForm?: string;
 
   constructor(private _controller: GradingController) {
     const { events } = Registry;
@@ -30,13 +33,17 @@ export class GradingActions {
     events.on('jitenReviewPass', () => this.reviewCard('good'));
   }
 
-  public activate(context: HTMLElement): void {
+  public activate(context: HTMLElement, sentence?: string): void {
     this._card = Registry.getCardFromElement(context);
+    this._sentence = sentence;
+    this._surfaceForm = GradingActions.getTextWithoutFurigana(context) || undefined;
     this._keyManager.activate();
   }
 
   public deactivate(): void {
     this._card = undefined;
+    this._sentence = undefined;
+    this._surfaceForm = undefined;
     this._keyManager.deactivate();
   }
 
@@ -45,6 +52,25 @@ export class GradingActions {
       return;
     }
 
-    this._controller.gradeCard(this._card, rating);
+    const sentence =
+      this._sentence && this._surfaceForm
+        ? formatSentenceWithMarkers(this._sentence, this._surfaceForm)
+        : undefined;
+
+    this._controller.gradeCard(this._card, rating, sentence, document.title);
+  }
+
+  private static getTextWithoutFurigana(element: HTMLElement): string {
+    let text = '';
+
+    for (const node of element.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        text += node.textContent;
+      } else if (node instanceof HTMLElement && node.tagName !== 'RT') {
+        text += GradingActions.getTextWithoutFurigana(node);
+      }
+    }
+
+    return text;
   }
 }

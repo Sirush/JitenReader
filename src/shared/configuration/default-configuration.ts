@@ -25,6 +25,7 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
 
   jitenMineToStudyDeck: false,
   jitenStudyDeckId: '',
+  jitenAutoMineOnReview: false,
 
   // JPDB Flag settings
   jitenRotateFlags: false,

@@ -792,7 +792,8 @@ export class Popup {
         id: grade,
         class: ['outline', grade],
         innerText: grade,
-        handler: () => this._grading.gradeCard(this._card!, grade),
+        handler: () =>
+          this._grading.gradeCard(this._card!, grade, this.getFormattedSentence(), document.title),
       }),
     );
 
