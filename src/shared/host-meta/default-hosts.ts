@@ -44,7 +44,7 @@ export const DEFAULT_HOSTS: PredefinedHostMeta[] = [
     css: '.asbplayer-subtitles-container-bottom { z-index: 2147483646 }',
     parserClass: 'asb-player-parser',
     addedObserver: {
-      notifyFor: '.asbplayer-offscreen',
+      notifyFor: '.asbplayer-offscreen > div',
       lazy: true,
     },
   },
