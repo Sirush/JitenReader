@@ -9,8 +9,12 @@
 }
 
 .ttsu-parser .jiten-word > ruby[data-furi] {
-  display: inline;
+  display: inline-block;
   position: relative;
+  vertical-align: baseline;
+  text-align: center;
+
+  line-height: 1;
 }
 
 .ttsu-parser .jiten-word > ruby[data-furi] > rt {
@@ -57,6 +61,23 @@ a.jiten-word:not(.unparsed)::after {
 .jiten-word:not(.unparsed).hovered {
   text-decoration: underline;
   text-underline-position: under left;
+}
+
+.ttsu-parser .jiten-word:not(.unparsed):hover,
+.ttsu-parser .jiten-word:not(.unparsed).hovered {
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-position: left 100%;
+  background-repeat: no-repeat;
+  background-size: 100% max(1px, 0.07em);
+
+  padding-block-end: 0.1em;
+}
+
+.ttsu-parser .book-content--writing-vertical-rl .jiten-word:not(.unparsed):hover,
+.ttsu-parser .book-content--writing-vertical-rl .jiten-word:not(.unparsed).hovered {
+  background-position: left top;
+  background-size: max(1px, 0.07em) 100%;
 }
 
 // Default, user-overridable styling for words already in a study deck (one per deck type).

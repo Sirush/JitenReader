@@ -30,6 +30,8 @@ const getTtsuParagraphs = (
 export class TtsuParser extends AutomaticParser {
   protected _pageObserver?: MutationObserver;
   protected _chapterObserver?: IntersectionObserver;
+
+  private static readonly MIN_FURIGANA_LINE_HEIGHT = 1.65;
   private _hasReservedFuriganaSpace = false;
 
   public override destroy(): void {
@@ -121,19 +123,43 @@ export class TtsuParser extends AutomaticParser {
     const style = document.createElement('style');
 
     style.setAttribute('data-jiten-style', 'ttsu-furigana-reservation');
-    style.textContent = [
+    // Reserve room for the absolutely-positioned furigana on the block-start side. Logical so it
+    // adapts to vertical writing mode, and in em so it scales with the reader font (a fixed px
+    // reserve overflowed into the previous line once the user enlarged the text). When the book's
+    // line-height is too tight to hold furigana between lines/columns, floor it (only ever raising
+    // it, so loosely-set books keep their exact spacing) - one consistent reflow, not a live shift.
+    const rules = [
       '.book-content-container > *:not(.ttu-book-html-wrapper) > *,',
       '.book-content-container > div.ttu-book-html-wrapper > div.ttu-book-body-wrapper > * {',
-      '  padding-top: 10px !important;',
-      '}',
-      '.book-content--writing-vertical-rl .book-content-container > *:not(.ttu-book-html-wrapper) > *,',
-      '.book-content--writing-vertical-rl .book-content-container > div.ttu-book-html-wrapper > div.ttu-book-body-wrapper > * {',
-      '  padding-top: 0 !important;',
-      '  padding-right: 10px !important;',
-      '}',
-    ].join('\n');
+      '  padding-block-start: 0.85em !important;',
+    ];
+
+    if (this.needsLineHeightFloor()) {
+      rules.push(`  line-height: ${TtsuParser.MIN_FURIGANA_LINE_HEIGHT} !important;`);
+    }
+
+    rules.push('}');
+    style.textContent = rules.join('\n');
 
     document.head.appendChild(style);
     window.dispatchEvent(new Event('resize'));
+  }
+
+  private needsLineHeightFloor(): boolean {
+    const sample = document.querySelector('.book-content-container');
+
+    if (!sample) {
+      return true;
+    }
+
+    const { lineHeight, fontSize } = getComputedStyle(sample);
+    const resolvedLineHeight = parseFloat(lineHeight);
+    const resolvedFontSize = parseFloat(fontSize);
+
+    if (Number.isNaN(resolvedLineHeight) || !resolvedFontSize) {
+      return true;
+    }
+
+    return resolvedLineHeight / resolvedFontSize < TtsuParser.MIN_FURIGANA_LINE_HEIGHT;
   }
 }
