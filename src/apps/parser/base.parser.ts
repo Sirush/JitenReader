@@ -3,6 +3,7 @@ import { getStyleUrl } from '@shared/extension/get-style-url';
 import { HostMeta } from '@shared/host-meta/types';
 import { getParagraphs } from '../batches/get-paragraphs';
 import { Registry } from '../integration/registry';
+import { applyWordStyles, hasWordStyles } from '../text-highlighter/apply-word-styles';
 
 export abstract class BaseParser {
   protected _destroyed = false;
@@ -383,6 +384,10 @@ export abstract class BaseParser {
       link.href = getStyleUrl('word');
       link.setAttribute('data-jiten-style', 'word');
       document.head.appendChild(link);
+    }
+
+    if (!hasWordStyles()) {
+      void applyWordStyles();
     }
   }
 

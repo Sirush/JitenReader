@@ -19,6 +19,7 @@ import { NoParser } from './parser/no.parser';
 import { TriggerParser } from './parser/trigger.parser';
 import { PopupManager } from './popup/popup-manager';
 import { StatusBar } from './status-bar/status-bar';
+import { applyWordStyles } from './text-highlighter/apply-word-styles';
 
 export class AJB {
   private _lookupKeyManager = new KeybindManager(['lookupSelectionKey']);
@@ -94,6 +95,8 @@ export class AJB {
           : false;
         Registry.textHighlighterOptions.newStates = newStates;
         Registry.textHighlighterOptions.markWordsInDeck = markWordsInDeck;
+
+        await applyWordStyles();
       },
       true,
     );
@@ -101,8 +104,7 @@ export class AJB {
     onBroadcastMessage('profileSwitched', (_profileId: string) => {
       invalidateProfileCache();
       invalidateSetConfigurationCache();
-      void this.loadStudyDecks();
-    });
+      void applyWordStyles();
 
     void this.loadStudyDecks();
     void this.installFeatures();
