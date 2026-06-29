@@ -1,5 +1,6 @@
 import { DeckConfiguration, DiscoverWordConfiguration } from '../anki/types';
 import { JitenCardState } from '../jiten/types';
+import { ReaderTheme } from '../reader-mode/themes';
 import { WordStyleConfig } from '../word-style/types';
 
 export type Keybind = { key: string; code: string; modifiers: string[] };
@@ -57,6 +58,13 @@ export type ConfigurationSchema = {
   disabledParsers: string[];
   additionalHosts: string;
   additionalMeta: string;
+
+  readerModeTheme: ReaderTheme;
+  readerModeFont: string;
+  readerModeFontSize: number;
+  readerModeBold: boolean;
+  readerModeWidth: number;
+  readerModeLineHeight: number;
 
   //#endregion
   //#region Texthighlighting
@@ -126,6 +134,7 @@ export type ConfigurationSchema = {
   showPopupKey: Keybinds;
   showAdvancedDialogKey: Keybinds;
   lookupSelectionKey: Keybinds;
+  readerModeKey: Keybinds;
 
   // Mining keybinds
   addToStudyDeckKey: Keybinds;

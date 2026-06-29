@@ -1,14 +1,16 @@
 import { getConfiguration } from '@shared/configuration/get-configuration';
-import { CRUNCHYROLL } from '@shared/features/features';
+import { CRUNCHYROLL, READER_MODE } from '@shared/features/features';
 import { Feature, FeatureImplementation } from '@shared/features/types';
 import { matchUrl } from '@shared/match-url';
 import { CrunchyrollFeature } from './crunchyroll-com.feature';
+import { ReaderModeFeature } from './reader-mode.feature';
 
 export async function getFeatures(): Promise<FeatureImplementation[]> {
   const isMainFrame = window === window.top;
   const enabledFeatures = await getConfiguration('enabledFeatures');
   const features: Record<string, [Feature, new () => FeatureImplementation]> = {
     [CRUNCHYROLL.id]: [CRUNCHYROLL, CrunchyrollFeature],
+    [READER_MODE.id]: [READER_MODE, ReaderModeFeature],
   };
   const active: FeatureImplementation[] = [];
 

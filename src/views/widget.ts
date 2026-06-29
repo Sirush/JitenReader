@@ -10,6 +10,7 @@ import { setParsingPaused } from '@shared/extension/set-parsing-paused';
 import { isDisabled } from '@shared/host-meta/is-disabled';
 import { ConfigurationUpdatedCommand } from '@shared/messages/broadcast/configuration-updated.command';
 import { ParsingPausedCommand } from '@shared/messages/broadcast/parsing-paused.command';
+import { OpenReaderModeCommand } from '@shared/messages/foreground/open-reader-mode.command';
 import { ParsePageCommand } from '@shared/messages/foreground/parse-page.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { getThemeCssVars } from '@shared/theme/get-theme-css-vars';
@@ -49,6 +50,14 @@ onLoaded(async () => {
 
   document.getElementById('changelog')?.addEventListener('click', () => {
     void openView('changelog');
+  });
+
+  document.getElementById('reader-mode')?.addEventListener('click', () => {
+    void getTabs({ active: true, currentWindow: true }).then(([tab]) => {
+      if (tab?.id) {
+        new OpenReaderModeCommand().send(tab.id, () => window.close());
+      }
+    });
   });
 
   const themeSelect = document.getElementById('theme-select') as HTMLSelectElement;

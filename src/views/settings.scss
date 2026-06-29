@@ -530,3 +530,35 @@ profile-selector {
 }
 
 // #endregion
+
+// #region Reader theme swatches
+
+.reader-theme-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6em;
+  align-items: center;
+}
+
+.reader-theme-swatch {
+  width: 1.7em;
+  height: 1.7em;
+  padding: 0;
+  border: 2px solid;
+  border-radius: 50%;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: transform 0.1s ease;
+
+  &:hover {
+    transform: scale(1.12);
+  }
+
+  &.active {
+    box-shadow:
+      0 0 0 2px var(--jiten-bg, #181818),
+      0 0 0 4px var(--jiten-accent, #d8b9fa);
+  }
+}
+
+// #endregion

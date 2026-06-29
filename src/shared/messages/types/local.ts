@@ -22,6 +22,7 @@ type KeybindEvents = {
   addToNeverForgetKey: KeybindEvent;
   addToSuspendedKey: KeybindEvent;
   cycleMasterBlacklistKey: KeybindEvent;
+  readerModeKey: KeybindEvent;
 };
 
 type ReleaseKeybindEvents = {

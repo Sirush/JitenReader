@@ -75,6 +75,16 @@ body {
     }
   }
 
+  .reader-row {
+    margin: 0.5em 0;
+
+    a.outline {
+      display: block;
+      padding: 0.4em 1em;
+      text-align: center;
+    }
+  }
+
   .toggle-row {
     display: flex;
     justify-content: space-between;

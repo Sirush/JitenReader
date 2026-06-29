@@ -21,9 +21,11 @@ import { HTMLNewStateInputElement } from './elements/html-new-state-input-elemen
 import { HTMLParsersInputElement } from './elements/html-parsers-input-element';
 import { HTMLProfileManagerElement } from './elements/html-profile-manager-element';
 import { HTMLProfileSelectorElement } from './elements/html-profile-selector-element';
+import { HTMLReaderThemeInputElement } from './elements/html-reader-theme-input-element';
 import { HTMLWordStyleEditorElement } from './elements/html-word-style-editor-element';
 
 customElements.define('mining-input', HTMLMiningInputElement);
+customElements.define('reader-theme-input', HTMLReaderThemeInputElement);
 customElements.define('profile-selector', HTMLProfileSelectorElement);
 customElements.define('keybind-input', HTMLKeybindInputElement);
 customElements.define('parsers-input', HTMLParsersInputElement);
@@ -139,7 +141,7 @@ setupColourPicker('themeAccentColour', 'themeAccentColourText');
 //#region Init Interactions
 
 withElements(
-  'input, textarea, select, keybind-input, parsers-input, features-input, new-state-input, word-style-editor',
+  'input, textarea, select, keybind-input, parsers-input, features-input, new-state-input, word-style-editor, reader-theme-input',
   (field: HTMLInputElement) => {
     const internal = field.hasAttribute('internal');
     const ignored = ['hidden', 'submit', 'button'];

@@ -1,4 +1,12 @@
 import { JitenCardState } from '../jiten/types';
+import {
+  DEFAULT_READER_BOLD,
+  DEFAULT_READER_FONT,
+  DEFAULT_READER_THEME,
+  READER_FONT_SIZE,
+  READER_LINE_HEIGHT,
+  READER_WIDTH,
+} from '../reader-mode/themes';
 import { DEFAULT_WORD_STYLE_CONFIG } from '../word-style/themes';
 import { ConfigurationSchema } from './types';
 
@@ -51,10 +59,17 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   showCurrentOnTop: true,
   showParseButton: true,
 
-  enabledFeatures: [],
+  enabledFeatures: ['reader-mode'],
   disabledParsers: [],
   additionalHosts: '',
   additionalMeta: '[]',
+
+  readerModeTheme: DEFAULT_READER_THEME,
+  readerModeFont: DEFAULT_READER_FONT,
+  readerModeFontSize: READER_FONT_SIZE.default,
+  readerModeBold: DEFAULT_READER_BOLD,
+  readerModeWidth: READER_WIDTH.default,
+  readerModeLineHeight: READER_LINE_HEIGHT.default,
 
   //#endregion
   //#region Texthighlighting
@@ -124,6 +139,7 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   showPopupKey: [{ key: 'Shift', code: 'ShiftLeft', modifiers: [] }],
   showAdvancedDialogKey: [],
   lookupSelectionKey: [{ key: 'L', code: 'KeyL', modifiers: ['Alt'] }],
+  readerModeKey: [{ key: 'H', code: 'KeyH', modifiers: ['Alt'] }],
 
   // Mining keybinds
   addToStudyDeckKey: [],

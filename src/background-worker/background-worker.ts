@@ -10,6 +10,7 @@ import { openOptionsPage } from '@shared/extension/open-options-page';
 import { openView } from '@shared/extension/open-view';
 import { runtime } from '@shared/extension/runtime';
 import { clearRejectedApiToken } from '@shared/jiten/request-by-url';
+import { OpenReaderModeCommand } from '@shared/messages/foreground/open-reader-mode.command';
 import { ParsePageCommand } from '@shared/messages/foreground/parse-page.command';
 import { ParseSelectionCommand } from '@shared/messages/foreground/parse-selection.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
@@ -196,5 +197,23 @@ if (!isMobile) {
       contexts: ['selection'],
     },
     (_, { id }) => parseSelectionCommand.send(id!),
+  );
+
+  addContextMenu(
+    {
+      id: 'open-reader-mode',
+      title: 'Open in Reader Mode',
+      contexts: ['page'],
+    },
+    (_, { id }) => new OpenReaderModeCommand().send(id!),
+  );
+
+  addContextMenu(
+    {
+      id: 'open-selection-reader-mode',
+      title: 'Open Selection in Reader Mode',
+      contexts: ['selection'],
+    },
+    (info, { id }) => new OpenReaderModeCommand(info.selectionText).send(id!),
   );
 }

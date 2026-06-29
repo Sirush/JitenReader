@@ -1,4 +1,5 @@
 import { getConfiguration } from '@shared/configuration/get-configuration';
+import { getStyleUrl } from '@shared/extension/get-style-url';
 import { getThemeCssVars } from '@shared/theme/get-theme-css-vars';
 import { generateWordStyleCSS } from '@shared/word-style/generate-css';
 
@@ -26,3 +27,20 @@ export const applyWordStyles = async (): Promise<void> => {
 };
 
 export const hasWordStyles = (): boolean => !!document.head.querySelector(STYLE_SELECTOR);
+
+// Ensures the static word.css link and the dynamic word styling are present, regardless of whether
+// a parser ran. Used by contexts that drive the highlight pipeline directly (e.g. reader mode).
+export const ensureWordStyles = async (): Promise<void> => {
+  if (!document.querySelector('link[data-jiten-style="word"]')) {
+    const link = document.createElement('link');
+
+    link.rel = 'stylesheet';
+    link.href = getStyleUrl('word');
+    link.setAttribute('data-jiten-style', 'word');
+    document.head.appendChild(link);
+  }
+
+  if (!hasWordStyles()) {
+    await applyWordStyles();
+  }
+};
