@@ -28,6 +28,7 @@ export class AJB {
   private _lastUrl = location.href;
   private _lastMetaKey = '';
   private _navigationGeneration = 0;
+  private _canBeTriggered = false;
 
   constructor() {
     debug('Initialize AJB', { mainFrame: window === window.top });
@@ -106,7 +107,11 @@ export class AJB {
       invalidateSetConfigurationCache();
       void applyWordStyles();
 
-    void this.loadStudyDecks();
+      if (this._canBeTriggered && Registry.isMainFrame) {
+        void this.loadStudyDecks();
+      }
+    });
+
     void this.installFeatures();
   }
 
@@ -154,9 +159,14 @@ export class AJB {
       }
 
       this._lastMetaKey = hostEvaluator.metaKey;
+      this._canBeTriggered = canBeTriggered;
 
       if (!canBeTriggered) {
         parsers.push(new NoParser(hostEvaluator.rejectionReason));
+      } else if (Registry.isMainFrame) {
+        // Decks are only needed to mark membership during highlighting, which
+        // never happens on unparseable pages — so skip the fetch entirely there.
+        void this.loadStudyDecks();
       }
 
       for (const meta of relevantMeta) {

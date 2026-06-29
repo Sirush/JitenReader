@@ -6,6 +6,25 @@ const REQUEST_TIMEOUT_MS = 30_000;
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 500;
 
+const API_KEY_REJECTED_MESSAGE =
+  'Jiten API key was rejected by the server. Please update it in the extension settings.';
+
+// Latches the token that was rejected with 401/403 so subsequent requests fail
+// fast without hitting the API until the key is changed or revalidated.
+let rejectedApiToken: string | undefined;
+
+export const clearRejectedApiToken = (): void => {
+  rejectedApiToken = undefined;
+};
+
+export const isApiTokenRejected = async (): Promise<boolean> => {
+  if (!rejectedApiToken) {
+    return false;
+  }
+
+  return (await getConfiguration('jitenApiKey')) === rejectedApiToken;
+};
+
 const wait = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 const isRetryable = (error: unknown, response?: Response): boolean => {
@@ -30,6 +49,12 @@ export const requestByUrl = async <Key extends keyof JitenEndpoints>(
     displayToast('error', 'API Token is not set');
 
     throw new Error('API Token is not set');
+  }
+
+  // Requests with an explicitly provided token (e.g. key validation in the
+  // settings) bypass the latch so the server is actually consulted again.
+  if (!options?.apiToken && apiToken === rejectedApiToken) {
+    throw new Error(API_KEY_REJECTED_MESSAGE);
   }
 
   const usedUrl = new URL(`${baseUrl}/${action}`);
@@ -65,6 +90,12 @@ export const requestByUrl = async <Key extends keyof JitenEndpoints>(
       throw error;
     }
 
+    if (response.status === 401 || response.status === 403) {
+      rejectedApiToken = apiToken;
+
+      throw new Error(API_KEY_REJECTED_MESSAGE);
+    }
+
     if (!response.ok && isRetryable(null, response) && attempt < MAX_RETRIES - 1) {
       const backoff = INITIAL_BACKOFF_MS * 2 ** attempt;
 
@@ -77,6 +108,10 @@ export const requestByUrl = async <Key extends keyof JitenEndpoints>(
 
     if ('error_message' in (responseObject as JitenErrorResponse)) {
       throw new Error((responseObject as JitenErrorResponse).error_message);
+    }
+
+    if (apiToken === rejectedApiToken) {
+      rejectedApiToken = undefined;
     }
 
     return responseObject as JitenEndpoints[Key][1];

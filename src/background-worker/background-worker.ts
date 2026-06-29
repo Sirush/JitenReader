@@ -6,17 +6,20 @@ import {
 } from '@shared/configuration/set-configuration';
 import { addContextMenu } from '@shared/extension/add-context-menu';
 import { addInstallListener } from '@shared/extension/add-install-listener';
-import { getStyledTabIds } from '@shared/extension/inject-style';
 import { openOptionsPage } from '@shared/extension/open-options-page';
 import { openView } from '@shared/extension/open-view';
 import { runtime } from '@shared/extension/runtime';
+import { clearRejectedApiToken } from '@shared/jiten/request-by-url';
 import { ParsePageCommand } from '@shared/messages/foreground/parse-page.command';
 import { ParseSelectionCommand } from '@shared/messages/foreground/parse-selection.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { DEFAULT_WORD_STYLE_CONFIG } from '@shared/word-style/themes';
 import { AddToStudyDeckCommandHandler } from './jiten-card-actions/add-to-study-deck-command.handler';
 import { BatchReviewCommandHandler } from './jiten-card-actions/batch-review-command.handler';
-import { FetchStudyDecksCommandHandler } from './jiten-card-actions/fetch-study-decks-command.handler';
+import {
+  FetchStudyDecksCommandHandler,
+  invalidateStudyDecksCache,
+} from './jiten-card-actions/fetch-study-decks-command.handler';
 import { ForgetCardCommandHandler } from './jiten-card-actions/forget-card-command.handler';
 import { GradeCardCommandHandler } from './jiten-card-actions/grade-card-command.handler';
 import { RunDeckActionCommandHandler } from './jiten-card-actions/run-deck-action-command.handler';
@@ -140,15 +143,11 @@ runtime.onMessage.addListener(
 onBroadcastMessage('profileSwitched', () => {
   invalidateProfileCache();
   invalidateSetConfigurationCache();
+  clearRejectedApiToken();
+  invalidateStudyDecksCache();
 });
 
-onBroadcastMessage('configurationUpdated', async () => {
-  const tabIds = getStyledTabIds();
-
-  for (const tabId of tabIds) {
-    await parseCommandHandler.injectWordStyles(tabId);
-  }
-});
+onBroadcastMessage('configurationUpdated', () => clearRejectedApiToken());
 
 async function migrateWordStyleConfig(): Promise<void> {
   const existing = await getConfiguration('wordStyleConfig');
