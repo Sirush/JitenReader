@@ -2,7 +2,7 @@
   "compilerOptions": {
     "outDir": "./jiten.reader/",
     "noImplicitAny": true,
-    "module": "es6",
+    "module": "es2020",
     "target": "es2021",
     "allowJs": true,
     "moduleResolution": "node",

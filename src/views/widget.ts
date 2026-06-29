@@ -60,6 +60,10 @@ onLoaded(async () => {
     });
   });
 
+  document.getElementById('pdf-reader')?.addEventListener('click', () => {
+    void openView('pdf-reader').then(() => window.close());
+  });
+
   const themeSelect = document.getElementById('theme-select') as HTMLSelectElement;
   const currentConfig = await getConfiguration('wordStyleConfig');
   const savedThemes: SavedThemesList = await getSavedThemes();

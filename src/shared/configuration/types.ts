@@ -66,6 +66,8 @@ export type ConfigurationSchema = {
   readerModeWidth: number;
   readerModeLineHeight: number;
 
+  pdfReaderMode: 'reflow' | 'faithful';
+
   //#endregion
   //#region Texthighlighting
 

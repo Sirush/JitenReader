@@ -57,6 +57,9 @@ export default (env = {}) => ({
       patterns: [
         { from: 'assets', to: 'assets' },
         { from: 'src/views/*.html', to: 'views/[name][ext]' },
+        { from: 'node_modules/pdfjs-dist/build/pdf.min.mjs', to: 'vendor/pdf.min.mjs' },
+        { from: 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs', to: 'vendor/pdf.worker.min.mjs' },
+        { from: 'node_modules/pdfjs-dist/cmaps', to: 'vendor/cmaps' },
         {
           from: 'src/manifest.json',
           to: '[name][ext]',
@@ -90,6 +93,11 @@ export default (env = {}) => ({
             loader: 'ts-loader',
             options: {
               transpileOnly: true,
+              // Keep comments through transpilation so the /* webpackIgnore: true */ marker on the
+              // pdfjs dynamic import survives for webpack to honour (tsconfig sets removeComments).
+              compilerOptions: {
+                removeComments: false,
+              },
             },
           },
         ],

@@ -7,7 +7,9 @@ export abstract class ForegroundCommand<
   TResult = void,
 > extends Command<TArguments> {
   public send<T>(tabId: number, afterCall?: (r: TResult) => T | Promise<T>): void {
-    void this.call(tabId, afterCall);
+    // Fire-and-forget: swallow rejections (e.g. "Receiving end does not exist" when the target tab
+    // has no content script yet / was closed). Callers that need the result use call() and handle it.
+    void this.call(tabId, afterCall).catch(() => undefined);
   }
 
   public call<T>(tabId: number, afterCall?: (r: TResult) => T | Promise<T>): Promise<TResult> {

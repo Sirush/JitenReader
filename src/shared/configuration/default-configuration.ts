@@ -71,6 +71,8 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   readerModeWidth: READER_WIDTH.default,
   readerModeLineHeight: READER_LINE_HEIGHT.default,
 
+  pdfReaderMode: 'faithful',
+
   //#endregion
   //#region Texthighlighting
 

@@ -33,6 +33,7 @@ import { LookupTextCommandHandler } from './lookup/lookup-text-command.handler';
 import { AbortRequestCommandHandler } from './parser/abort-request-command.handler';
 import { ParseCommandHandler } from './parser/parse-command.handler';
 import { ParseController } from './parser/parse.controller';
+import { FetchPdfCommandHandler } from './pdf/fetch-pdf-command.handler';
 
 const isMobile =
   navigator.userAgent.toLowerCase().includes('android') ??
@@ -64,6 +65,7 @@ const addToStudyDeckCommandHandler = new AddToStudyDeckCommandHandler();
 const forgetCardCommandHandler = new ForgetCardCommandHandler();
 const openSettingsCommandHandler = new OpenSettingsCommandHandler();
 const updateBadgeCommandHandler = new UpdateBadgeCommandHandler();
+const fetchPdfCommandHandler = new FetchPdfCommandHandler();
 
 const handlerCollection = new BackgroundCommandHandlerCollection(
   lookupTextCommandHandler,
@@ -78,6 +80,7 @@ const handlerCollection = new BackgroundCommandHandlerCollection(
   forgetCardCommandHandler,
   openSettingsCommandHandler,
   updateBadgeCommandHandler,
+  fetchPdfCommandHandler,
 );
 
 handlerCollection.listen();
