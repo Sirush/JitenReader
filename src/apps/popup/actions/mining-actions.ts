@@ -9,7 +9,7 @@ export class MiningActions {
   private static readonly STATE_MAP: Record<string, JitenCardState> = {
     neverForget: JitenCardState.MASTERED,
     blacklist: JitenCardState.BLACKLISTED,
-    suspend: JitenCardState.BLACKLISTED,
+    suspend: JitenCardState.SUSPENDED,
   };
 
   private _keyManager = new KeybindManager([

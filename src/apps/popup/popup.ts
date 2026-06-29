@@ -898,7 +898,7 @@ export class Popup {
     const stateMap: Record<'neverForget' | 'blacklist' | 'suspend', JitenCardState> = {
       neverForget: JitenCardState.MASTERED,
       blacklist: JitenCardState.BLACKLISTED,
-      suspend: JitenCardState.BLACKLISTED,
+      suspend: JitenCardState.SUSPENDED,
     };
 
     return card.cardState.includes(stateMap[state]);

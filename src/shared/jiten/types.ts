@@ -37,9 +37,13 @@ export enum JitenCardState {
   MASTERED = 'mastered',
   BLACKLISTED = 'blacklisted',
   DUE = 'due',
-  // A kana form whose kanji sibling the user already knows. Always accompanies a tier
-  // state (e.g. [YOUNG, REDUNDANT]); marks the word as known-via-kanji and not reviewable.
+  // A form covered by a sibling form the user already has a card for (kanji parent or
+  // script variant). Always accompanies exactly one tier state — NEW/YOUNG/MATURE/
+  // MASTERED/BLACKLISTED, never DUE — and is not reviewable itself.
   REDUNDANT = 'redundant',
+  // A parked card (manual suspend or leech auto-suspend). Keeps its tier — YOUNG/MATURE —
+  // for stats, but is never DUE: a suspended card is not scheduled for review.
+  SUSPENDED = 'suspended',
 }
 
 // Mirrors the backend StudyDeckType enum.

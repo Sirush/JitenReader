@@ -10,6 +10,7 @@ const CARD_STATE_MAP: Record<number, JitenCardState> = {
   4: JitenCardState.DUE,
   5: JitenCardState.MASTERED,
   6: JitenCardState.REDUNDANT,
+  7: JitenCardState.SUSPENDED,
 };
 
 export type CardStateResult = {

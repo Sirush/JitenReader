@@ -67,6 +67,7 @@ export class Parser {
       4: 'due',
       5: 'mastered',
       6: 'redundant',
+      7: 'suspended',
     };
 
     return vocabulary.map((vocab) => {
