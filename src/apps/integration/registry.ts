@@ -94,6 +94,30 @@ export class Registry {
     return Array.from(classes);
   }
 
+  // Re-applies deck-membership classes to every already-parsed word. Words are tagged at parse
+  // time, but the study-deck list loads asynchronously and can arrive after highlighting — this
+  // reconciles them. Also re-runs when the toggle flips live.
+  public static refreshDeckMembership(): void {
+    const { markWordsInDeck } = this.textHighlighterOptions;
+
+    document
+      .querySelectorAll<HTMLElement>('.jiten-word[wordId][readingIndex]')
+      .forEach((element) => {
+        element.classList.remove(...DECK_MEMBERSHIP_CLASSES);
+
+        if (!markWordsInDeck) {
+          return;
+        }
+
+        const card = this.getCardFromElement(element);
+        const deckClasses = card ? this.getDeckMembershipClasses(card.deckIds) : [];
+
+        if (deckClasses.length > 0) {
+          element.classList.add(...deckClasses);
+        }
+      });
+  }
+
   public static addCard(card: JitenCard, element: HTMLElement, conjugations?: string[]): void {
     const key = `${card.wordId}/${card.readingIndex}`;
 

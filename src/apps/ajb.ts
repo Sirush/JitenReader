@@ -28,7 +28,6 @@ export class AJB {
   private _lastUrl = location.href;
   private _lastMetaKey = '';
   private _navigationGeneration = 0;
-  private _canBeTriggered = false;
 
   constructor() {
     debug('Initialize AJB', { mainFrame: window === window.top });
@@ -98,6 +97,7 @@ export class AJB {
         Registry.textHighlighterOptions.markWordsInDeck = markWordsInDeck;
 
         await applyWordStyles();
+        Registry.refreshDeckMembership();
       },
       true,
     );
@@ -107,7 +107,7 @@ export class AJB {
       invalidateSetConfigurationCache();
       void applyWordStyles();
 
-      if (this._canBeTriggered && Registry.isMainFrame) {
+      if (this.willHighlight()) {
         void this.loadStudyDecks();
       }
     });
@@ -115,11 +115,18 @@ export class AJB {
     void this.installFeatures();
   }
 
+  // True once at least one parser that actually highlights (auto or trigger) is installed for this
+  // page. NoParser is a placeholder for unparseable pages and does not highlight.
+  protected willHighlight(): boolean {
+    return Registry.parsers.some((parser) => !(parser instanceof NoParser));
+  }
+
   protected async loadStudyDecks(): Promise<void> {
     try {
       const decks = await new FetchStudyDecksCommand().call();
 
       Registry.setStudyDecks(decks);
+      Registry.refreshDeckMembership();
     } catch {
       // Not signed in / API unavailable — deck membership marking simply stays inert.
     }
@@ -159,14 +166,9 @@ export class AJB {
       }
 
       this._lastMetaKey = hostEvaluator.metaKey;
-      this._canBeTriggered = canBeTriggered;
 
       if (!canBeTriggered) {
         parsers.push(new NoParser(hostEvaluator.rejectionReason));
-      } else if (Registry.isMainFrame) {
-        // Decks are only needed to mark membership during highlighting, which
-        // never happens on unparseable pages — so skip the fetch entirely there.
-        void this.loadStudyDecks();
       }
 
       for (const meta of relevantMeta) {
@@ -185,6 +187,10 @@ export class AJB {
         }
 
         parsers.push(new AutomaticParser(meta));
+      }
+
+      if (this.willHighlight()) {
+        void this.loadStudyDecks();
       }
     });
   }
