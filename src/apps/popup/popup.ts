@@ -186,6 +186,9 @@ export class Popup {
     this.clearTimer();
     this.clearDwellTimer();
     this.updateParentElement();
+
+    this._popup.style.height = '';
+
     this.rerender();
     this.setPosition();
 
@@ -845,20 +848,25 @@ export class Popup {
     let startHeight: number;
 
     const onMouseMove = (e: MouseEvent): void => {
+      const minHeight = Math.min(Popup.MIN_HEIGHT, startHeight);
       const newWidth = Math.max(Popup.MIN_WIDTH, startWidth + (e.clientX - startX));
-      const newHeight = Math.max(Popup.MIN_HEIGHT, startHeight + (e.clientY - startY));
+      const newHeight = Math.max(minHeight, startHeight + (e.clientY - startY));
 
       this._popupWidth = newWidth;
       this._popupHeight = newHeight;
+
+      this._popup.style.height = `${newHeight}px`;
+      this._popup.style.maxHeight = 'none';
       this.applyDimensions();
     };
 
     const onMouseUp = (): void => {
       this._isResizing = false;
+      this._popup.style.maxHeight = '';
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
       void setConfiguration('popupWidth', this._popupWidth);
-      void setConfiguration('popupHeight', this._popupHeight);
+      void setConfiguration('popupHeight', Math.max(Popup.MIN_HEIGHT, this._popupHeight));
     };
 
     this._resizeHandle.addEventListener('mousedown', (e: MouseEvent) => {
@@ -868,8 +876,11 @@ export class Popup {
       this._isResizing = true;
       startX = e.clientX;
       startY = e.clientY;
-      startWidth = this._popupWidth;
-      startHeight = this._popupHeight;
+
+      const { width, height } = getComputedStyle(this._popup);
+
+      startWidth = parseFloat(width) || this._popupWidth;
+      startHeight = parseFloat(height) || this._popupHeight;
 
       document.addEventListener('mousemove', onMouseMove);
       document.addEventListener('mouseup', onMouseUp);
@@ -904,6 +915,31 @@ export class Popup {
     this.applyActionVisibility(this._card);
 
     this._popup.setAttribute('class', `popup ${this._card.cardState.join(' ')}`);
+    this.ensureMinimumDetailsHeight();
+  }
+
+  /**
+   * The configured height is a cap, not a fixed size, so a tall header (conjugations, pitch
+   * diagrams, deck membership) can squeeze the definitions out entirely. When fewer than roughly
+   * two lines of definitions fit, the cap is raised just enough to show them.
+   */
+  private ensureMinimumDetailsHeight(): void {
+    this._popup.style.maxHeight = '';
+
+    const hiddenHeight = this._details.scrollHeight - this._details.clientHeight;
+
+    if (hiddenHeight <= 0) {
+      return;
+    }
+
+    const fontSize = parseFloat(getComputedStyle(this._details).fontSize) || 16;
+    const missingHeight = Math.ceil(fontSize * 1.5 * 2) - this._details.clientHeight;
+
+    if (missingHeight > 0) {
+      const extraHeight = Math.min(missingHeight, hiddenHeight);
+
+      this._popup.style.maxHeight = `${this._popup.offsetHeight + extraHeight}px`;
+    }
   }
 
   /**

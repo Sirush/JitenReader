@@ -7,7 +7,7 @@
 
 .popup {
   width: var(--popup-width, 350px);
-  height: var(--popup-height, 250px);
+  max-height: var(--popup-height, 250px);
 
   display: flex;
   flex-direction: column;
@@ -223,7 +223,7 @@
     }
 
     &#details {
-      flex: 1 1 0;
+      flex: 1 1 auto;
       min-height: 0;
       overflow: auto;
       margin-top: 0.5em;
