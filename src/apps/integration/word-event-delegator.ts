@@ -1,6 +1,7 @@
 import { getConfiguration } from '@shared/configuration/get-configuration';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { Registry } from './registry';
+import { getAdjacentWordElements } from './word-surface-form';
 
 /** Window after a touch during which emulated ("ghost") mouse events are ignored */
 const GHOST_MOUSE_WINDOW = 700;
@@ -85,51 +86,6 @@ export class WordEventDelegator {
     return target.closest?.('.jiten-word[wordId]');
   }
 
-  private findAdjacentWordElements(element: Element): Element[] {
-    const wordId = element.getAttribute('wordId');
-    const readingIndex = element.getAttribute('readingIndex');
-
-    if (!wordId) {
-      return [element];
-    }
-
-    const elements: Element[] = [element];
-
-    let prev = element.previousElementSibling;
-
-    while (prev) {
-      if (
-        prev.getAttribute('wordId') === wordId &&
-        prev.getAttribute('readingIndex') === readingIndex
-      ) {
-        elements.unshift(prev);
-        prev = prev.previousElementSibling;
-      } else if (!prev.hasAttribute('wordId')) {
-        prev = prev.previousElementSibling;
-      } else {
-        break;
-      }
-    }
-
-    let next = element.nextElementSibling;
-
-    while (next) {
-      if (
-        next.getAttribute('wordId') === wordId &&
-        next.getAttribute('readingIndex') === readingIndex
-      ) {
-        elements.push(next);
-        next = next.nextElementSibling;
-      } else if (!next.hasAttribute('wordId')) {
-        next = next.nextElementSibling;
-      } else {
-        break;
-      }
-    }
-
-    return elements;
-  }
-
   private isGhostMouseEvent(): boolean {
     return Date.now() - this._lastTouchTime < GHOST_MOUSE_WINDOW;
   }
@@ -146,7 +102,7 @@ export class WordEventDelegator {
 
       Registry.popupManager?.enter(target as HTMLElement, sentence);
 
-      this.findAdjacentWordElements(target).forEach((el) => el.classList.add('hovered'));
+      getAdjacentWordElements(target).forEach((el) => el.classList.add('hovered'));
     }
   };
 
@@ -160,7 +116,7 @@ export class WordEventDelegator {
     if (target) {
       Registry.popupManager?.leave();
 
-      this.findAdjacentWordElements(target).forEach((el) => el.classList.remove('hovered'));
+      getAdjacentWordElements(target).forEach((el) => el.classList.remove('hovered'));
     }
   };
 

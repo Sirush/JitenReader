@@ -2,6 +2,7 @@ import { formatSentenceWithMarkers } from '@shared/format-sentence';
 import { JitenCard, JitenRating } from '@shared/jiten/types';
 import { KeybindManager } from '../../integration/keybind-manager';
 import { Registry } from '../../integration/registry';
+import { getWordSurfaceForm } from '../../integration/word-surface-form';
 import { GradingController } from './grading-controller';
 
 /**
@@ -36,7 +37,7 @@ export class GradingActions {
   public activate(context: HTMLElement, sentence?: string): void {
     this._card = Registry.getCardFromElement(context);
     this._sentence = sentence;
-    this._surfaceForm = GradingActions.getTextWithoutFurigana(context) || undefined;
+    this._surfaceForm = getWordSurfaceForm(context) || undefined;
     this._keyManager.activate();
   }
 
@@ -58,19 +59,5 @@ export class GradingActions {
         : undefined;
 
     this._controller.gradeCard(this._card, rating, sentence, document.title);
-  }
-
-  private static getTextWithoutFurigana(element: HTMLElement): string {
-    let text = '';
-
-    for (const node of element.childNodes) {
-      if (node.nodeType === Node.TEXT_NODE) {
-        text += node.textContent;
-      } else if (node instanceof HTMLElement && node.tagName !== 'RT') {
-        text += GradingActions.getTextWithoutFurigana(node);
-      }
-    }
-
-    return text;
   }
 }

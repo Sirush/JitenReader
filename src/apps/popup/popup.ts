@@ -19,6 +19,7 @@ import { flashWords } from '../integration/flash-words';
 import { KeybindManager } from '../integration/keybind-manager';
 import { Registry } from '../integration/registry';
 import { ReviewCooldown } from '../integration/review-cooldown';
+import { getWordSurfaceForm } from '../integration/word-surface-form';
 import { GradingController } from './actions/grading-controller';
 import { MiningController } from './actions/mining-controller';
 import { RotationController } from './actions/rotation-controller';
@@ -618,29 +619,13 @@ export class Popup {
       return undefined;
     }
 
-    const surfaceForm = this.getTextWithoutFurigana(this._cardContext);
+    const surfaceForm = getWordSurfaceForm(this._cardContext);
 
     if (!surfaceForm) {
       return undefined;
     }
 
     return formatSentenceWithMarkers(this._sentence, surfaceForm);
-  }
-
-  private getTextWithoutFurigana(element: HTMLElement): string {
-    let text = '';
-
-    for (const node of element.childNodes) {
-      if (node.nodeType === Node.TEXT_NODE) {
-        text += node.textContent;
-      } else if (node instanceof HTMLElement) {
-        if (node.tagName !== 'RT') {
-          text += this.getTextWithoutFurigana(node);
-        }
-      }
-    }
-
-    return text;
   }
 
   private async handleAddToDeck(): Promise<void> {
@@ -1408,7 +1393,7 @@ export class Popup {
   }
 
   private toastDeckAction(deckName?: string): void {
-    const word = this._cardContext ? this.getTextWithoutFurigana(this._cardContext) : '';
+    const word = this._cardContext ? getWordSurfaceForm(this._cardContext) : '';
     const target = deckName ?? 'deck';
 
     displayToast('success', `${word} added to ${target}`);

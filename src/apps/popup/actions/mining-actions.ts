@@ -3,6 +3,7 @@ import { JitenCard, JitenCardState } from '@shared/jiten/types';
 import { RunDeckActionCommand } from '@shared/messages/background/run-deck-action.command';
 import { KeybindManager } from '../../integration/keybind-manager';
 import { Registry } from '../../integration/registry';
+import { getWordSurfaceForm } from '../../integration/word-surface-form';
 import { MiningController } from './mining-controller';
 
 export class MiningActions {
@@ -43,7 +44,7 @@ export class MiningActions {
   public activate(context: HTMLElement, sentence?: string): void {
     this._card = Registry.getCardFromElement(context);
     this._sentence = sentence;
-    this._surfaceForm = MiningActions.getTextWithoutFurigana(context) || undefined;
+    this._surfaceForm = getWordSurfaceForm(context) || undefined;
     this._keyManager.activate();
   }
 
@@ -180,19 +181,5 @@ export class MiningActions {
     };
 
     executeInstructions(0);
-  }
-
-  private static getTextWithoutFurigana(element: HTMLElement): string {
-    let text = '';
-
-    for (const node of element.childNodes) {
-      if (node.nodeType === Node.TEXT_NODE) {
-        text += node.textContent;
-      } else if (node instanceof HTMLElement && node.tagName !== 'RT') {
-        text += MiningActions.getTextWithoutFurigana(node);
-      }
-    }
-
-    return text;
   }
 }
