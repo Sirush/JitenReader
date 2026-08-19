@@ -1,4 +1,4 @@
-import { Effect, WordStyleConfig } from './types';
+import { Effect, UnderlineStyle, WordStyleConfig } from './types';
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const cleaned = hex.replace('#', '');
@@ -18,6 +18,15 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
 
   return { r, g, b };
 }
+
+// Painted-on/painted-off run lengths approximating each underline style as a repeating gradient.
+// A single run longer than any word reads as solid; wavy has no gradient equivalent and falls back.
+const DASH_PATTERNS: Record<UnderlineStyle, (thickness: number) => [number, number]> = {
+  solid: () => [9999, 0],
+  wavy: () => [9999, 0],
+  dotted: (thickness) => [thickness, thickness],
+  dashed: (thickness) => [thickness * 3, thickness * 2],
+};
 
 function generateEffectCSS(effects: Effect[]): { normal: string[]; hover: string[] } {
   const normal: string[] = [];
@@ -45,12 +54,22 @@ function generateEffectCSS(effects: Effect[]): { normal: string[]; hover: string
         break;
       }
 
-      case 'underline':
+      case 'underline': {
         normal.push(`text-decoration: underline ${effect.style} ${effect.colour} !important;`);
         normal.push(`text-decoration-thickness: ${effect.thickness}px !important;`);
         normal.push('text-underline-position: under left !important;');
 
+        // Hosts that cannot use a text decoration (ttsu, whose furigana boxes are atomic inlines a
+        // decoration is never propagated into) repaint the same line as a background gradient.
+        const [on, off] = DASH_PATTERNS[effect.style](effect.thickness);
+
+        normal.push(`--jiten-underline-colour: ${effect.colour};`);
+        normal.push(`--jiten-underline-thickness: ${effect.thickness}px;`);
+        normal.push(`--jiten-underline-on: ${on}px;`);
+        normal.push(`--jiten-underline-off: ${off}px;`);
+
         break;
+      }
 
       case 'border':
         normal.push(`border: ${effect.width}px ${effect.style} ${effect.colour} !important;`);
