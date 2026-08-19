@@ -234,6 +234,8 @@ export const DEFAULT_HOSTS: PredefinedHostMeta[] = [
       '*://learnjapanese.moe/texthooker.html',
       '*://renji-xd.github.io/texthooker-ui/',
       '*://*/texthooker$',
+      '*://*/textfeed$',
+      '*://*/textlog$',
     ],
     auto: true,
     optOut: true,
