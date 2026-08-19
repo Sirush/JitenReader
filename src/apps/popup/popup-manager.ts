@@ -1,7 +1,9 @@
 import { getConfiguration } from '@shared/configuration/get-configuration';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { KeybindManager } from '../integration/keybind-manager';
+import { PageEventTrigger, pageEvents } from '../integration/page-events';
 import { Registry } from '../integration/registry';
+import { getWordSurfaceForm } from '../integration/word-surface-form';
 import { GradingActions } from './actions/grading-actions';
 import { GradingController } from './actions/grading-controller';
 import { MiningActions } from './actions/mining-actions';
@@ -79,6 +81,8 @@ export class PopupManager {
     this._rotationActions.activate(this._currentHover);
     this._gradingActions.activate(this._currentHover, sentence);
 
+    this.emitActiveWord(element, sentence, 'hover');
+
     if (this._showPopupOnHover) {
       this.handlePopup(false);
     }
@@ -105,7 +109,7 @@ export class PopupManager {
       }
     }
 
-    this.activateAndShow(element, sentence);
+    this.activateAndShow(element, sentence, 'click');
   }
 
   public longPress(element: HTMLElement, sentence?: string): void {
@@ -113,7 +117,7 @@ export class PopupManager {
       return;
     }
 
-    this.activateAndShow(element, sentence);
+    this.activateAndShow(element, sentence, 'long-press');
   }
 
   /**
@@ -125,6 +129,8 @@ export class PopupManager {
     this._currentHover = undefined;
     this._currentSentence = undefined;
 
+    pageEvents.clearActiveWord();
+
     this._observer.disconnect();
     this._keyManager.deactivate();
     this._miningActions.deactivate();
@@ -134,7 +140,11 @@ export class PopupManager {
     this._popup.initHide();
   }
 
-  private activateAndShow(element: HTMLElement, sentence?: string): void {
+  private activateAndShow(
+    element: HTMLElement,
+    sentence: string | undefined,
+    trigger: PageEventTrigger,
+  ): void {
     this._currentHover = element;
     this._currentSentence = sentence;
 
@@ -143,7 +153,29 @@ export class PopupManager {
     this._rotationActions.activate(this._currentHover);
     this._gradingActions.activate(this._currentHover, sentence);
 
+    this.emitActiveWord(element, sentence, trigger);
     this.handlePopup(true);
+  }
+
+  private emitActiveWord(
+    element: HTMLElement,
+    sentence: string | undefined,
+    trigger: PageEventTrigger,
+  ): void {
+    if (!pageEvents.enabled) {
+      return;
+    }
+
+    const card = Registry.getCardFromElement(element);
+
+    if (card) {
+      pageEvents.activeWordChanged(
+        card,
+        trigger,
+        getWordSurfaceForm(element) || undefined,
+        sentence,
+      );
+    }
   }
 
   /**

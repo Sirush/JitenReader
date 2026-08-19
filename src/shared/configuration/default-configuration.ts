@@ -212,4 +212,5 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
 
   skipReleaseNotes: true,
   enableDebugMode: false,
+  exposePageEvents: true,
 });

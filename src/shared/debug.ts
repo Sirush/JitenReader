@@ -1,21 +1,44 @@
+import { getProfileKey, PROFILES_STATE_KEY } from './configuration/profile.constants';
+import { getActiveProfileId } from './configuration/profiles-state';
+
+const DEBUG_SETTING_KEY = 'enableDebugMode';
+
 let debugEnabled: boolean | undefined = undefined;
+let debugStorageKey: string | undefined = undefined;
 const bufferedDebugMessages: [string, ...unknown[]][] = [];
+
+// Persisted configuration values are strings, but storage may hold a raw boolean from older builds.
+const toFlag = (value: unknown): boolean => value === true || value === 'true';
+
+const resolveDebugState = async (): Promise<void> => {
+  debugStorageKey = getProfileKey(await getActiveProfileId(), DEBUG_SETTING_KEY);
+
+  const result = await chrome.storage.local.get(debugStorageKey);
+
+  debugEnabled = toFlag(result[debugStorageKey]);
+
+  drainBufferedDebugMessages();
+};
 
 chrome.storage.local.onChanged.addListener(
   (changes: Record<string, chrome.storage.StorageChange>): void => {
-    if (changes.enableDebugMode) {
-      debugEnabled = changes.enableDebugMode.newValue as boolean;
+    if (changes[PROFILES_STATE_KEY]) {
+      void resolveDebugState();
+
+      return;
+    }
+
+    const change = debugStorageKey ? changes[debugStorageKey] : undefined;
+
+    if (change) {
+      debugEnabled = toFlag(change.newValue);
+
+      drainBufferedDebugMessages();
     }
   },
 );
-chrome.storage.local.get(
-  'enableDebugMode',
-  (result: { enableDebugMode?: 'true' | 'false' }): void => {
-    debugEnabled = result.enableDebugMode ? result.enableDebugMode === 'true' : false;
 
-    drainBufferedDebugMessages();
-  },
-);
+void resolveDebugState();
 
 export const debug = (message: string, ...optionalParams: unknown[]): void => {
   if (debugEnabled === undefined) {

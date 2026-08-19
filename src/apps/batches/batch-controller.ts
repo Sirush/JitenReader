@@ -1,6 +1,7 @@
 import { displayToast } from '@shared/dom/display-toast';
 import { JitenToken } from '@shared/jiten/types';
 import { ParseCommand } from '@shared/messages/background/parse.command';
+import { pageEvents } from '../integration/page-events';
 import { Registry } from '../integration/registry';
 import { Canceled } from '../sequence/canceled';
 import { AbortableSequence } from '../sequence/types';
@@ -113,6 +114,9 @@ export class BatchController {
           }),
         Promise.resolve(),
       )
-      .then(() => onComplete?.());
+      .then(() => {
+        pageEvents.pageParsed();
+        onComplete?.();
+      });
   }
 }

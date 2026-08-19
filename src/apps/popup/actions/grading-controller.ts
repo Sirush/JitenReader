@@ -2,6 +2,7 @@ import { getConfiguration } from '@shared/configuration/get-configuration';
 import { JitenCard, JitenCardState, JitenRating } from '@shared/jiten/types';
 import { AddToStudyDeckCommand } from '@shared/messages/background/add-to-study-deck.command';
 import { GradeCardCommand } from '@shared/messages/background/grade-card.command';
+import { pageEvents } from '../../integration/page-events';
 import { Registry } from '../../integration/registry';
 import { ReviewCooldown } from '../../integration/review-cooldown';
 import { BaseController } from './base-controller';
@@ -44,12 +45,15 @@ export class GradingController extends BaseController {
     void ReviewCooldown.mark([{ wordId, readingIndex }], this._massReviewCooldownHours);
 
     new GradeCardCommand(wordId, readingIndex, rating).send(() => {
+      pageEvents.reviewGraded(card, rating);
+
       const deckId = this.getAutoMineDeckId(card);
 
       if (deckId) {
-        new AddToStudyDeckCommand(deckId, wordId, readingIndex, sentence, source).send(() =>
-          this.updateCardState(card),
-        );
+        new AddToStudyDeckCommand(deckId, wordId, readingIndex, sentence, source).send(() => {
+          pageEvents.cardMined(card, deckId, sentence, source);
+          this.updateCardState(card);
+        });
 
         return;
       }

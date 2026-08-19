@@ -186,4 +186,5 @@ export type ConfigurationSchema = {
 
   skipReleaseNotes: boolean;
   enableDebugMode: boolean;
+  exposePageEvents: boolean;
 };

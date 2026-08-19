@@ -60,5 +60,20 @@ export const getTextWithoutFurigana = (element: Element): string => {
   return text;
 };
 
-export const getWordSurfaceForm = (element: Element): string =>
-  getAdjacentWordElements(element).map(getTextWithoutFurigana).join('');
+// Highlighted words are replaced wholesale on re-parse, so a fragment's surface form never
+// changes while the element lives. Cached because this runs on every hover.
+const surfaceFormCache = new WeakMap<Element, string>();
+
+export const getWordSurfaceForm = (element: Element): string => {
+  const cached = surfaceFormCache.get(element);
+
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  const surfaceForm = getAdjacentWordElements(element).map(getTextWithoutFurigana).join('');
+
+  surfaceFormCache.set(element, surfaceForm);
+
+  return surfaceForm;
+};

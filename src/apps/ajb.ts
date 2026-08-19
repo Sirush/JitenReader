@@ -12,6 +12,7 @@ import { getFeatures } from './features/get-features';
 import { KeybindManager } from './integration/keybind-manager';
 import { MassReviewAction } from './integration/mass-review-action';
 import { NoFocusTrigger } from './integration/no-focus-trigger';
+import { pageEvents } from './integration/page-events';
 import { Registry } from './integration/registry';
 import { AutomaticParser } from './parser/automatic.parser';
 import { getCustomParser } from './parser/get-custom-parser';
@@ -37,6 +38,7 @@ export class AJB {
     NoFocusTrigger.get().install();
 
     Registry.wordEventDelegator.initialise();
+    pageEvents.initialise();
 
     receiveBackgroundMessage('toast', displayToast);
     Registry.events.on('lookupSelectionKey', () => {
@@ -66,6 +68,13 @@ export class AJB {
       (wordId: number, readingIndex: number, state: JitenCardState[], deckIds: number[]) => {
         Registry.updateCard(wordId, readingIndex, state, deckIds);
         Registry.statusBar?.recalculateStats();
+        pageEvents.cardStateChanged(
+          wordId,
+          readingIndex,
+          state,
+          deckIds,
+          Registry.getCard(wordId, readingIndex),
+        );
       },
     );
 

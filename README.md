@@ -120,6 +120,10 @@ Additionally, you can add complete meta definitions in JSON format - refer to [t
 
 Customization is currently done with custom CSS, as it is the simplest way to offer a flexible framework. [See the docs on it here](docs/custom-css.md).
 
+## Integrating with other extensions
+
+JitenReader broadcasts events (word interactions, mining, grading, parsing) to the page via `window.postMessage`, so other extensions and userscripts can react to them. [See the page events docs](docs/page-events.md).
+
 ## Building
 
 Node version 22.x is used!
