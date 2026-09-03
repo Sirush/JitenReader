@@ -8,6 +8,14 @@
   margin-inline: 0;
 }
 
+// Mokuro sizes each textBox to the OCR bounding box it came from and scales the font to fit, so the
+// box has no slack. The default per-word margin lands on the inline axis - whichever way the box is
+// written - and accumulates once per word, so a wrapped line grows past the box it is pinned to.
+.mokuro-parser .jiten-word,
+.mokuro-legacy-parser .jiten-word {
+  margin-inline: 0;
+}
+
 .ttsu-parser .jiten-word > ruby[data-furi] {
   display: inline-block;
   position: relative;
