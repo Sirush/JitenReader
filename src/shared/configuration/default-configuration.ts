@@ -86,6 +86,7 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   iPlusOneMaxFrequency: false,
   iPlusOneMaxFrequencyCount: 15_000,
   skipFurigana: false,
+  furiganaOnlyOnNew: false,
   generatePitch: true,
   markWordsInDeck: false,
 

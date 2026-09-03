@@ -82,6 +82,7 @@ export class AJB {
       'configurationUpdated',
       async (): Promise<void> => {
         const skipFurigana = await getConfiguration('skipFurigana');
+        const furiganaOnlyOnNew = await getConfiguration('furiganaOnlyOnNew');
         const generatePitch = await getConfiguration('generatePitch');
         const markTopX = await getConfiguration('markTopX');
         const markTopXCount = await getConfiguration('markTopXCount');
@@ -94,6 +95,7 @@ export class AJB {
         const markWordsInDeck = await getConfiguration('markWordsInDeck');
 
         Registry.textHighlighterOptions.skipFurigana = skipFurigana;
+        Registry.textHighlighterOptions.furiganaOnlyOnNew = furiganaOnlyOnNew;
         Registry.textHighlighterOptions.generatePitch = generatePitch;
         Registry.textHighlighterOptions.markIPlus1 = markIPlus1;
         Registry.textHighlighterOptions.markAll = markAllTypes;

@@ -30,6 +30,7 @@ export class Registry {
   public static readonly sentenceManager = new SentenceManager();
   public static readonly textHighlighterOptions: TextHighlighterOptions = {
     skipFurigana: false,
+    furiganaOnlyOnNew: false,
     generatePitch: false,
     markFrequency: false,
     markAll: false,
