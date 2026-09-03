@@ -338,6 +338,14 @@
                 <input type="checkbox" id="skipFurigana" name="skipFurigana" />
                 <label for="skipFurigana">Prevent Furigana from generating</label>
               </div>
+
+              <div data-show="!skipFurigana" class="checkbox" indent>
+                <input type="checkbox" id="furiganaOnlyOnNew" name="furiganaOnlyOnNew" />
+                <label for="furiganaOnlyOnNew">Only display furigana on unknown words</label>
+              </div>
+              <div style="opacity: 0.8" data-show="!skipFurigana" indent up>
+                Generates furigana only on new words. Any already in the page is left alone.
+              </div>
             </div>
 
             <div>

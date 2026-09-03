@@ -262,7 +262,7 @@ export class TextHighlighter extends BaseTextHighlighter {
   ): void {
     const newRuby = this.wrapElement(fragment.node, token);
 
-    if (Registry.textHighlighterOptions.skipFurigana) {
+    if (this.shouldSkipFurigana(token)) {
       return;
     }
 
@@ -270,6 +270,18 @@ export class TextHighlighter extends BaseTextHighlighter {
 
     newRuby.textContent = '';
     newRuby.append(docFrag);
+  }
+
+  // "Unknown" in the setting means whichever states the user counts as new, the same newStates
+  // definition the I+1 and frequency marking already use - not a separate notion of known.
+  protected shouldSkipFurigana(token: JitenToken): boolean {
+    const { skipFurigana, furiganaOnlyOnNew, newStates } = Registry.textHighlighterOptions;
+
+    if (skipFurigana) {
+      return true;
+    }
+
+    return furiganaOnlyOnNew && !token.card.cardState.some((state) => newStates.includes(state));
   }
 
   protected createRubyNodesForFragment(fragment: Fragment, rubies: JitenRuby[]): DocumentFragment {

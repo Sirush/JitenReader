@@ -81,6 +81,7 @@ export type ConfigurationSchema = {
   iPlusOneMaxFrequency: boolean;
   iPlusOneMaxFrequencyCount: number;
   skipFurigana: boolean;
+  furiganaOnlyOnNew: boolean;
   generatePitch: boolean;
   markWordsInDeck: boolean;
 
