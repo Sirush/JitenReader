@@ -1,9 +1,10 @@
 import { getConfiguration } from '../configuration/get-configuration';
 import { displayToast } from '../dom/display-toast';
 import { JitenEndpoints, JitenErrorResponse, JitenRequestOptions } from './api.types';
+import { toConnectionError } from './connection-errors';
 import { RateLimitedError } from './rate-limited-error';
 
-const REQUEST_TIMEOUT_MS = 30_000;
+const REQUEST_TIMEOUT_MS = 10_000;
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 500;
 const DEFAULT_RETRY_AFTER_MS = 5_000;
@@ -95,9 +96,7 @@ export const requestByUrl = async <Key extends keyof JitenEndpoints>(
         continue;
       }
 
-      displayToast('error', 'jiten.moe is unreachable', (error as Error).message);
-
-      throw error;
+      throw toConnectionError(error);
     }
 
     if (response.status === 401 || response.status === 403) {

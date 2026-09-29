@@ -1,4 +1,5 @@
 import { displayToast } from '@shared/dom/display-toast';
+import { CONNECTION_ERROR_MESSAGES } from '@shared/jiten/connection-errors';
 import { JitenToken } from '@shared/jiten/types';
 import { ParseCommand } from '@shared/messages/background/parse.command';
 import { pageEvents } from '../integration/page-events';
@@ -96,8 +97,8 @@ export class BatchController {
                 return;
               }
 
-              if ((error as Error).message === 'Failed to fetch') {
-                displayToast('error', 'api.jiten.moe is unreachable', (error as Error).message);
+              if (CONNECTION_ERROR_MESSAGES.includes((error as Error).message)) {
+                displayToast('error', (error as Error).message);
 
                 return;
               }
