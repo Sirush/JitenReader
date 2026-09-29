@@ -35,6 +35,7 @@ export class GradingController extends BaseController {
     if (
       !this.gradingEnabled ||
       card.cardState.includes(JitenCardState.REDUNDANT) ||
+      card.cardState.includes(JitenCardState.SUSPENDED) ||
       !this.getGradingActions().includes(rating)
     ) {
       return;

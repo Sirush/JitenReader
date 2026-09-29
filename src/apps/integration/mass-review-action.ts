@@ -199,7 +199,8 @@ export class MassReviewAction {
     if (
       states.includes(JitenCardState.REDUNDANT) ||
       states.includes(JitenCardState.MASTERED) ||
-      states.includes(JitenCardState.BLACKLISTED)
+      states.includes(JitenCardState.BLACKLISTED) ||
+      states.includes(JitenCardState.SUSPENDED)
     ) {
       return false;
     }

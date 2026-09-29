@@ -539,6 +539,9 @@ export class Popup {
     this.addMiningButton('blacklist', 'blacklist', undefined, () =>
       performFlaggedDeckAction('blacklist'),
     );
+    this.addMiningButton('suspend', 'suspend', undefined, () =>
+      performFlaggedDeckAction('suspend'),
+    );
 
     this._mineButtons.appendChild(
       createElement('a', {
@@ -947,11 +950,12 @@ export class Popup {
    * view-only for them: every actionable section is hidden regardless of configuration.
    */
   private applyActionVisibility(card: JitenCard): void {
-    const reviewable = !card.cardState.includes(JitenCardState.REDUNDANT);
+    const actionable = !card.cardState.includes(JitenCardState.REDUNDANT);
+    const gradable = actionable && !card.cardState.includes(JitenCardState.SUSPENDED);
 
-    this._mineButtons.style.display = reviewable && this._showMiningActions ? '' : 'none';
-    this._rotateButtons.style.display = reviewable && this._rotation.showActions ? '' : 'none';
-    this._gradeButtons.style.display = reviewable && this._grading.showActions ? '' : 'none';
+    this._mineButtons.style.display = actionable && this._showMiningActions ? '' : 'none';
+    this._rotateButtons.style.display = actionable && this._rotation.showActions ? '' : 'none';
+    this._gradeButtons.style.display = gradable && this._grading.showActions ? '' : 'none';
   }
 
   private adjustMiningButtons(card: JitenCard): void {
