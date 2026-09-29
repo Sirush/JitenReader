@@ -21,6 +21,7 @@ This extension is a fork of [Kagu-chan's Anki JPDB Reader](https://github.com/Ka
   - [Usage](#usage)
   - [Customize parsing](#customize-parsing)
   - [Customize text colors and furigana](#customize-text-colors-and-furigana)
+  - [Integrating with other extensions](#integrating-with-other-extensions)
   - [Building](#building)
   - [Contributing](#contributing)
   - [License](#license)
@@ -56,7 +57,6 @@ Some web apps and sites require special attention to work properly; therefore, t
 |------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [ッツ Reader](https://github.com/ttu-ttu/ebook-reader) | [reader.ttsu.app](https://reader.ttsu.app), [ttu-ebook.web.app](https://ttu-ebook.web.app)                                                                                                                                                                                                 |
 | Mokuro                                               | [reader.mokuro.app](https://reader.mokuro.app)                                                                                                                                                                                                                                             |
-| Manatan                                         | [manatan.com](https://manatan.com/)                                                                                                                                                                                                                                                     |
 | Yatsu Reader                                         | [app.yatsu.moe](https://app.yatsu.moe)                                                                                                                                                                                                                                                     |
 | Texthooker pages                                     | [anacreondjt texthooker](https://anacreondjt.gitlab.io/texthooker.html), [learnjapanese.moe texthooker](https://learnjapanese.moe/texthooker.html), [exSTATic tracker](https://kamwithk.github.io/exSTATic/tracker.html), [renji-xd texthooker](https://renji-xd.github.io/texthooker-ui/), [Kizuna Texthooker](https://kizuna-texthooker-ui.app) |
 | Mokuro (Legacy)                                      | [Mokuro](https://github.com/kha-white/mokuro): **IMPORTANT**: File path must contain `mokuro`, and file name must end in `.html`                                                                                                                                                           |

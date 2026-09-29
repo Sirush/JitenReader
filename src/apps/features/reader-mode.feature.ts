@@ -1,4 +1,5 @@
 import { FeatureImplementation } from '@shared/features/types';
+import { OpenClipboardReaderCommand } from '@shared/messages/background/open-clipboard-reader.command';
 import { receiveBackgroundMessage } from '@shared/messages/receiving/receive-background-message';
 import { KeybindManager } from '../integration/keybind-manager';
 import { Registry } from '../integration/registry';
@@ -6,7 +7,7 @@ import { ReaderView } from '../reader-mode/reader-view';
 
 export class ReaderModeFeature implements FeatureImplementation {
   private _view = new ReaderView();
-  private _keyManager = new KeybindManager(['readerModeKey']);
+  private _keyManager = new KeybindManager(['readerModeKey', 'clipboardReaderKey']);
 
   public apply(): void {
     this._keyManager.activate();
@@ -17,6 +18,14 @@ export class ReaderModeFeature implements FeatureImplementation {
       }
 
       this._view.toggle();
+    });
+
+    Registry.events.on('clipboardReaderKey', (e?: KeyboardEvent | MouseEvent) => {
+      if (e instanceof KeyboardEvent && e.repeat) {
+        return;
+      }
+
+      new OpenClipboardReaderCommand().send();
     });
 
     receiveBackgroundMessage('openReaderMode', (text?: string) => {

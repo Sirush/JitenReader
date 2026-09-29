@@ -29,10 +29,12 @@ import {
   supportsFontEnumeration,
 } from './get-japanese-fonts';
 
-interface Article {
+export interface Article {
   title: string;
   byline?: string;
-  content: string;
+  content: string | Node;
+  header?: HTMLElement;
+  parseFilter?: (node: Element | Node) => boolean;
 }
 
 type ReaderConfigKey =
@@ -58,6 +60,8 @@ const KEEP_ATTRS = new Set([
   'datetime',
 ]);
 
+const PIN_TO_BOTTOM_PX = 80;
+
 // Sentinel option value that triggers the (permission-prompting) full font enumeration on demand.
 const LOAD_FONTS_VALUE = '__jiten_load_fonts__';
 
@@ -74,6 +78,8 @@ export class ReaderView {
   private _lineHeight: number = READER_LINE_HEIGHT.default;
   private _keyListener?: (e: KeyboardEvent) => void;
   private _outsideListener?: (e: MouseEvent) => void;
+
+  constructor(private readonly _standalone = false) {}
 
   public get active(): boolean {
     return !!this._root;
@@ -108,10 +114,6 @@ export class ReaderView {
 
     if (!trimmed) {
       return this.open();
-    }
-
-    if (this.active) {
-      this.close();
     }
 
     const content = trimmed
@@ -149,7 +151,7 @@ export class ReaderView {
     document.documentElement.classList.remove('ajb-reader-open');
   }
 
-  private async show(article: Article): Promise<void> {
+  public async show(article: Article): Promise<void> {
     this._theme = await getConfiguration('readerModeTheme');
     this._font = await getConfiguration('readerModeFont');
     this._fontSize = await getConfiguration('readerModeFontSize');
@@ -160,14 +162,55 @@ export class ReaderView {
     await loadPersistedFonts();
     await ensureWordStyles();
 
+    if (this.active) {
+      this.close();
+    }
+
     this.render(article);
-    this.parse();
+    this.parse(article.parseFilter);
 
     // The chosen font may load after the initial layout, re-breaking lines that ruby had grown;
     // relayout once it settles.
     if (document.fonts) {
       void document.fonts.ready.then(() => this.reflow());
     }
+  }
+
+  /** Parses only the added nodes, and keeps the view scrolled to the bottom if it already was. */
+  public appendContent(nodes: HTMLElement[], filter?: Article['parseFilter']): void {
+    const content = this._content;
+    const root = this._root;
+
+    if (!content || !root || !nodes.length) {
+      return;
+    }
+
+    const pinned = root.scrollHeight - root.scrollTop - root.clientHeight < PIN_TO_BOTTOM_PX;
+    const pin = (): void => {
+      if (pinned && this._root === root) {
+        root.scrollTop = root.scrollHeight;
+      }
+    };
+
+    content.append(...nodes);
+
+    for (const node of nodes) {
+      Registry.batchController.registerNode(node, {
+        filter,
+        onComplete: () => {
+          this.reflow();
+          pin();
+        },
+      });
+    }
+
+    Registry.batchController.parseBatches();
+    pin();
+  }
+
+  public removeContent(node: HTMLElement): void {
+    Registry.batchController.dismissNode(node);
+    node.remove();
   }
 
   private extractArticle(): Article | null {
@@ -202,19 +245,12 @@ export class ReaderView {
 
   private render(article: Article): void {
     this._content = createElement('article', { class: ['reader-content'] });
-    this._content.innerHTML = article.content;
 
-    // The reader content lives in the light DOM (so the word-highlight styles apply), which means
-    // the host page's CSS and the source's own inline sizing/floats can leak in — that is what
-    // frames images and squashes captions. Strip every non-essential attribute so the reader's own
-    // stylesheet fully controls layout.
-    this._content.querySelectorAll('*').forEach((el) => {
-      for (const attr of Array.from(el.attributes)) {
-        if (!KEEP_ATTRS.has(attr.name.toLowerCase())) {
-          el.removeAttribute(attr.name);
-        }
-      }
-    });
+    if (typeof article.content === 'string') {
+      this.insertForeignContent(this._content, article.content);
+    } else {
+      this._content.appendChild(article.content);
+    }
 
     // The controls anchor lives inside the centred column so the toolbar/panel sit beside the text
     // rather than in the far viewport corner. It is sticky so they follow the scroll.
@@ -245,7 +281,23 @@ export class ReaderView {
     document.body.appendChild(this._root);
   }
 
+  private insertForeignContent(container: HTMLElement, html: string): void {
+    container.innerHTML = html;
+
+    container.querySelectorAll('*').forEach((el) => {
+      for (const attr of Array.from(el.attributes)) {
+        if (!KEEP_ATTRS.has(attr.name.toLowerCase())) {
+          el.removeAttribute(attr.name);
+        }
+      }
+    });
+  }
+
   private buildHeader(article: Article): HTMLElement {
+    if (article.header) {
+      return article.header;
+    }
+
     return createElement('header', {
       class: ['reader-header'],
       children: [
@@ -267,12 +319,14 @@ export class ReaderView {
           attributes: { title: 'Reading options' },
           handler: () => this.togglePanel(),
         }),
-        createElement('button', {
-          class: ['reader-btn', 'reader-close-btn'],
-          innerText: '✕',
-          attributes: { title: 'Close reader mode (Esc)' },
-          handler: () => this.close(),
-        }),
+        this._standalone
+          ? undefined
+          : createElement('button', {
+              class: ['reader-btn', 'reader-close-btn'],
+              innerText: '✕',
+              attributes: { title: 'Close reader mode (Esc)' },
+              handler: () => this.close(),
+            }),
       ],
     });
   }
@@ -422,7 +476,7 @@ export class ReaderView {
 
       if (this._panel?.classList.contains('open')) {
         this.closePanel();
-      } else {
+      } else if (!this._standalone) {
         this.close();
       }
     };
@@ -576,7 +630,7 @@ export class ReaderView {
     select.value = this._font;
   }
 
-  private parse(): void {
+  private parse(filter?: Article['parseFilter']): void {
     if (!this._content) {
       return;
     }
@@ -585,15 +639,13 @@ export class ReaderView {
 
     debug('ReaderView: parsing content', { chars: this._content.textContent?.length ?? 0 });
 
-    batchController.registerNode(this._content, { onComplete: () => this.reflow() });
+    batchController.registerNode(this._content, {
+      filter,
+      onComplete: () => this.reflow(),
+    });
     batchController.parseBatches();
   }
 
-  // Furigana is injected into already-laid-out lines, which can leave stale line-box heights and
-  // overlapping rows until a relayout — the user noticed nudging line spacing fixes it. Replicate
-  // exactly that: briefly perturb the --reader-line-height the slider drives, then restore it. The
-  // glitch can also reappear once the chosen font finishes loading (it re-lays out), so callers
-  // also run this on document.fonts.ready.
   private reflow(): void {
     const root = this._root;
 
@@ -674,9 +726,6 @@ export class ReaderView {
     key: K,
     value: ConfigurationSchema[K],
   ): Promise<void> {
-    // Reader preferences only need to be written; a ConfigurationUpdatedCommand broadcast cannot be
-    // sent from a content script (it queries chrome.tabs, which is unavailable here) and no other
-    // context needs live notification of these.
     await setConfiguration(key, value);
   }
 

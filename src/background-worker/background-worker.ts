@@ -6,6 +6,7 @@ import {
 } from '@shared/configuration/set-configuration';
 import { addContextMenu } from '@shared/extension/add-context-menu';
 import { addInstallListener } from '@shared/extension/add-install-listener';
+import { CLIPBOARD_READER_COMMAND } from '@shared/extension/clipboard-reader-tab';
 import { openOptionsPage } from '@shared/extension/open-options-page';
 import { openView } from '@shared/extension/open-view';
 import { runtime } from '@shared/extension/runtime';
@@ -26,6 +27,8 @@ import { GradeCardCommandHandler } from './jiten-card-actions/grade-card-command
 import { RunDeckActionCommandHandler } from './jiten-card-actions/run-deck-action-command.handler';
 import { UpdateCardStateCommandHandler } from './jiten-card-actions/update-card-state-command.handler';
 import { BackgroundCommandHandlerCollection } from './lib/background-command-handler-collection';
+import { openClipboardReader } from './lib/open-clipboard-reader';
+import { OpenClipboardReaderCommandHandler } from './lib/open-clipboard-reader-command.handler';
 import { OpenSettingsCommandHandler } from './lib/open-settings-command.handler';
 import { initParsingPausedIcon } from './lib/parsing-paused-icon';
 import { UpdateBadgeCommandHandler } from './lib/update-badge-command.handler';
@@ -65,6 +68,7 @@ const fetchStudyDecksCommandHandler = new FetchStudyDecksCommandHandler();
 const addToStudyDeckCommandHandler = new AddToStudyDeckCommandHandler();
 const forgetCardCommandHandler = new ForgetCardCommandHandler();
 const openSettingsCommandHandler = new OpenSettingsCommandHandler();
+const openClipboardReaderCommandHandler = new OpenClipboardReaderCommandHandler();
 const updateBadgeCommandHandler = new UpdateBadgeCommandHandler();
 const fetchPdfCommandHandler = new FetchPdfCommandHandler();
 
@@ -80,11 +84,18 @@ const handlerCollection = new BackgroundCommandHandlerCollection(
   addToStudyDeckCommandHandler,
   forgetCardCommandHandler,
   openSettingsCommandHandler,
+  openClipboardReaderCommandHandler,
   updateBadgeCommandHandler,
   fetchPdfCommandHandler,
 );
 
 handlerCollection.listen();
+
+chrome.commands?.onCommand.addListener((command) => {
+  if (command === CLIPBOARD_READER_COMMAND) {
+    void openClipboardReader();
+  }
+});
 
 initParsingPausedIcon();
 

@@ -67,6 +67,9 @@ export type ConfigurationSchema = {
   readerModeLineHeight: number;
 
   pdfReaderMode: 'reflow' | 'faithful';
+  clipboardReaderAutoPaste: boolean;
+  clipboardReaderReplaceLine: boolean;
+  clipboardReaderTimestamps: boolean;
 
   //#endregion
   //#region Texthighlighting
@@ -138,6 +141,7 @@ export type ConfigurationSchema = {
   showAdvancedDialogKey: Keybinds;
   lookupSelectionKey: Keybinds;
   readerModeKey: Keybinds;
+  clipboardReaderKey: Keybinds;
 
   // Mining keybinds
   addToStudyDeckKey: Keybinds;

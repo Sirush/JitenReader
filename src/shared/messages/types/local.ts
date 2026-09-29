@@ -23,6 +23,7 @@ type KeybindEvents = {
   addToSuspendedKey: KeybindEvent;
   cycleMasterBlacklistKey: KeybindEvent;
   readerModeKey: KeybindEvent;
+  clipboardReaderKey: KeybindEvent;
 };
 
 type ReleaseKeybindEvents = {

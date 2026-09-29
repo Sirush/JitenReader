@@ -1,3 +1,4 @@
+import { getConfiguration } from '@shared/configuration/get-configuration';
 import { Effect, WordStyleConfig } from '@shared/word-style/types';
 
 // In faithful mode the PDF canvas is the visible text and PDF.js' text layer sits transparently over
@@ -39,4 +40,19 @@ export const generateFaithfulHighlightCss = (config: WordStyleConfig): string =>
   }
 
   return blocks.join('\n');
+};
+
+const FAITHFUL_STYLE_ID = 'pdf-faithful-highlight';
+
+export const applyFaithfulHighlight = async (): Promise<void> => {
+  const config = await getConfiguration('wordStyleConfig');
+  let style = document.getElementById(FAITHFUL_STYLE_ID) as HTMLStyleElement | null;
+
+  if (!style) {
+    style = document.createElement('style');
+    style.id = FAITHFUL_STYLE_ID;
+    document.head.appendChild(style);
+  }
+
+  style.textContent = generateFaithfulHighlightCss(config);
 };

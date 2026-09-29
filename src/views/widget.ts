@@ -8,6 +8,7 @@ import { openOptionsPage } from '@shared/extension/open-options-page';
 import { openView } from '@shared/extension/open-view';
 import { setParsingPaused } from '@shared/extension/set-parsing-paused';
 import { isDisabled } from '@shared/host-meta/is-disabled';
+import { OpenClipboardReaderCommand } from '@shared/messages/background/open-clipboard-reader.command';
 import { ConfigurationUpdatedCommand } from '@shared/messages/broadcast/configuration-updated.command';
 import { OpenReaderModeCommand } from '@shared/messages/foreground/open-reader-mode.command';
 import { ParsePageCommand } from '@shared/messages/foreground/parse-page.command';
@@ -61,6 +62,10 @@ onLoaded(async () => {
 
   document.getElementById('pdf-reader')?.addEventListener('click', () => {
     void openView('pdf-reader').then(() => window.close());
+  });
+
+  document.getElementById('clipboard-reader')?.addEventListener('click', () => {
+    new OpenClipboardReaderCommand().send(() => window.close());
   });
 
   const themeSelect = document.getElementById('theme-select') as HTMLSelectElement;

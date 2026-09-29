@@ -7,6 +7,7 @@ import { displayToast } from '@shared/dom/display-toast';
 import { findElement } from '@shared/dom/find-element';
 import { withElement } from '@shared/dom/with-element';
 import { withElements } from '@shared/dom/with-elements';
+import { CLIPBOARD_READER_STORAGE_KEY } from '@shared/extension/clipboard-reader-tab';
 import { getParsingPaused } from '@shared/extension/get-parsing-paused';
 import { onParsingPausedChanged } from '@shared/extension/on-parsing-paused-changed';
 import { setParsingPaused } from '@shared/extension/set-parsing-paused';
@@ -238,6 +239,8 @@ withElement('#export-settings', (button) => {
     void chrome.storage.local.get().then((configuration) => {
       const includeApiKey = (document.getElementById('exportApiKey') as HTMLInputElement)?.checked;
 
+      delete configuration[CLIPBOARD_READER_STORAGE_KEY];
+
       if (!includeApiKey) {
         Object.keys(configuration).forEach((key) => {
           if (key.includes('jitenApiKey')) {
@@ -291,8 +294,10 @@ withElement('#import-settings', (button) => {
         return;
       }
 
+      const clipboardLines = await chrome.storage.local.get(CLIPBOARD_READER_STORAGE_KEY);
+
       await chrome.storage.local.clear();
-      await chrome.storage.local.set(data);
+      await chrome.storage.local.set({ ...data, ...clipboardLines });
 
       const activeProfileId = await getActiveProfileId();
 

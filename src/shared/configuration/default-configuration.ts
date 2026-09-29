@@ -72,6 +72,9 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   readerModeLineHeight: READER_LINE_HEIGHT.default,
 
   pdfReaderMode: 'faithful',
+  clipboardReaderAutoPaste: false,
+  clipboardReaderReplaceLine: false,
+  clipboardReaderTimestamps: false,
 
   //#endregion
   //#region Texthighlighting
@@ -143,6 +146,7 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
   showAdvancedDialogKey: [],
   lookupSelectionKey: [{ key: 'L', code: 'KeyL', modifiers: ['Alt'] }],
   readerModeKey: [{ key: 'H', code: 'KeyH', modifiers: ['Alt'] }],
+  clipboardReaderKey: [],
 
   // Mining keybinds
   addToStudyDeckKey: [],

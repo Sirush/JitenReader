@@ -4,29 +4,13 @@ import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-mess
 import { Registry } from '../integration/registry';
 import { PopupManager } from '../popup/popup-manager';
 import { applyWordStyles, ensureWordStyles } from '../text-highlighter/apply-word-styles';
-import { generateFaithfulHighlightCss } from './faithful-highlight';
-
-const FAITHFUL_STYLE_ID = 'pdf-faithful-highlight';
-
-const applyFaithfulHighlight = async (): Promise<void> => {
-  const config = await getConfiguration('wordStyleConfig');
-  let style = document.getElementById(FAITHFUL_STYLE_ID) as HTMLStyleElement | null;
-
-  if (!style) {
-    style = document.createElement('style');
-    style.id = FAITHFUL_STYLE_ID;
-    document.head.appendChild(style);
-  }
-
-  style.textContent = generateFaithfulHighlightCss(config);
-};
 
 // The shared parsing pipeline (BatchController → ParseCommand → SequenceManager → TextHighlighter)
-// is normally wired up by `new AJB()` in the content script. This standalone page never runs AJB, so
-// it replicates the minimal subset needed to parse text and get interactive, themed highlights:
-// the word-event delegation + popup, the highlight options derived from configuration, and the
-// word-style stylesheets. Parse results route back here because the page lives in a real tab, so the
-// service worker's `tabs.sendMessage(sender.tab.id, …)` reaches our SequenceManager listeners.
+// is normally wired up by `new AJB()` in the content script. Standalone extension pages never run
+// AJB, so they replicate the minimal subset needed to parse text and get interactive, themed
+// highlights: the word-event delegation + popup, the highlight options derived from configuration,
+// and the word-style stylesheets. Parse results route back because these pages live in a real tab,
+// so the service worker's `tabs.sendMessage(sender.tab.id, …)` reaches our SequenceManager listeners.
 const applyHighlightOptions = async (): Promise<void> => {
   const options = Registry.textHighlighterOptions;
 
@@ -46,10 +30,15 @@ const applyHighlightOptions = async (): Promise<void> => {
   options.markWordsInDeck = await getConfiguration('markWordsInDeck');
 
   await applyWordStyles();
-  await applyFaithfulHighlight();
 };
 
-export const bootstrapPipeline = async (): Promise<void> => {
+/** `applyPageStyles` runs after the highlight options on load and on every configuration change. */
+export const bootstrapPipeline = async (applyPageStyles?: () => Promise<void>): Promise<void> => {
+  const configure = async (): Promise<void> => {
+    await applyHighlightOptions();
+    await applyPageStyles?.();
+  };
+
   Registry.wordEventDelegator.initialise();
   Registry.popupManager = new PopupManager();
 
@@ -60,8 +49,8 @@ export const bootstrapPipeline = async (): Promise<void> => {
     },
   );
 
-  onBroadcastMessage('configurationUpdated', () => void applyHighlightOptions(), true);
+  onBroadcastMessage('configurationUpdated', () => void configure(), true);
 
-  await applyHighlightOptions();
+  await configure();
   await ensureWordStyles();
 };
