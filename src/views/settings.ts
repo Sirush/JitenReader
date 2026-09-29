@@ -13,6 +13,7 @@ import { onParsingPausedChanged } from '@shared/extension/on-parsing-paused-chan
 import { setParsingPaused } from '@shared/extension/set-parsing-paused';
 import { fetchStudyDecks } from '@shared/jiten/fetch-study-decks';
 import { ping } from '@shared/jiten/ping';
+import { StudyDeckType } from '@shared/jiten/types';
 import { ConfigurationUpdatedCommand } from '@shared/messages/broadcast/configuration-updated.command';
 import { ProfileSwitchedCommand } from '@shared/messages/broadcast/profile-switched.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
@@ -192,8 +193,9 @@ withElement('#jitenStudyDeckId', (select: HTMLSelectElement) => {
 
     try {
       const decks = await fetchStudyDecks({ apiToken: apiKey });
+      const wordLists = decks.filter((deck) => deck.deckType === StudyDeckType.STATIC_WORD_LIST);
 
-      for (const deck of decks) {
+      for (const deck of wordLists) {
         const option = document.createElement('option');
 
         option.value = String(deck.userStudyDeckId);
@@ -201,9 +203,15 @@ withElement('#jitenStudyDeckId', (select: HTMLSelectElement) => {
         select.appendChild(option);
       }
 
-      const currentValue = await getConfiguration('jitenStudyDeckId');
+      const currentValue = String(await getConfiguration('jitenStudyDeckId'));
+      const isWordList = wordLists.some((deck) => String(deck.userStudyDeckId) === currentValue);
 
-      select.value = String(currentValue);
+      if (currentValue && !isWordList) {
+        await setConfiguration('jitenStudyDeckId', '');
+        configurationUpdatedCommand.send();
+      }
+
+      select.value = isWordList ? currentValue : '';
     } catch {
       // API unreachable
     }
