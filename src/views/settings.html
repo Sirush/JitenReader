@@ -342,14 +342,17 @@
                 <input type="checkbox" id="skipFurigana" name="skipFurigana" />
                 <label for="skipFurigana">Prevent Furigana from generating</label>
               </div>
+             </div>
 
-              <div data-show="!skipFurigana" class="checkbox" indent>
+            <div data-show="!skipFurigana" indent>
+              <div class="checkbox">
                 <input type="checkbox" id="furiganaOnlyOnNew" name="furiganaOnlyOnNew" />
-                <label for="furiganaOnlyOnNew">Only display furigana on unknown words</label>
+                <label for="furiganaOnlyOnNew">Only add furigana to new words</label>
               </div>
-              <div style="opacity: 0.8" data-show="!skipFurigana" indent up>
-                Generates furigana only on new words. Any already in the page is left alone.
-              </div>
+              <p style="opacity: 0.8" indent up>
+                New words are the card states picked at the top of this section. Furigana already on the
+                page stays.
+              </p>
             </div>
 
             <div>
