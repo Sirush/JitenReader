@@ -6,7 +6,7 @@ const collectTextNodes = (p: HTMLParagraphElement): Text[] =>
       return [child as Text];
     }
 
-    if (child instanceof Element) {
+    if (child instanceof Element && !child.classList.contains('jiten-word')) {
       return [...child.childNodes].filter((n): n is Text => n.nodeType === Node.TEXT_NODE);
     }
 

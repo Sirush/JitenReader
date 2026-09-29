@@ -5,6 +5,51 @@ import { Registry } from '../../integration/registry';
 import { AutomaticParser } from '../automatic.parser';
 import { getMokuroParagraphs } from './mokuro/get-mokuro-paragraphs';
 
+// Furigana widens OCR lines past their spacing; `translate` survives Mokuro's hover realignment of `transform`.
+const separateFuriganaLines = (box: Element, lines: HTMLElement[]): void => {
+  if (!box.querySelector('rt')) {
+    return;
+  }
+
+  const vertical = getComputedStyle(box).writingMode.startsWith('vertical');
+  const scale = box.getBoundingClientRect().width / (box as HTMLElement).offsetWidth || 1;
+
+  lines.forEach((line) => (line.style.translate = ''));
+
+  const rects = lines.map((line) => line.getBoundingClientRect());
+  // Horizontal furigana sits above the base inside the line box, so Mokuro's top alignment drops the base.
+  const furiganaHeights = lines.map(
+    (line) => Math.max(0, line.offsetHeight - parseFloat(getComputedStyle(line).lineHeight)) || 0,
+  );
+  let previousEdge: number | undefined;
+
+  rects.forEach((rect, index) => {
+    let shift = 0;
+
+    if (vertical) {
+      if (previousEdge !== undefined && rect.right > previousEdge) {
+        shift = previousEdge - rect.right;
+      }
+
+      previousEdge = rect.left + shift;
+    } else {
+      shift = -furiganaHeights[index] * scale;
+
+      if (previousEdge !== undefined && rect.top + shift < previousEdge) {
+        shift = previousEdge - rect.top;
+      }
+
+      previousEdge = rect.bottom + shift;
+    }
+
+    const pixels = Math.round(shift / scale);
+
+    if (pixels) {
+      lines[index].style.translate = vertical ? `${pixels}px 0` : `0 ${pixels}px`;
+    }
+  });
+};
+
 // Mokuro aligns each OCR line by measuring where it lands and writing target-minus-actual to a
 // transform, but only recomputes on mouseenter, touchstart or fonts-ready. Rewrapping the text moves
 // the lines without triggering any of those, leaving every line offset until the box is hovered, so
@@ -31,6 +76,8 @@ const repositionOcrLines = (box: Element): void => {
 
     line.style.transform = `translate(${targetLeft - left}px, ${targetTop - top}px)`;
   });
+
+  separateFuriganaLines(box, lines);
 };
 
 const repositionRoot = (root: Element): void =>
@@ -215,26 +262,29 @@ export class MokuroParser extends AutomaticParser {
         // fit that line to the box. Replacing it with a bare text node merges the lines into one run
         // and lets them inherit the larger textBox font, which overflows the box. Keep the wrapper
         // and reduce it to a single furigana-free text node instead.
-        if (child instanceof Element) {
-          const clone = child.cloneNode(true) as Element;
+        if (!(child instanceof Element)) {
+          continue;
+        }
 
-          clone.querySelectorAll('rt, rp').forEach((el) => el.remove());
+        const clone = child.cloneNode(true) as Element;
 
-          const textContent = clone.textContent || '';
+        clone.querySelectorAll('rt, rp').forEach((el) => el.remove());
 
-          if (textContent) {
-            child.replaceChildren(document.createTextNode(textContent));
-            newChildren.push(child);
-          }
+        const textContent = clone.textContent || '';
+
+        if (!textContent) {
+          continue;
+        }
+
+        // A word left over from an earlier parse is not a line wrapper; flatten it back to text.
+        if (child.classList.contains('jiten-word')) {
+          newChildren.push(document.createTextNode(textContent));
 
           continue;
         }
 
-        const textContent = child.textContent || '';
-
-        if (textContent) {
-          newChildren.push(document.createTextNode(textContent));
-        }
+        child.replaceChildren(document.createTextNode(textContent));
+        newChildren.push(child);
       }
 
       p.replaceChildren(...newChildren);
