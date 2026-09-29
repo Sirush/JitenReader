@@ -9,7 +9,6 @@ import { openView } from '@shared/extension/open-view';
 import { setParsingPaused } from '@shared/extension/set-parsing-paused';
 import { isDisabled } from '@shared/host-meta/is-disabled';
 import { ConfigurationUpdatedCommand } from '@shared/messages/broadcast/configuration-updated.command';
-import { ParsingPausedCommand } from '@shared/messages/broadcast/parsing-paused.command';
 import { OpenReaderModeCommand } from '@shared/messages/foreground/open-reader-mode.command';
 import { ParsePageCommand } from '@shared/messages/foreground/parse-page.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
@@ -158,10 +157,7 @@ onLoaded(async () => {
 
   pauseToggle.addEventListener('click', () => {
     isPaused = !isPaused;
-    void setParsingPaused(isPaused).then(() => {
-      updatePauseToggle(pauseToggle, isPaused);
-      new ParsingPausedCommand(isPaused).send();
-    });
+    void setParsingPaused(isPaused).then(() => updatePauseToggle(pauseToggle, isPaused));
   });
 
   if (isPaused) {

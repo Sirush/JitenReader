@@ -19,6 +19,10 @@
 <body style="font-size: 100%">
 <div class="container" style="padding-top: 1em">
   <h4 style="text-align: center; opacity: 0.85">Settings</h4>
+  <div id="parsingPausedNotice" class="parsing-paused-notice" style="display: none">
+    <p>Parsing is paused. No pages will be parsed until you resume it.</p>
+    <input type="button" id="resumeParsingButton" class="button outline small" value="Resume parsing" />
+  </div>
   <div class="settings-search">
     <input type="search" id="settings-search" placeholder="Search settings..." autocomplete="off" internal />
   </div>
@@ -935,6 +939,17 @@
         <summary>Parsing</summary>
         <div class="form-box-parent">
           <div class="form-box">
+            <div>
+              <div class="checkbox">
+                <input type="checkbox" id="parsingPaused" internal />
+                <label for="parsingPaused">Pause parsing</label>
+              </div>
+              <p style="opacity: 0.8">
+                While paused, pages are not parsed, the parse button and parse key are turned off, and mass review is
+                unavailable. The same switch is in the extension icon menu.
+              </p>
+            </div>
+
             <div>
               <div class="checkbox">
                 <input type="checkbox" id="hideInactiveTabs" name="hideInactiveTabs" />

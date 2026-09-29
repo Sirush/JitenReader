@@ -27,6 +27,7 @@ import { RunDeckActionCommandHandler } from './jiten-card-actions/run-deck-actio
 import { UpdateCardStateCommandHandler } from './jiten-card-actions/update-card-state-command.handler';
 import { BackgroundCommandHandlerCollection } from './lib/background-command-handler-collection';
 import { OpenSettingsCommandHandler } from './lib/open-settings-command.handler';
+import { initParsingPausedIcon } from './lib/parsing-paused-icon';
 import { UpdateBadgeCommandHandler } from './lib/update-badge-command.handler';
 import { LookupController } from './lookup/lookup-controller';
 import { LookupTextCommandHandler } from './lookup/lookup-text-command.handler';
@@ -84,6 +85,8 @@ const handlerCollection = new BackgroundCommandHandlerCollection(
 );
 
 handlerCollection.listen();
+
+initParsingPausedIcon();
 
 async function ensureOffscreenDocument(): Promise<void> {
   const contexts = await chrome.runtime.getContexts({

@@ -7,6 +7,9 @@ import { displayToast } from '@shared/dom/display-toast';
 import { findElement } from '@shared/dom/find-element';
 import { withElement } from '@shared/dom/with-element';
 import { withElements } from '@shared/dom/with-elements';
+import { getParsingPaused } from '@shared/extension/get-parsing-paused';
+import { onParsingPausedChanged } from '@shared/extension/on-parsing-paused-changed';
+import { setParsingPaused } from '@shared/extension/set-parsing-paused';
 import { fetchStudyDecks } from '@shared/jiten/fetch-study-decks';
 import { ping } from '@shared/jiten/ping';
 import { ConfigurationUpdatedCommand } from '@shared/messages/broadcast/configuration-updated.command';
@@ -323,6 +326,30 @@ withElement('#exportApiKey', (checkbox: HTMLInputElement) => {
       warning.style.display = checkbox.checked ? 'block' : 'none';
     }
   });
+});
+
+const renderParsingPaused = (paused: boolean): void => {
+  const checkbox = document.getElementById('parsingPaused') as HTMLInputElement | null;
+  const notice = document.getElementById('parsingPausedNotice');
+
+  if (checkbox) {
+    checkbox.checked = paused;
+  }
+
+  if (notice) {
+    notice.style.display = paused ? 'flex' : 'none';
+  }
+};
+
+void getParsingPaused().then(renderParsingPaused);
+onParsingPausedChanged(renderParsingPaused);
+
+withElement('#parsingPaused', (checkbox: HTMLInputElement) => {
+  checkbox.addEventListener('change', () => void setParsingPaused(checkbox.checked));
+});
+
+withElement('#resumeParsingButton', (button: HTMLInputElement) => {
+  button.addEventListener('click', () => void setParsingPaused(false));
 });
 
 //#endregion

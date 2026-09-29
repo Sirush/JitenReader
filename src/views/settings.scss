@@ -562,3 +562,24 @@ profile-selector {
 }
 
 // #endregion
+
+.parsing-paused-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5em 1em;
+  margin-bottom: 1em;
+  padding: 0.75em 1em;
+  border: 1px solid #e74c3c;
+  border-radius: 8px;
+  color: #e74c3c;
+
+  p {
+    margin: 0;
+  }
+
+  input[type='button'] {
+    margin: 0;
+  }
+}
