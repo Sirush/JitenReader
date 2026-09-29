@@ -24,9 +24,9 @@ export class Parser {
     const rubies: JitenRuby[] = [];
 
     // Group 1: Prefix (any text before the target, including newlines)
-    // Group 2: The Base (Kanji and Iteration marks like 々)
+    // Group 2: The Base (any non-kana run, so digits like １ in １[いっ]本[ぽん] carry their own reading)
     // Group 3: The Ruby (inside brackets)
-    const regex = /((?:.|\n)*?)([\u4e00-\u9faf\u3005-\u3007]+)\[([^\]]+)\]/g;
+    const regex = /((?:.|\n)*?)([^\u3040-\u309f\u30a0-\u30ff[\]]+)\[([^\]]+)\]/g;
 
     let match: RegExpExecArray | null;
     let currentOffset = 0; // This tracks the position in the CLEAN (displayed) string
@@ -36,8 +36,8 @@ export class Parser {
       const base = match[2]; // e.g., "一度"
       const ruby = match[3]; // e.g., "いちど"
 
-      // 1. Advance offset past the prefix (plain text that has no ruby)
-      currentOffset += prefix.length;
+      // 1. Advance offset past the prefix (plain text that has no ruby); stray [reading] groups are not displayed
+      currentOffset += prefix.replace(/\[[^\]]*\]/g, '').length;
 
       // 2. Mark the ruby position
       const start = currentOffset;
@@ -179,6 +179,11 @@ export class Parser {
     }
 
     const word = kanji.split('');
+
+    // Misaligned rubies would garble the headword; leaving it null falls back to the plain spelling
+    if (ruby.some(({ start, length }) => start < offset || start - offset + length > word.length)) {
+      return;
+    }
 
     for (let i = ruby.length - 1; i >= 0; i--) {
       const { text, start, length } = ruby[i];
