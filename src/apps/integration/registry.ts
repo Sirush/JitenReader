@@ -156,7 +156,10 @@ export class Registry {
 
     const isNew = state.some((s) => newStates.includes(s));
     const isFrequent =
-      markFrequency !== false && card.frequencyRank <= markFrequency && (markAll || isNew);
+      markFrequency !== false &&
+      card.frequencyRank > 0 &&
+      card.frequencyRank <= markFrequency &&
+      (markAll || isNew);
 
     document
       .querySelectorAll(`[wordId="${wordId}"][readingIndex="${readingIndex}"]`)

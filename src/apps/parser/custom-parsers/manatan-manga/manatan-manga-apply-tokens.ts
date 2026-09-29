@@ -72,7 +72,7 @@ const createTokenSpan = (token: JitenToken, text: string): HTMLSpanElement => {
 
     span.classList.add('jiten-word', ...card.cardState);
 
-    if (markFrequency && card.frequencyRank <= markFrequency) {
+    if (markFrequency && card.frequencyRank > 0 && card.frequencyRank <= markFrequency) {
       const isNew = card.cardState.some((s) => newStates.includes(s));
 
       if (markAll || isNew) {

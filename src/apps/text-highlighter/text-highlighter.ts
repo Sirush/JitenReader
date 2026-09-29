@@ -631,7 +631,7 @@ export class TextHighlighter extends BaseTextHighlighter {
         }
       }
 
-      if (markFrequency && card.frequencyRank <= markFrequency) {
+      if (markFrequency && card.frequencyRank > 0 && card.frequencyRank <= markFrequency) {
         const states = card.cardState;
         const isNew = states.some((s) => newStates.includes(s));
 
