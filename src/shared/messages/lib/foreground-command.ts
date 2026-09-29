@@ -12,8 +12,25 @@ export abstract class ForegroundCommand<
     void this.call(tabId, afterCall).catch(() => undefined);
   }
 
+  /** Delivers to one frame only; a tab-wide send reaches every frame's content script. */
+  public sendToFrame(tabId: number, frameId: number): void {
+    void this.sendMessage(tabId, { frameId }).catch(() => undefined);
+  }
+
   public call<T>(tabId: number, afterCall?: (r: TResult) => T | Promise<T>): Promise<TResult> {
-    const promise = new Promise<TResult>((resolve, reject) => {
+    const promise = this.sendMessage(tabId, {});
+
+    return afterCall
+      ? promise.then(async (r) => {
+          await afterCall(r);
+
+          return r;
+        })
+      : promise;
+  }
+
+  private sendMessage(tabId: number, options: chrome.tabs.MessageSendOptions): Promise<TResult> {
+    return new Promise<TResult>((resolve, reject) => {
       tabs.sendMessage(
         tabId,
         {
@@ -22,6 +39,7 @@ export abstract class ForegroundCommand<
           isBroadcast: false,
           args: this.arguments,
         },
+        options,
         (response: TResult) => {
           const lastError = getLastError();
 
@@ -33,13 +51,5 @@ export abstract class ForegroundCommand<
         },
       );
     });
-
-    return afterCall
-      ? promise.then(async (r) => {
-          await afterCall(r);
-
-          return r;
-        })
-      : promise;
   }
 }

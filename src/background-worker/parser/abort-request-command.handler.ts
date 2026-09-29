@@ -11,9 +11,9 @@ export class AbortRequestCommandHandler extends BackgroundCommandHandler<AbortRe
     super();
   }
 
-  public async handle(sender: MessageSender, sequence: number): Promise<void> {
-    this._parseController.abortSequence(sequence);
+  public handle(sender: MessageSender, sequence: number): void {
+    this._parseController.abortSequence(sender, sequence);
 
-    await new SequenceAbortedCommand(sequence).call(sender.tab!.id!);
+    new SequenceAbortedCommand(sequence).sendToFrame(sender.tab!.id!, sender.frameId ?? 0);
   }
 }

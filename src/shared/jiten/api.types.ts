@@ -63,6 +63,8 @@ export type StudyDeckListItem = {
 
 export type JitenRequestOptions = {
   apiToken?: string;
+  /** Throws RateLimitedError on the first 429 instead of backing off; for callers that pause on their own. */
+  failFastOnRateLimit?: boolean;
 };
 
 export type JitenErrorResponse = {

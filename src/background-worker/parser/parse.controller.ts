@@ -1,87 +1,172 @@
 import { MessageSender } from '@shared/extension/types';
+import { RateLimitedError } from '@shared/jiten/rate-limited-error';
 import { JitenToken } from '@shared/jiten/types';
+import { SequenceAbortedCommand } from '@shared/messages/foreground/sequence-aborted.command';
 import { SequenceErrorCommand } from '@shared/messages/foreground/sequence-error.command';
 import { SequenceSuccessCommand } from '@shared/messages/foreground/sequence-success.command';
+import { ToastCommand } from '@shared/messages/foreground/toast.command';
+import { ForegroundCommand } from '@shared/messages/lib/foreground-command';
 import { Parser } from './parser';
 import { Batch, Handle } from './parser.types';
-import { WorkerQueue } from './worker-queue';
+
+// UTF-8 bytes: a deliberate ~3x overestimate for Japanese against the server's 81,000 character cap.
+const BATCH_SIZE = 80000;
+// Measured from request start, so batches slower than this to parse are not delayed further.
+const MIN_DISPATCH_INTERVAL_MS = 1000;
+// A longer pause risks the service worker being suspended while paragraphs are still queued.
+const MAX_PAUSE_MS = 25_000;
 
 export class ParseController {
-  private BATCH_SIZE = 80000;
-  private JITEN_TIMEOUT = 50;
+  private _pending = new Map<string, Handle>();
+  private _inFlight = false;
+  private _timer?: ReturnType<typeof setTimeout>;
+  private _nextDispatchAt = 0;
+  private _notifiedFrames = new Set<string>();
 
-  private _pendingParagraphs = new Map<number, Handle>();
-  private _workerQueue = new WorkerQueue();
-
-  public abortSequence(sequence: number): void {
-    this._pendingParagraphs.delete(sequence);
+  public abortSequence(sender: MessageSender, sequenceId: number): void {
+    this._pending.delete(this.getKey(sender, sequenceId));
   }
 
   public parseSequences(sender: MessageSender, data: [sequenceId: number, text: string][]): void {
-    data.forEach(([sequenceId, text]) => this.queueParagraph(sequenceId, sender, text));
+    const handles = data.map(([sequenceId, text]) => this.createHandle(sender, sequenceId, text));
 
-    this.queueBatches(this.getParagraphBatches());
+    if (this.getPauseRemaining() > MAX_PAUSE_MS) {
+      this.cancel(handles);
+
+      return;
+    }
+
+    handles.forEach((handle) => this._pending.set(this.getKey(sender, handle.sequenceId), handle));
+    this.scheduleDispatch();
   }
 
-  private queueParagraph(sequenceId: number, sender: MessageSender, text: string): void {
-    const promise = new Promise<JitenToken[]>((resolve, reject) => {
-      this._pendingParagraphs.set(sequenceId, {
-        resolve,
-        reject,
-        text,
-        length: new TextEncoder().encode(text).length + 7,
-      });
-    });
-
-    promise
-      .then((tokens) => this.succeedSequence(sequenceId, tokens, sender))
-      .catch((e: Error) => this.failSequence(sequenceId, e, sender))
-      .finally(() => this._pendingParagraphs.delete(sequenceId));
+  private createHandle(sender: MessageSender, sequenceId: number, text: string): Handle {
+    return {
+      sequenceId,
+      sender,
+      text,
+      length: new TextEncoder().encode(text).length + 7,
+      resolve: (tokens: JitenToken[]): void =>
+        this.reply(sender, new SequenceSuccessCommand(sequenceId, tokens)),
+      reject: (error: Error): void =>
+        this.reply(sender, new SequenceErrorCommand(sequenceId, error.message)),
+    };
   }
 
-  private succeedSequence(sequenceId: number, tokens: JitenToken[], sender: MessageSender): void {
-    new SequenceSuccessCommand(sequenceId, tokens).send(sender.tab!.id!);
+  private scheduleDispatch(): void {
+    if (this._inFlight || this._timer || !this._pending.size) {
+      return;
+    }
+
+    const delay = this._nextDispatchAt - Date.now();
+
+    if (delay > 0) {
+      this._timer = setTimeout(() => {
+        this._timer = undefined;
+        this.scheduleDispatch();
+      }, delay);
+
+      return;
+    }
+
+    void this.dispatch();
   }
 
-  private failSequence(sequenceId: number, error: Error, sender: MessageSender): void {
-    new SequenceErrorCommand(sequenceId, error.message).send(sender.tab!.id!);
+  private async dispatch(): Promise<void> {
+    const batch = this.takeBatch();
+
+    this._inFlight = true;
+    this._nextDispatchAt = Date.now() + MIN_DISPATCH_INTERVAL_MS;
+
+    try {
+      await new Parser(batch).parse();
+    } catch (error) {
+      if (error instanceof RateLimitedError) {
+        this.pause(batch, error.retryAfterMs);
+      } else {
+        batch.handles.forEach((handle) => handle.reject(error as Error));
+      }
+    } finally {
+      this._inFlight = false;
+      this.scheduleDispatch();
+    }
   }
 
-  private getParagraphBatches(): Batch[] {
-    const batches: Batch[] = [];
-
-    let currentBatch: Batch = { strings: [], handles: [] };
+  private takeBatch(): Batch {
+    const batch: Batch = { strings: [], handles: [] };
     let length = 0;
 
-    for (const [seq, paragraph] of this._pendingParagraphs) {
-      length += paragraph.length;
-
-      if (length > this.BATCH_SIZE) {
-        batches.push(currentBatch);
-        currentBatch = { strings: [], handles: [] };
-        length = paragraph.length;
+    for (const [key, handle] of this._pending) {
+      if (batch.handles.length && length + handle.length > BATCH_SIZE) {
+        break;
       }
 
-      currentBatch.strings.push(paragraph.text);
-      currentBatch.handles.push(paragraph);
-
-      this._pendingParagraphs.delete(seq);
+      length += handle.length;
+      batch.strings.push(handle.text);
+      batch.handles.push(handle);
+      this._pending.delete(key);
     }
 
-    if (currentBatch.strings.length > 0) {
-      batches.push(currentBatch);
-    }
-
-    return batches;
+    return batch;
   }
 
-  private queueBatches(batches: Batch[]): void {
-    for (const batch of batches) {
-      this._workerQueue.push(
-        () => new Parser(batch).parse(),
-        (e) => batch.handles.forEach((handle) => handle.reject(e)),
-        this.JITEN_TIMEOUT,
-      );
+  private pause(batch: Batch, retryAfterMs: number): void {
+    this._nextDispatchAt = Date.now() + retryAfterMs;
+    this._notifiedFrames.clear();
+
+    if (retryAfterMs > MAX_PAUSE_MS) {
+      const handles = [...batch.handles, ...this._pending.values()];
+
+      this._pending.clear();
+      this.cancel(handles);
+
+      return;
     }
+
+    const requeued = batch.handles.map((h) => [this.getKey(h.sender, h.sequenceId), h] as const);
+
+    this._pending = new Map([...requeued, ...this._pending]);
+    this.notify(
+      batch.handles,
+      `jiten.moe rate limit reached, parsing resumes in ${Math.ceil(retryAfterMs / 1000)}s`,
+    );
+  }
+
+  private cancel(handles: Handle[]): void {
+    handles.forEach((h) => this.reply(h.sender, new SequenceAbortedCommand(h.sequenceId)));
+    this.notify(
+      handles,
+      `jiten.moe rate limit reached, try again in ${Math.ceil(this.getPauseRemaining() / 1000)}s`,
+    );
+  }
+
+  private notify(handles: Handle[], message: string): void {
+    for (const { sender } of handles) {
+      const frameKey = this.getFrameKey(sender);
+
+      if (this._notifiedFrames.has(frameKey)) {
+        continue;
+      }
+
+      this._notifiedFrames.add(frameKey);
+      this.reply(sender, new ToastCommand('error', message));
+    }
+  }
+
+  private getPauseRemaining(): number {
+    return this._nextDispatchAt - Date.now();
+  }
+
+  private reply(sender: MessageSender, command: ForegroundCommand<unknown[]>): void {
+    command.sendToFrame(sender.tab!.id!, sender.frameId ?? 0);
+  }
+
+  // Sequence ids restart at 1 in every content script, so they only identify a paragraph per frame.
+  private getKey(sender: MessageSender, sequenceId: number): string {
+    return `${this.getFrameKey(sender)}:${sequenceId}`;
+  }
+
+  private getFrameKey(sender: MessageSender): string {
+    return `${sender.tab?.id}:${sender.frameId ?? 0}`;
   }
 }

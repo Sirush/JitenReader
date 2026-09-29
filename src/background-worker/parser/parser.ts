@@ -8,7 +8,7 @@ export class Parser {
 
   public async parse(): Promise<void> {
     const paragraphs = this.batch.strings;
-    const { tokens, vocabulary } = await parse(paragraphs);
+    const { tokens, vocabulary } = await parse(paragraphs, { failFastOnRateLimit: true });
 
     const cards = this.vocabToCard(vocabulary);
     const parsedTokens = this.parseTokens(tokens, cards, vocabulary);
