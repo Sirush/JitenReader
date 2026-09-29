@@ -215,7 +215,7 @@ export class SentenceManager {
     if (iPlusOneMaxFrequency && !notIPlusOne) {
       const relevantFrequency = this._cardToFrequency.get(unknownCards[0])!;
 
-      if (relevantFrequency > iPlusOneMaxFrequency) {
+      if (relevantFrequency <= 0 || relevantFrequency > iPlusOneMaxFrequency) {
         notIPlusOne = true;
       }
     }

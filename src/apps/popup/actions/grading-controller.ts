@@ -7,6 +7,9 @@ import { Registry } from '../../integration/registry';
 import { ReviewCooldown } from '../../integration/review-cooldown';
 import { BaseController } from './base-controller';
 
+// Matches the server's per-word review debounce, which requests carrying a clientRequestId bypass.
+const REGRADE_LOCK_MS = 1_000;
+
 export class GradingController extends BaseController {
   private _disableReviews: boolean;
   private _showActions: boolean;
@@ -14,6 +17,7 @@ export class GradingController extends BaseController {
   private _autoMineOnReview: boolean;
   private _studyDeckId: string;
   private _massReviewCooldownHours = 20;
+  private readonly _gradeLocks = new Set<string>();
 
   public get gradingEnabled(): boolean {
     return !this._disableReviews;
@@ -37,6 +41,14 @@ export class GradingController extends BaseController {
     }
 
     const { wordId, readingIndex } = card;
+    const lockKey = `${wordId}:${readingIndex}`;
+
+    // A repeat click on a popup that has not yet refreshed would record a second review.
+    if (this._gradeLocks.has(lockKey)) {
+      return;
+    }
+
+    this._gradeLocks.add(lockKey);
 
     // Any card the user grades directly (or that is auto-failed, which routes through here)
     // is excluded from mass review — for the rest of the session and, across navigations,
@@ -44,22 +56,31 @@ export class GradingController extends BaseController {
     Registry.markSessionTouched(wordId, readingIndex);
     void ReviewCooldown.mark([{ wordId, readingIndex }], this._massReviewCooldownHours);
 
-    new GradeCardCommand(wordId, readingIndex, rating).send(() => {
-      pageEvents.reviewGraded(card, rating);
+    new GradeCardCommand(wordId, readingIndex, rating)
+      .call()
+      .then(() => {
+        pageEvents.reviewGraded(card, rating);
 
-      const deckId = this.getAutoMineDeckId(card);
+        const deckId = this.getAutoMineDeckId(card);
 
-      if (deckId) {
-        new AddToStudyDeckCommand(deckId, wordId, readingIndex, sentence, source).send(() => {
-          pageEvents.cardMined(card, deckId, sentence, source);
-          this.updateCardState(card);
-        });
+        if (deckId) {
+          new AddToStudyDeckCommand(deckId, wordId, readingIndex, sentence, source).send(() => {
+            pageEvents.cardMined(card, deckId, sentence, source);
+            this.updateCardState(card);
+          });
 
-        return;
-      }
+          return;
+        }
 
-      this.updateCardState(card);
-    });
+        this.updateCardState(card);
+      })
+      .catch((error: Error) => {
+        // eslint-disable-next-line no-console
+        console.error('[GradingController] grade failed:', error);
+      })
+      .finally(() => {
+        setTimeout(() => this._gradeLocks.delete(lockKey), REGRADE_LOCK_MS);
+      });
   }
 
   protected async applyConfiguration(): Promise<void> {

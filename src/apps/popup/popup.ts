@@ -1032,7 +1032,9 @@ export class Popup {
       createElement('div', {
         id: 'meta',
         class: 'subsection',
-        children: [this.getPitchAccentBlock(card), this.getFrequencyBlock(card)],
+        children: [this.getPitchAccentBlock(card), this.getFrequencyBlock(card)].filter(
+          (block) => block !== null,
+        ),
       }),
       ...this.getDeckMembershipBlock(card),
     );
@@ -1312,8 +1314,13 @@ export class Popup {
     return svg;
   }
 
-  private getFrequencyBlock(card: JitenCard): HTMLDivElement {
+  /** A missing rank means the word is unranked in the reader's frequency source, not that it is the commonest word. */
+  private getFrequencyBlock(card: JitenCard): HTMLDivElement | null {
     const { frequencyRank } = card;
+
+    if (!frequencyRank || frequencyRank <= 0) {
+      return null;
+    }
 
     return createElement('div', {
       id: 'frequency',

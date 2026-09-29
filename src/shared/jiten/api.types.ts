@@ -20,6 +20,7 @@ type JitenReviewRequest = {
   wordId: number;
   readingIndex: number;
   rating: number;
+  clientRequestId: string;
 };
 
 type JitenBatchReviewRequest = {
