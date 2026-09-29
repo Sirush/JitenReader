@@ -31,6 +31,7 @@ const applyHighlightOptions = async (): Promise<void> => {
   const options = Registry.textHighlighterOptions;
 
   options.skipFurigana = await getConfiguration('skipFurigana');
+  options.furiganaOnlyOnNew = await getConfiguration('furiganaOnlyOnNew');
   options.generatePitch = await getConfiguration('generatePitch');
   options.markIPlus1 = await getConfiguration('markIPlus1');
   options.markAll = await getConfiguration('markAllTypes');

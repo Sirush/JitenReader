@@ -2,6 +2,7 @@ import { JitenCardState } from '@shared/jiten/types';
 
 export type TextHighlighterOptions = {
   skipFurigana: boolean;
+  furiganaOnlyOnNew: boolean;
   generatePitch: boolean;
   markFrequency: false | number;
   markAll: boolean;
