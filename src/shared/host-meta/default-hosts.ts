@@ -67,7 +67,7 @@ export const DEFAULT_HOSTS: PredefinedHostMeta[] = [
       '*://*.nhk.or.jp/news/easy/*',
       '*://news.web.nhk/news/easy/*',
       '*://news.web.nhk/news/html/*',
-      '*://news.web.nhk/news/newsweb/*',
+      '*://news.web.nhk/newsweb/*',
     ],
     auto: true,
     optOut: true,
@@ -75,7 +75,9 @@ export const DEFAULT_HOSTS: PredefinedHostMeta[] = [
     parserClass: 'nhk-parser',
     parseVisibleObserver: true,
     addedObserver: {
-      notifyFor: '#main, #js-article-body, #js-article-date, .article-title',
+      notifyFor:
+        '#main, #js-article-body, #js-article-date, .article-title, ' +
+        'main:not(#main) > div:not(:has(#main, #js-article-body, #js-article-date, .article-title))',
     },
   },
   {
