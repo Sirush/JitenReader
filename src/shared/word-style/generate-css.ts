@@ -28,9 +28,16 @@ const DASH_PATTERNS: Record<UnderlineStyle, (thickness: number) => [number, numb
   dashed: (thickness) => [thickness * 3, thickness * 2],
 };
 
-function generateEffectCSS(effects: Effect[]): { normal: string[]; hover: string[] } {
+function generateEffectCSS(effects: Effect[]): {
+  normal: string[];
+  hover: string[];
+  furiNormal: string[];
+  furiHover: string[];
+} {
   const normal: string[] = [];
   const hover: string[] = [];
+  const furiNormal: string[] = [];
+  const furiHover: string[] = [];
   const shadows: string[] = [];
   let hasHoverTransitions = false;
 
@@ -111,6 +118,18 @@ function generateEffectCSS(effects: Effect[]): { normal: string[]; hover: string
         normal.push(`font-style: ${effect.value} !important;`);
 
         break;
+
+      case 'furigana':
+        // Hover reveal keeps the ruby space reserved to avoid layout shifts; a plain
+        // hide removes it entirely so the line collapses to normal text height
+        if (effect.hoverOnly) {
+          furiNormal.push('visibility: hidden !important;');
+          furiHover.push('visibility: visible !important;');
+        } else {
+          furiNormal.push('display: none !important;');
+        }
+
+        break;
     }
   }
 
@@ -132,7 +151,7 @@ function generateEffectCSS(effects: Effect[]): { normal: string[]; hover: string
     normal.push(`transition: ${transitions.join(', ')} !important;`);
   }
 
-  return { normal, hover };
+  return { normal, hover, furiNormal, furiHover };
 }
 
 export function generateWordStyleCSS(config: WordStyleConfig): string {
@@ -151,7 +170,7 @@ export function generateWordStyleCSS(config: WordStyleConfig): string {
       continue;
     }
 
-    const { normal, hover } = generateEffectCSS(stateStyle.effects);
+    const { normal, hover, furiNormal, furiHover } = generateEffectCSS(stateStyle.effects);
 
     if (normal.length) {
       lines.push(`.jiten-word.${state} {`);
@@ -172,10 +191,30 @@ export function generateWordStyleCSS(config: WordStyleConfig): string {
 
       lines.push('}');
     }
+
+    if (furiNormal.length) {
+      lines.push(`.jiten-word.${state} rt.jiten-furi {`);
+
+      for (const decl of furiNormal) {
+        lines.push(`  ${decl}`);
+      }
+
+      lines.push('}');
+    }
+
+    if (furiHover.length) {
+      lines.push(`.jiten-word.${state}:hover rt.jiten-furi {`);
+
+      for (const decl of furiHover) {
+        lines.push(`  ${decl}`);
+      }
+
+      lines.push('}');
+    }
   }
 
   if (iPlusOneStyle?.effects?.length) {
-    const { normal, hover } = generateEffectCSS(iPlusOneStyle.effects);
+    const { normal, hover, furiNormal, furiHover } = generateEffectCSS(iPlusOneStyle.effects);
 
     if (normal.length) {
       lines.push('.jiten-word.i-plus-one {');
@@ -191,6 +230,26 @@ export function generateWordStyleCSS(config: WordStyleConfig): string {
       lines.push('.jiten-word.i-plus-one:hover {');
 
       for (const decl of hover) {
+        lines.push(`  ${decl}`);
+      }
+
+      lines.push('}');
+    }
+
+    if (furiNormal.length) {
+      lines.push('.jiten-word.i-plus-one rt.jiten-furi {');
+
+      for (const decl of furiNormal) {
+        lines.push(`  ${decl}`);
+      }
+
+      lines.push('}');
+    }
+
+    if (furiHover.length) {
+      lines.push('.jiten-word.i-plus-one:hover rt.jiten-furi {');
+
+      for (const decl of furiHover) {
         lines.push(`  ${decl}`);
       }
 

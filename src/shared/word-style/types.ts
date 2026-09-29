@@ -9,7 +9,8 @@ export type EffectType =
   | 'blur'
   | 'opacity'
   | 'font-weight'
-  | 'font-style';
+  | 'font-style'
+  | 'furigana';
 
 export type UnderlineStyle = 'solid' | 'dashed' | 'dotted' | 'wavy';
 export type BorderStyle = 'solid' | 'dashed';
@@ -25,7 +26,8 @@ export type Effect =
   | { type: 'blur'; radius: number; hoverOnly: boolean }
   | { type: 'opacity'; value: number; hoverOnly: boolean }
   | { type: 'font-weight'; value: FontWeight }
-  | { type: 'font-style'; value: FontStyle };
+  | { type: 'font-style'; value: FontStyle }
+  | { type: 'furigana'; hoverOnly: boolean };
 
 export type StateStyle = {
   effects: Effect[];

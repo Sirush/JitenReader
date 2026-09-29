@@ -35,6 +35,7 @@ export const EFFECT_LABELS: Record<EffectType, string> = {
   opacity: 'Opacity',
   'font-weight': 'Font Weight',
   'font-style': 'Font Style',
+  furigana: 'Hide Furigana',
 };
 
 export const EFFECT_TYPES = Object.keys(EFFECT_LABELS) as EffectType[];

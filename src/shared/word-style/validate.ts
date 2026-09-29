@@ -138,6 +138,9 @@ function validateEffect(raw: unknown): Effect | null {
 
       return { type: 'font-style', value: raw.value as 'normal' | 'italic' };
 
+    case 'furigana':
+      return { type: 'furigana', hoverOnly: raw.hoverOnly === true };
+
     default:
       return null;
   }

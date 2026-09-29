@@ -24,17 +24,17 @@ import { decodeThemeCode, encodeThemeCode } from '@shared/word-style/theme-code'
 import { PRESET_THEMES } from '@shared/word-style/themes';
 import { Effect, EffectType, WordStyleConfig } from '@shared/word-style/types';
 
-const PREVIEW_WORDS: { text: string; state: string }[] = [
-  { text: '事典', state: 'new' },
+const PREVIEW_WORDS: { text: string; state: string; furigana?: { base: string; rt: string } }[] = [
+  { text: '事典', state: 'new', furigana: { base: '事典', rt: 'じてん' } },
   { text: 'を', state: 'unparsed' },
-  { text: '読む', state: 'mature' },
-  { text: '時', state: 'young' },
+  { text: '読む', state: 'mature', furigana: { base: '読', rt: 'よ' } },
+  { text: '時', state: 'young', furigana: { base: '時', rt: 'とき' } },
   { text: '、', state: 'unparsed' },
-  { text: '新しい', state: 'i-plus-one' },
-  { text: '言葉', state: 'due' },
+  { text: '新しい', state: 'i-plus-one', furigana: { base: '新', rt: 'あたら' } },
+  { text: '言葉', state: 'due', furigana: { base: '言葉', rt: 'ことば' } },
   { text: 'が', state: 'mastered' },
-  { text: '物', state: 'redundant' },
-  { text: '出て', state: 'frequent' },
+  { text: '物', state: 'redundant', furigana: { base: '物', rt: 'もの' } },
+  { text: '出て', state: 'frequent', furigana: { base: '出', rt: 'で' } },
   { text: 'くる', state: 'blacklisted' },
   { text: '。', state: 'unparsed' },
 ];
@@ -85,6 +85,8 @@ function defaultEffectForType(type: EffectType): Effect {
       return { type: 'font-weight', value: 'bold' };
     case 'font-style':
       return { type: 'font-style', value: 'italic' };
+    case 'furigana':
+      return { type: 'furigana', hoverOnly: false };
   }
 }
 
@@ -490,19 +492,13 @@ export class HTMLWordStyleEditorElement extends HTMLElement {
     const previewH = el('div', { class: 'preview-horizontal' });
 
     for (const word of PREVIEW_WORDS) {
-      const span = el('span', { class: `jiten-word preview-word ${word.state}` });
-
-      span.textContent = word.text;
-      previewH.appendChild(span);
+      previewH.appendChild(this._buildPreviewWord(word));
     }
 
     const previewV = el('div', { class: 'preview-vertical' });
 
     for (const word of PREVIEW_WORDS) {
-      const span = el('span', { class: `jiten-word preview-word ${word.state}` });
-
-      span.textContent = word.text;
-      previewV.appendChild(span);
+      previewV.appendChild(this._buildPreviewWord(word));
     }
 
     const legend = el('div', { class: 'preview-legend' });
@@ -536,6 +532,22 @@ export class HTMLWordStyleEditorElement extends HTMLElement {
     }
 
     this._previewContainer.append(header, previewH, previewV, legend);
+  }
+
+  private _buildPreviewWord(word: (typeof PREVIEW_WORDS)[number]): HTMLSpanElement {
+    const span = el('span', { class: `jiten-word preview-word ${word.state}` });
+
+    if (word.furigana) {
+      const ruby = el('ruby', {}, word.furigana.base);
+
+      ruby.appendChild(el('rt', { class: 'jiten-furi' }, word.furigana.rt));
+      span.appendChild(ruby);
+      span.append(word.text.slice(word.furigana.base.length));
+    } else {
+      span.textContent = word.text;
+    }
+
+    return span;
   }
 
   private _buildStateSections(): void {
@@ -815,6 +827,16 @@ export class HTMLWordStyleEditorElement extends HTMLElement {
           this._selectInput('Style', effect.value, FONT_STYLES as unknown as string[], (v) => {
             (this._config.states[stateKey].effects[index] as typeof effect).value =
               v as typeof effect.value;
+            onUpdate();
+          }),
+        );
+
+        break;
+
+      case 'furigana':
+        container.appendChild(
+          this._checkboxInput('Reveal on hover', effect.hoverOnly, (v) => {
+            (this._config.states[stateKey].effects[index] as typeof effect).hoverOnly = v;
             onUpdate();
           }),
         );
