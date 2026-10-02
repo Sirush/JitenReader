@@ -54,6 +54,19 @@ const validators: Partial<
   Record<keyof ConfigurationSchema, (value: unknown) => boolean | Promise<boolean>>
 > = {
   jitenApiKey: validateJitenApiKey,
+  jitenApiTimeout: (value) => {
+    const seconds = Number(value);
+    const valid = Number.isInteger(seconds) && seconds >= 1 && seconds <= 300;
+
+    if (!valid) {
+      displayToast(
+        'error',
+        'API request timeout must be a whole number between 1 and 300 seconds.',
+      );
+    }
+
+    return valid;
+  },
 };
 
 const configurationUpdatedCommand = new ConfigurationUpdatedCommand();
@@ -170,7 +183,11 @@ withElements(
       // Apply change listeners
       .then(() => {
         field.onchange = (): void => {
-          const value = checkbox ? field.checked : field.value;
+          const value = checkbox
+            ? field.checked
+            : field.name === 'jitenApiTimeout'
+              ? field.valueAsNumber
+              : field.value;
 
           void validateAndSet(field.name as keyof ConfigurationSchema, value, async () => {
             await setConfiguration(field.name as keyof ConfigurationSchema, value);

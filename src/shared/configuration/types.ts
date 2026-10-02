@@ -17,6 +17,7 @@ export type ConfigurationSchema = {
 
   jitenApiKey: string;
   jitenApiEndpoint: string;
+  jitenApiTimeout: number;
 
   //#endregion
   //#region Mining configuration
