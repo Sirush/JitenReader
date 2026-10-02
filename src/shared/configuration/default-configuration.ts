@@ -22,6 +22,7 @@ export const DEFAULT_CONFIGURATION = Object.freeze<ConfigurationSchema>({
 
   jitenApiKey: '',
   jitenApiEndpoint: 'https://api.jiten.moe/api',
+  jitenApiTimeout: 10,
 
   //#endregion
   //#region Mining configuration

@@ -1,10 +1,10 @@
+import { DEFAULT_CONFIGURATION } from '../configuration/default-configuration';
 import { getConfiguration } from '../configuration/get-configuration';
 import { displayToast } from '../dom/display-toast';
 import { JitenEndpoints, JitenErrorResponse, JitenRequestOptions } from './api.types';
 import { toConnectionError } from './connection-errors';
 import { RateLimitedError } from './rate-limited-error';
 
-const REQUEST_TIMEOUT_MS = 10_000;
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 500;
 const DEFAULT_RETRY_AFTER_MS = 5_000;
@@ -69,6 +69,11 @@ export const requestByUrl = async <Key extends keyof JitenEndpoints>(
   }
 
   const usedUrl = new URL(`${baseUrl}/${action}`);
+  const timeoutSeconds = await getConfiguration('jitenApiTimeout');
+  const requestTimeoutMs =
+    (Number.isInteger(timeoutSeconds) && timeoutSeconds >= 1 && timeoutSeconds <= 300
+      ? timeoutSeconds
+      : DEFAULT_CONFIGURATION.jitenApiTimeout) * 1000;
   let lastError: unknown;
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -83,7 +88,7 @@ export const requestByUrl = async <Key extends keyof JitenEndpoints>(
           Accept: 'application/json',
         },
         body: params ? JSON.stringify(params) : undefined,
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        signal: AbortSignal.timeout(requestTimeoutMs),
       });
     } catch (error) {
       lastError = error;
