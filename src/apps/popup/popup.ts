@@ -305,13 +305,18 @@ export class Popup {
    */
   private renderNodes(): void {
     this._shadowRoot = this._root.attachShadow({ mode: 'closed' });
+    const stylesheet = createElement('link', {
+      attributes: { rel: 'stylesheet', href: getStyleUrl('popup') },
+      events: {
+        onload: () => {
+          if (this._cardContext && this._root.style.visibility === 'visible') {
+            this.setPosition();
+          }
+        },
+      },
+    });
 
-    this._shadowRoot.append(
-      createElement('link', { attributes: { rel: 'stylesheet', href: getStyleUrl('popup') } }),
-      this._themeStyles,
-      this._customStyles,
-      this._popup,
-    );
+    this._shadowRoot.append(stylesheet, this._themeStyles, this._customStyles, this._popup);
 
     this._popup.appendChild(this._resizeHandle);
     this.initResize();
