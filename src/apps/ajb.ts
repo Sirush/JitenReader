@@ -282,4 +282,8 @@ export class AJB {
   }
 }
 
-new AJB();
+const isBuiltInReader = !!document.querySelector('meta[name="jiten-reader"][content="built-in"]');
+
+if (!isBuiltInReader) {
+  new AJB();
+}
