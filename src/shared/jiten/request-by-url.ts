@@ -1,10 +1,12 @@
 import { getConfiguration } from '../configuration/get-configuration';
 import { displayToast } from '../dom/display-toast';
 import { JitenEndpoints, JitenErrorResponse, JitenRequestOptions } from './api.types';
-import { toConnectionError } from './connection-errors';
+import { JITEN_TIMEOUT_MESSAGE, toConnectionError } from './connection-errors';
 import { RateLimitedError } from './rate-limited-error';
 
-const REQUEST_TIMEOUT_MS = 10_000;
+const CONNECT_TIMEOUT_MS = 10_000;
+const DOWNLOAD_STALL_TIMEOUT_MS = 15_000;
+const DOWNLOAD_TIMEOUT_MS = 300_000;
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 500;
 const DEFAULT_RETRY_AFTER_MS = 5_000;
@@ -28,7 +30,60 @@ export const isApiTokenRejected = async (): Promise<boolean> => {
   return (await getConfiguration('jitenApiKey')) === rejectedApiToken;
 };
 
+const DOWNLOAD_STALLED = Symbol('download stalled');
+
 const wait = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+
+const waitBeforeRetry = (attempt: number): Promise<void> => {
+  const backoff = INITIAL_BACKOFF_MS * 2 ** attempt;
+
+  return wait(backoff + Math.random() * backoff * 0.5);
+};
+
+const abortOnTimeout = (controller: AbortController): void =>
+  controller.abort(new DOMException('Request timed out', 'TimeoutError'));
+
+// Large parse responses can take minutes on slow connections, so only a download that stops progressing fails.
+const readBody = async (
+  response: Response,
+  controller: AbortController,
+): Promise<string | typeof DOWNLOAD_STALLED> => {
+  if (!response.body) {
+    return response.text();
+  }
+
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let stalled = false;
+  const onStall = (): void => {
+    stalled = true;
+    abortOnTimeout(controller);
+  };
+  const deadline = setTimeout(() => abortOnTimeout(controller), DOWNLOAD_TIMEOUT_MS);
+  let stall = setTimeout(onStall, DOWNLOAD_STALL_TIMEOUT_MS);
+
+  try {
+    let chunk = await reader.read();
+
+    while (!chunk.done) {
+      chunks.push(chunk.value);
+      clearTimeout(stall);
+      stall = setTimeout(onStall, DOWNLOAD_STALL_TIMEOUT_MS);
+      chunk = await reader.read();
+    }
+  } catch (error) {
+    if (stalled) {
+      return DOWNLOAD_STALLED;
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(deadline);
+    clearTimeout(stall);
+  }
+
+  return new Blob(chunks).text();
+};
 
 const parseRetryAfter = (header: string | null): number => {
   const seconds = Number(header);
@@ -70,9 +125,12 @@ export const requestByUrl = async <Key extends keyof JitenEndpoints>(
 
   const usedUrl = new URL(`${baseUrl}/${action}`);
   let lastError: unknown;
+  let downloadRetried = false;
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     let response: Response | undefined;
+    const controller = new AbortController();
+    const connectTimeout = setTimeout(() => abortOnTimeout(controller), CONNECT_TIMEOUT_MS);
 
     try {
       response = await fetch(usedUrl, {
@@ -83,20 +141,20 @@ export const requestByUrl = async <Key extends keyof JitenEndpoints>(
           Accept: 'application/json',
         },
         body: params ? JSON.stringify(params) : undefined,
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        signal: controller.signal,
       });
     } catch (error) {
       lastError = error;
 
       if (attempt < MAX_RETRIES - 1) {
-        const backoff = INITIAL_BACKOFF_MS * 2 ** attempt;
-
-        await wait(backoff + Math.random() * backoff * 0.5);
+        await waitBeforeRetry(attempt);
 
         continue;
       }
 
       throw toConnectionError(error);
+    } finally {
+      clearTimeout(connectTimeout);
     }
 
     if (response.status === 401 || response.status === 403) {
@@ -110,14 +168,34 @@ export const requestByUrl = async <Key extends keyof JitenEndpoints>(
     }
 
     if (!response.ok && isRetryable(null, response) && attempt < MAX_RETRIES - 1) {
-      const backoff = INITIAL_BACKOFF_MS * 2 ** attempt;
-
-      await wait(backoff + Math.random() * backoff * 0.5);
+      await waitBeforeRetry(attempt);
 
       continue;
     }
 
-    const responseObject = (await response.json()) as JitenErrorResponse | JitenEndpoints[Key][1];
+    let body: string | typeof DOWNLOAD_STALLED;
+
+    try {
+      body = await readBody(response, controller);
+    } catch (error) {
+      throw toConnectionError(error);
+    }
+
+    if (body === DOWNLOAD_STALLED) {
+      lastError = new Error(JITEN_TIMEOUT_MESSAGE);
+
+      // Retried once: a stall usually means a dropped connection, whereas hitting the overall cap means a slow one.
+      if (!downloadRetried && attempt < MAX_RETRIES - 1) {
+        downloadRetried = true;
+        await waitBeforeRetry(attempt);
+
+        continue;
+      }
+
+      throw lastError;
+    }
+
+    const responseObject = JSON.parse(body) as JitenErrorResponse | JitenEndpoints[Key][1];
 
     if ('error_message' in (responseObject as JitenErrorResponse)) {
       throw new Error((responseObject as JitenErrorResponse).error_message);
