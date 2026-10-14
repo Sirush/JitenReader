@@ -3,6 +3,45 @@ import { JitenCard, JitenRawVocabulary, JitenToken, JitenRuby } from '@shared/ji
 import { Batch } from './parser.types';
 import { getPitchClass } from './pitch-accent-utils';
 
+type PrefixReadings = readonly [prefix: string, reading: string][];
+
+// First prefix match wins, so longer prefixes come first.
+const KURU_READINGS: PrefixReadings = [
+  ['ない', 'こ'],
+  ['なか', 'こ'],
+  ['なく', 'こ'],
+  ['なけ', 'こ'],
+  ['なきゃ', 'こ'],
+  ['れば', 'く'],
+  ['りゃ', 'く'],
+  ['る', 'く'],
+  ['な', 'き'],
+  ['た', 'き'],
+  ['て', 'き'],
+  ['ま', 'き'],
+  ['ち', 'き'],
+  ['そう', 'き'],
+  ['と', 'き'],
+  ['や', 'き'],
+  ['つ', 'き'],
+  ['っ', 'き'],
+  ['れ', 'こ'],
+  ['ら', 'こ'],
+  ['さ', 'こ'],
+  ['よ', 'こ'],
+  ['い', 'こ'],
+  ['ず', 'こ'],
+  ['ぬ', 'こ'],
+  ['ね', 'こ'],
+  ['ん', 'こ'],
+];
+
+// うる survives only in the plain and べき forms; every other conjugation of 得る reads え (あり得ない, あり得ます).
+const URU_READINGS: PrefixReadings = [
+  ['る', 'う'],
+  ['べ', 'う'],
+];
+
 export class Parser {
   constructor(private batch: Batch) {}
 
@@ -11,7 +50,7 @@ export class Parser {
     const { tokens, vocabulary } = await parse(paragraphs, { failFastOnRateLimit: true });
 
     const cards = this.vocabToCard(vocabulary);
-    const parsedTokens = this.parseTokens(tokens, cards, vocabulary);
+    const parsedTokens = this.parseTokens(tokens, cards, vocabulary, paragraphs);
 
     this.addSentenceInfo(paragraphs, parsedTokens);
 
@@ -56,6 +95,61 @@ export class Parser {
     }
 
     return rubies;
+  }
+
+  /** Moves dictionary-form rubies onto the token's surface text, dropping any whose base the surface does not share. */
+  private alignRubiesToSurface(
+    rubies: JitenRuby[],
+    vocab: JitenRawVocabulary,
+    paragraph: string,
+    token: JitenToken,
+  ): JitenRuby[] {
+    const dictionaryText = vocab.reading.replace(/\[[^\]]*\]/g, '');
+    const surface = paragraph.slice(token.start, token.end);
+
+    return rubies.flatMap((ruby) => {
+      const base = dictionaryText.slice(ruby.start, ruby.end);
+
+      if (surface.slice(ruby.start, ruby.end) !== base) {
+        return [];
+      }
+
+      const text =
+        dictionaryText.slice(ruby.end) === 'る'
+          ? this.getVerbFinalReading(base, ruby.text, paragraph.slice(token.start + ruby.end))
+          : ruby.text;
+
+      if (!text) {
+        return [];
+      }
+
+      return [{ ...ruby, text, start: token.start + ruby.start, end: token.start + ruby.end }];
+    });
+  }
+
+  /** The kanji's reading in a verb ending in ruby + る (やって来[く]る, あり得[う]る), where 来 and 得 change reading with the conjugation. */
+  private getVerbFinalReading(
+    base: string,
+    reading: string,
+    following: string,
+  ): string | undefined {
+    if ((base === '来' || base === '來') && reading === 'く') {
+      return this.matchFollowing(KURU_READINGS, following);
+    }
+
+    if (base === '得' && reading === 'う') {
+      return this.matchFollowing(URU_READINGS, following) ?? 'え';
+    }
+
+    return reading;
+  }
+
+  private matchFollowing(table: PrefixReadings, following: string): string | undefined {
+    const next = following
+      .slice(0, 3)
+      .replace(/[ァ-ヶ]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60));
+
+    return table.find(([prefix]) => next.startsWith(prefix))?.[1];
   }
 
   private vocabToCard(vocabulary: JitenRawVocabulary[]): JitenCard[] {
@@ -120,6 +214,7 @@ export class Parser {
     tokens: JitenToken[][],
     cards: JitenCard[],
     vocabulary: JitenRawVocabulary[],
+    paragraphs: string[],
   ): JitenToken[][] {
     const vocabMap = new Map<string, JitenRawVocabulary>();
     const cardMap = new Map<string, JitenCard>();
@@ -132,7 +227,7 @@ export class Parser {
       cardMap.set(this.buildLookupKey(c.wordId, c.readingIndex), c);
     }
 
-    return tokens.map((group) => {
+    return tokens.map((group, i) => {
       let lastPitchClass = '';
 
       return group.map((token) => {
@@ -145,12 +240,11 @@ export class Parser {
 
         lastPitchClass = pitchClass || lastPitchClass;
 
-        const rubies = vocabEntry?.reading
-          ? this.extractRubiesFromAnnotated(vocabEntry.reading).map((ruby) => ({
-              ...ruby,
-              start: token.start + ruby.start,
-              end: token.start + ruby.start + ruby.length,
-            }))
+        const dictionaryRubies = vocabEntry?.reading
+          ? this.extractRubiesFromAnnotated(vocabEntry.reading)
+          : [];
+        const rubies = vocabEntry
+          ? this.alignRubiesToSurface(dictionaryRubies, vocabEntry, paragraphs[i], token)
           : [];
 
         const updated: JitenToken = {
@@ -161,7 +255,7 @@ export class Parser {
         };
 
         if (card) {
-          this.assignWordWithReadingJiten(updated, card);
+          this.assignWordWithReadingJiten(card, dictionaryRubies);
         }
 
         return updated;
@@ -169,26 +263,22 @@ export class Parser {
     });
   }
 
-  private assignWordWithReadingJiten(token: JitenToken, card: JitenCard): void {
-    const ruby = token.rubies;
-    const offset = token.start;
-    const kanji = card.spelling;
-
-    if (!ruby.length) {
+  private assignWordWithReadingJiten(card: JitenCard, rubies: JitenRuby[]): void {
+    if (!rubies.length) {
       return;
     }
 
-    const word = kanji.split('');
+    const word = card.spelling.split('');
 
     // Misaligned rubies would garble the headword; leaving it null falls back to the plain spelling
-    if (ruby.some(({ start, length }) => start < offset || start - offset + length > word.length)) {
+    if (rubies.some(({ start, length }) => start + length > word.length)) {
       return;
     }
 
-    for (let i = ruby.length - 1; i >= 0; i--) {
-      const { text, start, length } = ruby[i];
+    for (let i = rubies.length - 1; i >= 0; i--) {
+      const { text, start, length } = rubies[i];
 
-      word.splice(start - offset + length, 0, `[${text}]`);
+      word.splice(start + length, 0, `[${text}]`);
     }
 
     card.wordWithReading = word.join('');
