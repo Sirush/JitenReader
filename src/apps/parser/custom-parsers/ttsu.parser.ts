@@ -47,10 +47,14 @@ export class TtsuParser extends AutomaticParser {
   protected visibleObserverOnEnter(elements: HTMLElement[]): void {
     const [element] = elements;
     const container = element.querySelector('.book-content-container');
-    const chapters = element.querySelectorAll('[id^="ttu');
+    const chapters = element.querySelectorAll('[id^="ttu"], [id^="section-"]');
 
     if (container) {
-      this._pageObserver = new MutationObserver(() => {
+      this._pageObserver = new MutationObserver((mutations) => {
+        if (!mutations.some((mutation) => this.isSectionChange(mutation))) {
+          return;
+        }
+
         Registry.sentenceManager.reset();
 
         this.parseNode(container);
@@ -59,7 +63,10 @@ export class TtsuParser extends AutomaticParser {
       this._pageObserver.observe(container, {
         attributes: true,
         attributeFilter: ['id'],
+        childList: true,
       });
+
+      this.parseNode(container);
 
       return;
     }
@@ -111,6 +118,16 @@ export class TtsuParser extends AutomaticParser {
     for (const chapter of chapters) {
       this._chapterObserver.observe(chapter);
     }
+  }
+
+  private isSectionChange(mutation: MutationRecord): boolean {
+    if (mutation.type === 'attributes') {
+      return true;
+    }
+
+    return Array.from(mutation.addedNodes).some(
+      (node) => !(node instanceof Element && node.matches('.jiten-word')),
+    );
   }
 
   private reserveFuriganaSpace(): void {
