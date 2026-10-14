@@ -9,12 +9,14 @@ import { ConfigurationUpdatedCommand } from '@shared/messages/broadcast/configur
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { getThemeCssVars } from '@shared/theme/get-theme-css-vars';
 import {
-  calculateComprehension,
+  calculateCoverage,
   calculateCoverageFromDOM,
   calculateStatsFromRegistry,
-  calculateUniqueComprehension,
+  calculateUniqueCoverage,
+  calculateUniqueYoungCoverage,
+  calculateYoungCoverage,
   CoverageStats,
-  getComprehensionColour,
+  getCoverageColour,
 } from './stats-calculator';
 import { StatusBarButton, StatusBarStats } from './types';
 
@@ -58,6 +60,9 @@ export class StatusBar {
 
   private _coverageContainer: HTMLDivElement = createElement('div', {
     class: ['coverage-container'],
+    attributes: {
+      title: 'Share of all words on this page you know, plus the share you are still learning',
+    },
   });
 
   private _coverageLabel: HTMLSpanElement = createElement('span', {
@@ -66,6 +71,9 @@ export class StatusBar {
   });
 
   private _coverageValue: HTMLSpanElement = createElement('span', { class: ['coverage-value'] });
+  private _youngCoverageValue: HTMLSpanElement = createElement('span', {
+    class: ['coverage-young'],
+  });
 
   private _buttonsContainer: HTMLDivElement = createElement('div', {
     class: ['buttons-container'],
@@ -89,6 +97,10 @@ export class StatusBar {
     },
   });
 
+  private _uniqueCoverageEl: HTMLSpanElement = createElement('span', { class: ['stat'] });
+  private _uniqueYoungCoverageEl: HTMLSpanElement = createElement('span', {
+    class: ['stat', 'young'],
+  });
   private _totalEl: HTMLSpanElement = createElement('span', { class: ['stat', 'total'] });
   private _masteredEl: HTMLSpanElement = createElement('span', { class: ['stat', 'mastered'] });
   private _matureEl: HTMLSpanElement = createElement('span', { class: ['stat', 'mature'] });
@@ -215,9 +227,28 @@ export class StatusBar {
   private renderNodes(): void {
     const shadowRoot = this._root.attachShadow({ mode: 'closed' });
 
-    this._coverageContainer.append(this._coverageLabel, this._coverageValue);
+    this._coverageContainer.append(
+      this._coverageLabel,
+      this._coverageValue,
+      this._youngCoverageValue,
+    );
 
     this._statsDropdown.append(
+      createElement('div', {
+        class: ['stat-row'],
+        children: [
+          createElement('span', { class: ['stat-label'], innerText: 'Unique coverage:' }),
+          this._uniqueCoverageEl,
+        ],
+      }),
+      createElement('div', {
+        class: ['stat-row'],
+        children: [
+          createElement('span', { class: ['stat-label'], innerText: 'Young unique coverage:' }),
+          this._uniqueYoungCoverageEl,
+        ],
+      }),
+      createElement('div', { class: ['stat-divider'] }),
       createElement('div', {
         class: ['stat-row'],
         children: [
@@ -350,12 +381,16 @@ export class StatusBar {
 
   private updateStatsDisplay(coverage?: CoverageStats): void {
     const coverageStats = coverage ?? calculateCoverageFromDOM();
-    const comprehension = calculateComprehension(coverageStats);
-    const uniqueComprehension = calculateUniqueComprehension(coverageStats);
-    const colour = getComprehensionColour(comprehension);
+    const coveragePercentage = calculateCoverage(coverageStats);
+    const uniqueCoveragePercentage = calculateUniqueCoverage(coverageStats);
 
-    this._coverageValue.innerText = `${comprehension}% (Unique ${uniqueComprehension}%)`;
-    this._coverageValue.style.color = colour;
+    this._coverageValue.innerText = `${coveragePercentage}%`;
+    this._coverageValue.style.color = getCoverageColour(coveragePercentage);
+    this._youngCoverageValue.innerText = `+${calculateYoungCoverage(coverageStats)}% young`;
+
+    this._uniqueCoverageEl.innerText = `${uniqueCoveragePercentage}%`;
+    this._uniqueCoverageEl.style.color = getCoverageColour(uniqueCoveragePercentage);
+    this._uniqueYoungCoverageEl.innerText = `${calculateUniqueYoungCoverage(coverageStats)}%`;
 
     this._totalEl.innerText = this._stats.total.toString();
     this._masteredEl.innerText = this._stats.mastered.toString();
@@ -376,9 +411,8 @@ export class StatusBar {
     }
 
     const coverageStats = coverage ?? calculateCoverageFromDOM();
-    const comprehension = calculateComprehension(coverageStats);
 
-    new UpdateBadgeCommand(comprehension).send();
+    new UpdateBadgeCommand(calculateCoverage(coverageStats)).send();
   }
 
   private updateLockButton(): void {
