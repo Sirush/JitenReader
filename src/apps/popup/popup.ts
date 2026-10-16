@@ -319,6 +319,9 @@ export class Popup {
       x: this._popupLeft,
       y: this._popupTop,
     }));
+
+    // load fonts and stylesheets before showing the popup to avoid a flash of unstyled content
+    this.updateParentElement();
   }
 
   private updateParentElement(): void {
