@@ -1,3 +1,4 @@
+import { lookupFromFrame } from '@shared/dictionaries/frame-lookup';
 import {
   DICTIONARY_TIMEOUT,
   DictionaryLookup,
@@ -17,7 +18,7 @@ export class LookupDictionariesCommandHandler extends BackgroundCommandHandler<L
     _sender: MessageSender,
     lookup: DictionaryLookup,
   ): Promise<DictionaryLookupResult> {
-    if (!chrome.offscreen || !isDictionaryLookup(lookup)) {
+    if (!isDictionaryLookup(lookup)) {
       return { status: 'unavailable' };
     }
 
@@ -40,6 +41,12 @@ export class LookupDictionariesCommandHandler extends BackgroundCommandHandler<L
     lookup: DictionaryLookup,
     deadline: number,
   ): Promise<DictionaryLookupResult> {
+    if (!chrome.offscreen) {
+      return typeof document === 'undefined'
+        ? { status: 'unavailable' }
+        : lookupFromFrame(lookup, Math.max(1, deadline - Date.now()));
+    }
+
     for (let attempt = 0; attempt < 2 && Date.now() < deadline; attempt++) {
       try {
         await ensureOffscreenDocument();

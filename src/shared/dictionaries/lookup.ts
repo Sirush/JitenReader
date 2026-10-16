@@ -115,7 +115,8 @@ async function lookupDictionary(
 export async function lookupDictionaries(
   lookup: DictionaryLookup,
 ): Promise<DictionaryLookupResult> {
-  const dictionaries = await readDictionaries();
+  // Firefox wraps IndexedDB arrays; sort and append settings in the content script's own array.
+  const dictionaries = [...(await readDictionaries())];
   const jmDict = readJmDictSettings();
 
   // The site's no-custom-dictionaries path always retains the built-in definitions.

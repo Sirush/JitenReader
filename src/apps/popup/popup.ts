@@ -321,7 +321,12 @@ export class Popup {
     this._shadowRoot = this._root.attachShadow({ mode: 'closed' });
     const stylesheet = createElement('link', {
       attributes: { rel: 'stylesheet', href: getStyleUrl('popup') },
-      events: { onload: () => this.setPosition() },
+      events: {
+        onload: () => {
+          this.ensureMinimumDetailsHeight();
+          this.setPosition();
+        },
+      },
     });
 
     this._shadowRoot.append(stylesheet, this._themeStyles, this._customStyles, this._popup);
