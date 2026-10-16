@@ -1,6 +1,7 @@
 import { getConfiguration, invalidateProfileCache } from '@shared/configuration/get-configuration';
 import { invalidateSetConfigurationCache } from '@shared/configuration/set-configuration';
 import { debug } from '@shared/debug';
+import { isDictionaryBridgeFrame } from '@shared/dictionaries/types';
 import { displayToast } from '@shared/dom/display-toast';
 import { HostMeta, PredefinedHostMeta } from '@shared/host-meta/types';
 import { JitenCardState } from '@shared/jiten/types';
@@ -285,5 +286,7 @@ export class AJB {
 const isBuiltInReader = !!document.querySelector('meta[name="jiten-reader"][content="built-in"]');
 
 if (!isBuiltInReader) {
-  new AJB();
+  if (!isDictionaryBridgeFrame()) {
+    new AJB();
+  }
 }

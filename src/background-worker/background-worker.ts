@@ -27,12 +27,14 @@ import { GradeCardCommandHandler } from './jiten-card-actions/grade-card-command
 import { RunDeckActionCommandHandler } from './jiten-card-actions/run-deck-action-command.handler';
 import { UpdateCardStateCommandHandler } from './jiten-card-actions/update-card-state-command.handler';
 import { BackgroundCommandHandlerCollection } from './lib/background-command-handler-collection';
+import { ensureOffscreenDocument } from './lib/offscreen-document';
 import { openClipboardReader } from './lib/open-clipboard-reader';
 import { OpenClipboardReaderCommandHandler } from './lib/open-clipboard-reader-command.handler';
 import { OpenSettingsCommandHandler } from './lib/open-settings-command.handler';
 import { initParsingPausedIcon } from './lib/parsing-paused-icon';
 import { UpdateBadgeCommandHandler } from './lib/update-badge-command.handler';
 import { LookupController } from './lookup/lookup-controller';
+import { LookupDictionariesCommandHandler } from './lookup/lookup-dictionaries-command.handler';
 import { LookupTextCommandHandler } from './lookup/lookup-text-command.handler';
 import { AbortRequestCommandHandler } from './parser/abort-request-command.handler';
 import { ParseCommandHandler } from './parser/parse-command.handler';
@@ -87,6 +89,7 @@ const handlerCollection = new BackgroundCommandHandlerCollection(
   openClipboardReaderCommandHandler,
   updateBadgeCommandHandler,
   fetchPdfCommandHandler,
+  new LookupDictionariesCommandHandler(),
 );
 
 handlerCollection.listen();
@@ -98,22 +101,6 @@ chrome.commands?.onCommand.addListener((command) => {
 });
 
 initParsingPausedIcon();
-
-async function ensureOffscreenDocument(): Promise<void> {
-  const contexts = await chrome.runtime.getContexts({
-    contextTypes: [chrome.runtime.ContextType.OFFSCREEN_DOCUMENT],
-  });
-
-  if (contexts.length > 0) {
-    return;
-  }
-
-  await chrome.offscreen.createDocument({
-    url: 'views/offscreen.html',
-    reasons: [chrome.offscreen.Reason.AUDIO_PLAYBACK],
-    justification: 'TTS audio playback',
-  });
-}
 
 runtime.onMessage.addListener(
   (

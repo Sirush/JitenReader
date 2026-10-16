@@ -7,6 +7,10 @@ export const transformManifest = (content, env) => {
 
   if (env.firefox) {
     delete manifest.minimum_chrome_version;
+    manifest.permissions = manifest.permissions.filter((permission) => permission !== 'offscreen');
+    manifest.content_scripts = manifest.content_scripts.filter(
+      (script) => !script.js.includes('js/dictionary-bridge.js'),
+    );
 
     Object.assign(manifest, {
       background: {

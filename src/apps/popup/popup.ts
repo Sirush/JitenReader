@@ -1,5 +1,6 @@
 import { getConfiguration } from '@shared/configuration/get-configuration';
 import { setConfiguration } from '@shared/configuration/set-configuration';
+import { DictionaryGroup } from '@shared/dictionaries/types';
 import { createElement } from '@shared/dom/create-element';
 import { displayToast } from '@shared/dom/display-toast';
 import { findElements } from '@shared/dom/find-elements';
@@ -10,6 +11,7 @@ import { StudyDeckListItem } from '@shared/jiten/api.types';
 import { JitenCard, JitenCardState, STUDY_DECK_CLASS, StudyDeckType } from '@shared/jiten/types';
 import { FetchStudyDecksCommand } from '@shared/messages/background/fetch-study-decks.command';
 import { ForgetCardCommand } from '@shared/messages/background/forget-card.command';
+import { LookupDictionariesCommand } from '@shared/messages/background/lookup-dictionaries.command';
 import { UpdateCardStateCommand } from '@shared/messages/background/update-card-state.command';
 import { onBroadcastMessage } from '@shared/messages/receiving/on-broadcast-message';
 import { cleanReading, getPitchDiagramData } from '@shared/pitch-accent-utils';
@@ -24,6 +26,7 @@ import { GradingController } from './actions/grading-controller';
 import { MiningController } from './actions/mining-controller';
 import { RotationController } from './actions/rotation-controller';
 import { ConfirmDialog } from './confirm-dialog';
+import { renderDictionaryDefinitions } from './dictionary-definitions';
 import { PARTS_OF_SPEECH } from './part-of-speech';
 
 export class Popup {
@@ -147,6 +150,9 @@ export class Popup {
   private _conjugations?: string[];
   private _card?: JitenCard;
   private _sentence?: string;
+  private _dictionaryGroups?: DictionaryGroup[];
+  private _dictionaryTab?: string;
+  private _dictionaryRequest = 0;
 
   constructor(
     private _mining: MiningController,
@@ -182,6 +188,9 @@ export class Popup {
     this._card = Registry.getCardFromElement(context);
     this._sentence = sentence;
     this._conjugations = Registry.getConjugations(context);
+    this._dictionaryGroups = undefined;
+    this._dictionaryTab = undefined;
+    const dictionaryRequest = ++this._dictionaryRequest;
 
     this.clearTimer();
     this.clearDwellTimer();
@@ -211,9 +220,14 @@ export class Popup {
     }
 
     this.armDwellTimer(explicit);
+
+    if (this._card) {
+      void this.loadDictionaryDefinitions(this._card, dictionaryRequest);
+    }
   }
 
   public hide(): void {
+    this._dictionaryRequest++;
     stopTts();
     this.clearDwellTimer();
 
@@ -935,7 +949,14 @@ export class Popup {
     }
 
     const fontSize = parseFloat(getComputedStyle(this._details).fontSize) || 16;
-    const missingHeight = Math.ceil(fontSize * 1.5 * 2) - this._details.clientHeight;
+    const panel = this._details.querySelector<HTMLElement>('#dictionary-panel');
+    const aboveDefinitions = panel
+      ? panel.getBoundingClientRect().top -
+        this._details.getBoundingClientRect().top +
+        this._details.scrollTop
+      : 0;
+    const missingHeight =
+      Math.ceil(aboveDefinitions + fontSize * 1.5 * 2) - this._details.clientHeight;
 
     if (missingHeight > 0) {
       const extraHeight = Math.min(missingHeight, hiddenHeight);
@@ -1363,29 +1384,124 @@ export class Popup {
       children.push(conjugationsBlock);
     }
 
-    children.push(
-      ...groupedMeanings.flatMap(({ partsOfSpeech, glosses, startIndex }) => [
-        createElement('div', {
-          class: 'pos',
-          children: partsOfSpeech
-            .map((pos) => PARTS_OF_SPEECH[pos] ?? 'Unknown')
-            .filter(Boolean)
-            .map((pos) => createElement('span', { innerText: pos })),
-        }),
-        createElement('ol', {
-          attributes: {
-            start: (startIndex + 1).toString(),
+    const defaultDefinitions = groupedMeanings.flatMap(({ partsOfSpeech, glosses, startIndex }) => [
+      createElement('div', {
+        class: 'pos',
+        children: partsOfSpeech
+          .map((pos) => PARTS_OF_SPEECH[pos] ?? 'Unknown')
+          .filter(Boolean)
+          .map((pos) => createElement('span', { innerText: pos })),
+      }),
+      createElement('ol', {
+        attributes: {
+          start: (startIndex + 1).toString(),
+        },
+        children: glosses.map((g) =>
+          createElement('li', {
+            innerText: g.join('; '),
+          }),
+        ),
+      }),
+    ]);
+
+    const groups = this._dictionaryGroups;
+
+    if (!groups || (groups.length === 1 && groups[0].isJmDict)) {
+      children.push(...defaultDefinitions);
+    } else if (groups.length > 0) {
+      const tabList = createElement('div', {
+        class: 'dictionary-tabs',
+        attributes: { role: 'tablist', 'aria-label': 'Dictionaries' },
+      });
+      const panel = createElement('div', {
+        id: 'dictionary-panel',
+        attributes: { role: 'tabpanel', tabindex: '0' },
+      });
+      const select = (index: number): void => {
+        const group = groups[index];
+
+        this._dictionaryTab = group.dictionaryId;
+        Array.from(tabList.children).forEach((tab, i) => {
+          tab.setAttribute('aria-selected', String(i === index));
+          tab.setAttribute('tabindex', i === index ? '0' : '-1');
+        });
+        panel.setAttribute('aria-labelledby', `dictionary-tab-${index}`);
+        panel.replaceChildren(
+          ...(group.isJmDict
+            ? defaultDefinitions
+            : [renderDictionaryDefinitions(group.customDefinitions ?? [])]),
+        );
+        this.ensureMinimumDetailsHeight();
+        this.setPosition();
+      };
+
+      groups.forEach((group, index) => {
+        const tab = createElement('button', {
+          id: `dictionary-tab-${index}`,
+          innerText: group.dictionaryName,
+          attributes: { type: 'button', role: 'tab', 'aria-controls': panel.id },
+          handler: () => select(index),
+          events: {
+            onkeydown: (event: KeyboardEvent) => {
+              const next =
+                event.key === 'Home'
+                  ? 0
+                  : event.key === 'End'
+                    ? groups.length - 1
+                    : event.key === 'ArrowRight'
+                      ? (index + 1) % groups.length
+                      : event.key === 'ArrowLeft'
+                        ? (index - 1 + groups.length) % groups.length
+                        : -1;
+
+              if (next >= 0) {
+                event.preventDefault();
+                event.stopPropagation();
+                select(next);
+                (tabList.children[next] as HTMLElement).focus();
+              }
+            },
           },
-          children: glosses.map((g) =>
-            createElement('li', {
-              innerText: g.join('; '),
-            }),
-          ),
-        }),
-      ]),
-    );
+        });
+
+        tabList.append(tab);
+      });
+      select(
+        Math.max(
+          0,
+          groups.findIndex((group) => group.dictionaryId === this._dictionaryTab),
+        ),
+      );
+      children.push(tabList, panel);
+    }
 
     this._details.replaceChildren(...children);
+  }
+
+  private async loadDictionaryDefinitions(card: JitenCard, requestId: number): Promise<void> {
+    try {
+      const result = await new LookupDictionariesCommand({
+        word: card.spelling,
+        reading: card.reading.replace(/([^[\]]+)\[([^\]]+)\]/g, '$2').replace(/[\[\]]/g, ''),
+        hasJmDictDefinitions: card.meanings.length > 0,
+      }).call();
+
+      if (
+        result.status !== 'ok' ||
+        requestId !== this._dictionaryRequest ||
+        this._card?.wordId !== card.wordId ||
+        this._card.readingIndex !== card.readingIndex
+      ) {
+        return;
+      }
+
+      this._dictionaryGroups = result.groups;
+      this.adjustDetails(this._card);
+      this.ensureMinimumDetailsHeight();
+      this.setPosition();
+    } catch {
+      // Missing site storage or an unavailable bridge keeps the built-in meanings.
+    }
   }
 
   private getGroupedMeanings(card: JitenCard): {

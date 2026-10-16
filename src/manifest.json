@@ -52,6 +52,12 @@
   },
   "content_scripts": [
     {
+      "matches": ["https://jiten.moe/*"],
+      "js": ["js/dictionary-bridge.js"],
+      "all_frames": true,
+      "run_at": "document_start"
+    },
+    {
       "matches": [
         "<all_urls>"
       ],
