@@ -1,4 +1,40 @@
+import { lookupFromFrame } from '@shared/dictionaries/frame-lookup';
+import {
+  DICTIONARY_TIMEOUT,
+  DictionaryLookupResult,
+  isDictionaryLookup,
+} from '@shared/dictionaries/types';
+
 let currentAudio: HTMLAudioElement | undefined;
+
+chrome.runtime.onMessage.addListener(
+  (
+    message: { target?: string; lookup?: unknown; timeout?: number },
+    sender,
+    sendResponse: (result: DictionaryLookupResult) => void,
+  ) => {
+    if (message.target !== 'dictionary-offscreen') {
+      return false;
+    }
+
+    if (
+      sender.id !== chrome.runtime.id ||
+      sender.url !== chrome.runtime.getURL('js/background-worker.js') ||
+      !isDictionaryLookup(message.lookup)
+    ) {
+      return false;
+    }
+
+    const timeout = Math.max(
+      1,
+      Math.min(message.timeout ?? DICTIONARY_TIMEOUT, DICTIONARY_TIMEOUT),
+    );
+
+    void lookupFromFrame(message.lookup, timeout).then(sendResponse);
+
+    return true;
+  },
+);
 
 chrome.runtime.onMessage.addListener(
   (message: { type?: string; data?: number[] }, _sender, sendResponse) => {

@@ -7,6 +7,7 @@ export const transformManifest = (content, env) => {
 
   if (env.firefox) {
     delete manifest.minimum_chrome_version;
+    manifest.permissions = manifest.permissions.filter((permission) => permission !== 'offscreen');
 
     Object.assign(manifest, {
       background: {

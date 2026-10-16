@@ -229,6 +229,46 @@
       overflow: auto;
       margin-top: 0.5em;
 
+      .dictionary-tabs {
+        display: flex;
+        gap: 0.25em;
+        overflow-x: auto;
+        margin-bottom: 0.5em;
+
+        button {
+          flex: 0 0 auto;
+          height: auto;
+          color: inherit;
+          background: transparent;
+          border: 0;
+          border-bottom: 2px solid transparent;
+          border-radius: 0;
+          box-shadow: none;
+          padding: 0.35em 0.5em;
+          font: inherit;
+          font-size: 0.8em;
+          white-space: nowrap;
+          cursor: pointer;
+
+          &[aria-selected='true'] {
+            border-bottom-color: currentColor;
+          }
+
+          &:focus-visible {
+            outline: 2px solid currentColor;
+            outline-offset: -2px;
+          }
+        }
+      }
+
+      .dictionary-content {
+        overflow-wrap: anywhere;
+
+        table {
+          border-collapse: collapse;
+        }
+      }
+
       #conjugations {
         font-size: 0.9em;
         margin-bottom: 0.75em;
